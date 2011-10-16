@@ -36,13 +36,14 @@ import org.bukkit.Location;
  * @author John Keay
  */
 public class CatCuboid extends Cuboid {
-  private CatCuboidType type = CatCuboidType.LEVEL;
+  private Type type = Type.LEVEL;
   private Boolean enable = true;
   private World world = null;
   // World
   // Dungeon
+  public enum Type { LEVEL, HUT }
 
-  public CatCuboid(World world,int xl,int yl,int zl,int xh,int yh, int zh, CatCuboidType type) {
+  public CatCuboid(World world,int xl,int yl,int zl,int xh,int yh, int zh, Type type) {
     super(xl,yl,zl,xh,yh,zh);
     this.type = type;
     this.world = world;
@@ -58,10 +59,10 @@ public class CatCuboid extends Cuboid {
     return super.toString()+" enable="+enable+" world="+world+" type="+type;
   }
 
-  public void setType(CatCuboidType t) {
+  public void setType(Type t) {
     type = t;
   }
-  public CatCuboidType getType() {
+  public Type getType() {
     return type;
   }
 
@@ -99,7 +100,7 @@ public class CatCuboid extends Cuboid {
   public void unrender(BlockChangeHandler handler,Boolean emptyChest) {
     int num_air = 4;
     // TODO Figure out num_air by inspection
-    if(type==CatCuboidType.LEVEL)
+    if(type==Type.LEVEL)
       setCube(handler,Material.STONE,true);
     else {
       CatCuboid floor = new CatCuboid(world,xl,yl,zl,xh,yh-num_air,zh);
@@ -200,7 +201,7 @@ public class CatCuboid extends Cuboid {
           Block blk = world.getBlockAt(x,y,z);
           if(blk.getType() == Material.CHEST) {
             Chest chest = (Chest) blk.getState();
-            if(type == CatCuboidType.HUT) {  // Leave chests in the hut
+            if(type == Type.HUT) {  // Leave chests in the hut
             } else {
               chest.getInventory().clear(); // Clear and refill chests inside
               if(isBigChest(blk)) {

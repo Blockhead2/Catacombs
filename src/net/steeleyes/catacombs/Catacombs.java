@@ -291,7 +291,7 @@ public class Catacombs extends JavaPlugin {
           System.out.println("[" + info.getName() + "]           dungeon:"+dname);
           for (CatCuboid cube: sql.getDungeonCubes(dname)) {
             dbLevel lvl = new dbLevel();
-            lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.getType()==CatCuboidType.HUT);
+            lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.getType()==CatCuboid.Type.HUT);
             db.save(lvl);
           }
         }
@@ -624,7 +624,7 @@ public class Catacombs extends JavaPlugin {
   public void resetDungeon(Player p,String dname) {
     Set<CatCuboid> cubes = dungeons.getCubes(dname);
     for(CatCuboid c: cubes) {
-      if(c.getType() != CatCuboidType.HUT) {
+      if(c.getType() != CatCuboid.Type.HUT) {
         c.clearBlock(Material.TORCH);
         c.refillChests(cnf);
       }
