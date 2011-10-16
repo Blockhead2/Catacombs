@@ -38,8 +38,7 @@ public class Grid {
     this(strings[0].length(),strings.length);
     for(int y=0;y<size.y;y++) {
       for(int x=0;x<size.x;x++) {
-        //char c = strings[y].charAt(size.x-x-1);
-        char c = strings[y].charAt(x);
+        char c = strings[size.y-y-1].charAt(x);
         Square s = Square.get(c);
         area[x][y] = s;
       }
@@ -291,7 +290,7 @@ public class Grid {
 
     for(int x=origin_x,mx=0;x<origin_x+map.sx();x++,mx++) {
       for(int y=origin_y,my=0;y<origin_y+map.sy();y++,my++) {
-        Square s = map.get(mx,map.sy()-my-1);
+        Square s = map.get(mx,my);
         if(isUndef(x,y) && s != Square.UNDEF) {
           set(x,y,s);
           used++;

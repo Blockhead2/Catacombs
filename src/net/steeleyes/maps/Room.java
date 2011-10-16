@@ -36,55 +36,59 @@ public class Room {
   private Boolean special = false;
   private PrePlanned room_map = null;
 
-  private final static List<PrePlanned> room_list = new ArrayList<PrePlanned>();
+  //private final static List<PrePlanned> room_list = new ArrayList<PrePlanned>();
+  private static List<PrePlanned> room_list = null;
   private Config cnf=null;
   
-  static {
-    room_list.add(new PrePlanned("irreg7x8",PrePlanned.Type.ROOM, new String[] {
-      " ###    ",
-      " #.#    ",
-      "##..####",
-      "#......#",
-      "#...####",
-      "###.#   ",
-      "  ###   " 
-    }));
-    room_list.add(new PrePlanned("circle7x7",PrePlanned.Type.ROOM, new String[] {
-      "  ###  ",
-      " #...# ",
-      "#.....#",
-      "#.....#",
-      "#.....#",
-      " #...# ",
-      "  ###  "
-    }));
-    room_list.add(new PrePlanned("circle9x9",PrePlanned.Type.ROOM, new String[] {
-      "  #####  ",
-      " #c....# ",
-      "#.......#",
-      "#...L...#",
-      "#..LLL..#",
-      "#...L...#",
-      "#.......#",
-      " #....c# ",
-      "  #####  "
-    }));            
-    room_list.add(new PrePlanned("column13x13",PrePlanned.Type.ROOM, new String[] {
-      " ##          ",
-      "#c$########  ",
-      " #.........# ",
-      "#.....M.....#",
-      "#..#..#..#..#",
-      "#...........#",
-      "#...........#",
-      "Xt.#..#..#.tX",
-      "#...........#",
-      "#...........#",
-      "#..#..#..#..#",
-      "#.....M.....#",
-      " #.........# ",
-      "  #########  "
-    }));
+  public static void setup_rooms() {
+    if(room_list == null) {
+      room_list = new ArrayList<PrePlanned>();
+      room_list.add(new PrePlanned("irreg7x8",PrePlanned.Type.ROOM, new String[] {
+        " ###    ",
+        " #.#    ",
+        "##..####",
+        "#......#",
+        "#...####",
+        "###.#   ",
+        "  ###   " 
+      }));
+      room_list.add(new PrePlanned("circle7x7",PrePlanned.Type.ROOM, new String[] {
+        "  ###  ",
+        " #...# ",
+        "#.....#",
+        "#.....#",
+        "#.....#",
+        " #...# ",
+        "  ###  "
+      }));
+      room_list.add(new PrePlanned("circle9x9",PrePlanned.Type.ROOM, new String[] {
+        "  #####  ",
+        " #c....# ",
+        "#.......#",
+        "#...L...#",
+        "#..LLL..#",
+        "#...L...#",
+        "#.......#",
+        " #....c# ",
+        "  #####  "
+      }));            
+      room_list.add(new PrePlanned("column13x13",PrePlanned.Type.ROOM, new String[] {
+        " ##          ",
+        "#c$########  ",
+        " #.........# ",
+        "#.....M.....#",
+        "#..#..#..#..#",
+        "#...........#",
+        "#...........#",
+        "Xt.#..#..#.tX",
+        "#...........#",
+        "#...........#",
+        "#..#..#..#..#",
+        "#.....M.....#",
+        " #.........# ",
+        "  #########  "
+      }));
+    }
   }
 
   @Override
@@ -95,6 +99,7 @@ public class Room {
   public Room(Config cnf, Grid grid) {
     this.grid = grid;
     this.cnf = cnf;
+    setup_rooms();
     sizeRandom();
     placeRandom();
   }
