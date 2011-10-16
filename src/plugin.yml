@@ -1,0 +1,9 @@
+name: Catacombs
+main: net.steeleyes.catacombs.Catacombs
+version: 0.7
+depend:
+softdepend: [Permissions,iConomy, BOSEconomy, Currency, MultiCurrency]
+commands:
+    catacombs:
+        description: Build catacombs
+        aliases: ['cat']
