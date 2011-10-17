@@ -102,8 +102,8 @@ public class CatConfig extends Config implements ICatConfig {
     checkLoot(LootSmallList());
     checkLoot(LootMediumList());
     checkLoot(LootBigList());
-    checkMaterial(majorBlock());
-    checkMaterial(minorBlock());    
+    checkBlockMaterial(majorBlock());
+    checkBlockMaterial(minorBlock());    
   }
   
   private void setDefaults() {

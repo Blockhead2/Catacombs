@@ -388,6 +388,12 @@ public class Dungeon {
         "DVD",
         "#:#"
       };
+    } else if(cnf.HutType().equalsIgnoreCase("pit")) {
+      return new String[] {
+        " : ",
+        ":V:",
+        " : "
+      };
     } else if(cnf.HutType().equalsIgnoreCase("medium")) {
       return new String[] {
         "...t...t...",

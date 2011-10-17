@@ -54,7 +54,10 @@ public class PrePlanned {
     for(int o=1;o<sz-1;o++) {
       if(grid.get(x,y)==Square.WALL &&
          grid.isWall(dir.left_x(x),dir.left_y(y)) &&
-         grid.isWall(dir.right_x(x),dir.right_y(y)) ) {
+         grid.isWall(dir.right_x(x),dir.right_y(y)) &&
+         // It's only a valid access point if the first square in the room is also floor
+         grid.isFloor(dir.backwards_x(x),dir.backwards_y(y))
+              ) {
         tmp.add(o);
         //System.out.println("[catacombs]   ("+x+","+y+") YES "+o);
       } else {
