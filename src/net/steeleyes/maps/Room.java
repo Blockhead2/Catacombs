@@ -61,6 +61,17 @@ public class Room {
         " #...# ",
         "  ###  "
       }));
+      room_list.add(new PrePlanned("doortest9x9",PrePlanned.Type.ROOM, new String[] {
+        "  #####  ",
+        " #.#...# ",
+        "#.......#",
+        "##......#",
+        "#......##",
+        "#.......#",
+        "#.......#",
+        " #.#.#.# ",
+        "  #####  "
+      }));
       room_list.add(new PrePlanned("circle9x9",PrePlanned.Type.ROOM, new String[] {
         "  #####  ",
         " #c....# ",

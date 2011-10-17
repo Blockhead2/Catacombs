@@ -73,6 +73,10 @@ public class PrePlanned {
     }
   }
   
+  public void show() {
+    grid.show();
+  }
+  
   // ToDo: The routines below here need to understand the room rotation too.
   
   // Get a legal random room access location on the given side

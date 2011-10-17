@@ -33,6 +33,16 @@ public class Grid {
       }
     }
   }
+  
+  public Grid(PrePlanned map) {
+    size.set(map.sx(), map.sy());
+    area = new Square[size.x][size.y];
+    for(int x=0;x<size.x;x++) {
+      for(int y=0;y<size.y;y++) {
+        area[x][y] = map.get(x,y);
+      }
+    }
+  }
 
   public Grid(String[] strings) {
     this(strings[0].length(),strings.length);
@@ -51,10 +61,10 @@ public class Grid {
     for(int x=0;x<size.x;x++) {
       for(int y=0;y<size.y;y++) {
         switch (dir) {
-          case SOUTH: area[x][y] = g.get(x,y);             break;
-          case EAST:  area[x][y] = g.get(y,size.x-1-x);    break;
-          case NORTH: area[x][y] = g.get(size.x-1-x,size.y-1-y); break;
-          case WEST:  area[x][y] = g.get(size.y-1-y,x);    break;
+          case NORTH: area[x][y] = g.get(x,y);             break;
+          case WEST:  area[x][y] = g.get(y,size.x-1-x);    break;
+          case SOUTH: area[x][y] = g.get(size.x-1-x,size.y-1-y); break;
+          case EAST:  area[x][y] = g.get(size.y-1-y,x);    break;
         }
       }
     }

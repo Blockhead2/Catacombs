@@ -53,7 +53,7 @@ public class BlockChangeHandler implements Runnable {
     if(cnt == 0 && changed > 0) {
       System.out.println("[Catacombs] Block Handler #changes="+changed);
       for(Player p : who) {
-        p.sendMessage("Delete is complete");
+        p.sendMessage("Catacomb changes complete");
       }
       who.clear();
       changed = 0;

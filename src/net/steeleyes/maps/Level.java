@@ -51,16 +51,14 @@ public class Level {
   public Level(Config cnf, int sx,int sy,int start_x, int start_y) {
     this(cnf,sx,sy,cnf.nextInt(sx-2)+1,cnf.nextInt(sy-2)+1,Direction.ANY);
   }
-  public Level(Config cnf,String[] map,Direction dir) {
+  public Level(Config cnf,PrePlanned map,Direction dir) {
     this.cnf = cnf;
     Grid tmp = new Grid(map);
     grid = new Grid(tmp,dir);
     Vector2D stair = grid.findFirst(Square.DOWN);
     if(stair ==  null) {
       System.err.println("[Catacombs] The map for the level (shown below) doesn't contain a stair down");
-      for(String s: map) {
-        System.out.println("[Catacombs] "+s);
-      }
+      map.show();
       stair = new Vector2D(0,0);
     }
     num_rooms = 1;

@@ -28,8 +28,11 @@ import org.bukkit.entity.Player;
 
 import net.steeleyes.maps.Direction;
 import net.steeleyes.maps.Square;
+import net.steeleyes.maps.PrePlanned;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 
 import com.avaje.ebean.EbeanServer;
@@ -44,7 +47,8 @@ public class Dungeon {
   private Material major;// = Material.COBBLESTONE;
   private Material minor;// = Material.MOSSY_COBBLESTONE;
 
-  
+  private static Map<String,PrePlanned> hut_list = null;
+ 
   private Boolean built = false;
 
   public void setBuilt(Boolean built) {
@@ -57,6 +61,7 @@ public class Dungeon {
     this.world = world;
     major = cnf.majorMat();
     minor = cnf.minorMat();
+    setup_huts();
   }
   public Dungeon(String name,CatConfig cnf,World world,Material major, Material minor){
     this.name = name;
@@ -64,6 +69,7 @@ public class Dungeon {
     this.world = world;
     this.major = major;
     this.minor = minor;
+    setup_huts();
   }
   
   @Override
@@ -148,7 +154,7 @@ public class Dungeon {
     builder = p.getName();
     levels.clear();
     
-    CatLevel level = new CatLevel(cnf,world,x,y,z,getHut(),dir); //start has to be in the middle
+    CatLevel level = new CatLevel(cnf,world,x,y,z,getHut(cnf.HutType()),dir);
     levels.add(level);
     if(level.build_ok && maxLevels >0) {
       CatLevel from = level;
@@ -367,35 +373,44 @@ public class Dungeon {
       prot.remove(wld,l.cube);
     }
   }
-  
-  public String[] getHut() {
-    
-    // ToDo
-    // Need to use the PrePlanned class for Huts too.
-    
-    if(cnf.HutType().equalsIgnoreCase("small")) {
-      return new String[] {
+
+  private static void setup_huts() {
+    if(hut_list == null) {
+      String name;
+      hut_list = new HashMap<String,PrePlanned>();
+      name = "default";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
+        "#######",
+        "#oATfo#",
+        "#o.:.o#",
+        "#t:V:t#",
+        "#z.:.z#",
+        "#Z.t.Z#",
+        "###+###"
+      })); 
+      name = "small";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         " #D# ",
         "#:V:#",
         "#.:.#",
         "#t.t#",
         "#...#",
         " #+# "
-      };
-    } else if(cnf.HutType().equalsIgnoreCase("tiny")) {
-      return new String[] {
+      }));
+      name = "tiny";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         " D ",
         "DVD",
         "#:#"
-      };
-    } else if(cnf.HutType().equalsIgnoreCase("pit")) {
-      return new String[] {
-        " : ",
+      }));
+      name = "pit";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
+        "~:~",
         ":V:",
-        " : "
-      };
-    } else if(cnf.HutType().equalsIgnoreCase("medium")) {
-      return new String[] {
+        "~:~"
+      }));
+      name = "medium";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         "...t...t...",
         ".##GGGGG##.",
         "t#ZoZoZoZ#t",
@@ -407,9 +422,9 @@ public class Dungeon {
         ".t$.t.t.Dt.",
         "...##+##...",
         "....t.t...."
-      };  
-    } else if(cnf.HutType().equalsIgnoreCase("large")) {
-      return new String[] {
+      }));
+      name = "large";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         "~```````````````~",
         "```##GGGGGGG##```",
         "``#.Zoo.t.ooZ.#``",
@@ -427,16 +442,17 @@ public class Dungeon {
         "``#t.........t#``",
         "```#GGG#+#GGG#```",
         "~``````~`~``````~"
-      };       
-    } 
-    return new String[] {
-        "#######",
-        "#oATfo#",
-        "#o.:.o#",
-        "#t:V:t#",
-        "#z.:.z#",
-        "#Z.t.Z#",
-        "###+###"
-    };
+      }));
+    }
+  }
+
+  public PrePlanned getHut(String name) {
+    if(hut_list.containsKey(name)) {
+      return hut_list.get(name);
+    } else {
+      System.err.println("[Catacombs] Hut type '"+name+"' not defined, using 'default'");
+      System.out.println("[Catacombs] legal hut names "+hut_list.keySet());
+    }
+    return hut_list.get("default");
   }
 }

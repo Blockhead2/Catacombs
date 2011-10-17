@@ -129,7 +129,7 @@ public class CatLevel {
   }
 
   // ToDo: Need to change map over to the PrePlanned class (and in Level too etc)
-  public CatLevel(CatConfig cnf, World world, int x, int y, int z, String[] map,Direction dir) {
+  public CatLevel(CatConfig cnf, World world, int x, int y, int z, PrePlanned map,Direction dir) {
     build_ok = true;
     can_go_lower = true;
     this.cnf = cnf;
