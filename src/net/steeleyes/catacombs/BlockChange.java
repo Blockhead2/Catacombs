@@ -19,15 +19,44 @@
 */
 
 package net.steeleyes.catacombs;
+
+import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemStack;
+
 
 public class BlockChange {
   Block blk;
   Material mat;
+  byte code=-1;
+  List<ItemStack> items = null;
+  String spawner = null;
   
   public BlockChange(Block blk, Material mat) {
     this.blk = blk;
     this.mat = mat;
   }
+  
+  public BlockChange(Block blk, Material mat,List<ItemStack> items) {
+    this.blk = blk;
+    this.mat = mat;
+    this.items = items;
+  } 
+  
+  public BlockChange(Block blk, Material mat, byte code) {
+    this.blk = blk;
+    this.mat = mat;
+    this.code = code;
+  }
+
+  public String getSpawner() {
+    return spawner;
+  }
+
+  public void setSpawner(String spawner) {
+    this.spawner = spawner;
+  }
+  
+  
 }

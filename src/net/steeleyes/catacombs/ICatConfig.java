@@ -23,6 +23,7 @@ package net.steeleyes.catacombs;
 import java.util.List;
 import org.bukkit.Material;
 import net.steeleyes.maps.IConfig;
+import net.steeleyes.maps.CatMat;
 
 public interface ICatConfig extends IConfig { 
   public  Integer RadiusMax();
@@ -50,7 +51,7 @@ public interface ICatConfig extends IConfig {
   public  String       SpawnerType();
   public  Integer      Gold();
   public  Material     ShroomType();
-  public  Material     CobbleType();
+  public  CatMat       CobbleType();
   public  Material     AirType();
   
   public  List<String> LootSmallList();
@@ -60,6 +61,8 @@ public interface ICatConfig extends IConfig {
   public  Boolean LeatherEquipChance();
   public  Boolean MedEquipChance();
   public  Boolean BigEquipChance();
+  public  Boolean MinorChance();
+
   
   public  Boolean MySQLEnabled();
   public  String MySQLPrefix();

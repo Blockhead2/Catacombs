@@ -446,6 +446,8 @@ public class Catacombs extends JavaPlugin {
         }
       } else if(cmd(p,args,"test")) {
         debug = !debug;
+        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        dung.guessMajor();
         //testDatabase();
         p.sendMessage("[catacombs] Direction "+getCardinalDirection(p));
       } else {
@@ -493,21 +495,21 @@ public class Catacombs extends JavaPlugin {
         char t = arg_types.charAt(c);
         if(t == 'D') {           // Built Dungeon
           if(!dungeons.isBuilt(arg)) {
-            throw new Exception("Expecting arg#"+(c+1)+" to be an existing dungeon name. Did you build '"+arg+"'?");
+            throw new Exception("'"+arg+"' is not a built dungeon");
           }
         } else if(t == 'p') {    // Planned Dungeon (ready to be build)
           if(!dungeons.exists(arg)) {
-            throw new Exception("Expecting arg#"+(c+1)+" to be a planned dungeon name. Did you plan '"+arg+"'?");
+            throw new Exception("'"+arg+"' is not a planned dungeon");
           }
           if(dungeons.isBuilt(arg)) {
-            throw new Exception("Expecting arg#"+(c+1)+" to be an planned dungeon name. '"+arg+"' has already been built!");
+            throw new Exception("'"+arg+"' has already been built");
           }
           if(!dungeons.isOk(arg)) {
-            throw new Exception("This dungeon isn't complete and ready to be built (re-plan it)");
+            throw new Exception("'"+arg+"' had issue during planning");
           }
         } else if(t == 'd') {    // Non existing dungeon
           if(dungeons.isBuilt(arg)) {
-            throw new Exception("Expecting arg#"+(c+1)+" to be a new dungeon name or a dungeon that hasn't been built");
+            throw new Exception("'"+arg+"' is already built");
           } 
         } else if(t == 's') {    // A string
 
@@ -583,7 +585,7 @@ public class Catacombs extends JavaPlugin {
           dungeons.add(dname,dung);
           dung.saveDB(getDatabase());
           dung.registerCubes(/*sql,*/prot);
-          dung.render();
+          dung.render(handler);
           for(String msg : dung.summary())
             p.sendMessage(msg);
           p.sendMessage("'"+dname+"' has been built");
@@ -608,7 +610,8 @@ public class Catacombs extends JavaPlugin {
         dung.saveDB(getDatabase());
         //testDatabase();
         dung.registerCubes(/*sql,*/prot);
-        dung.render();
+        dung.render(handler);
+        handler.add(p);
       }
     } else {
       p.sendMessage("Dungeon "+dname+" doesn't exist");

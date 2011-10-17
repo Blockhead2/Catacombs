@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.List;
 import java.util.Map.Entry;
 
+import net.steeleyes.maps.CatMat;
+
 import com.avaje.ebean.EbeanServer;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -49,7 +51,9 @@ public class Dungeons {
 
           Dungeon dung;
           if(!dungeons.containsKey(dname)) { // New dungeon
-            dung = new Dungeon(dname,plugin.cnf,world,Material.COBBLESTONE,Material.MOSSY_COBBLESTONE);
+            CatMat maj = new CatMat(Material.COBBLESTONE);
+            CatMat min = new CatMat(Material.MOSSY_COBBLESTONE);
+            dung = new Dungeon(dname,plugin.cnf,world,maj,min);
             dung.setBuilder(pname);
             dung.setBuilt(true);
             dungeons.put(dname,dung);

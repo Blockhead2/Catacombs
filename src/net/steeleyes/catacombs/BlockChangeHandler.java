@@ -22,29 +22,54 @@ package net.steeleyes.catacombs;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.World;
 import org.bukkit.Material;
+import org.bukkit.block.ContainerBlock;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.block.CreatureSpawner;
+
 
 public class BlockChangeHandler implements Runnable {  
   private final int MAX_CHANGE = 10000;
   private int changed = 0;
   
-  private List<BlockChange> high = new ArrayList<BlockChange>();
-  private List<BlockChange> low  = new ArrayList<BlockChange>();
-  private List<Player>      who  = new ArrayList<Player>();
+  private List<BlockChange> high  = new ArrayList<BlockChange>();
+  private List<BlockChange> low   = new ArrayList<BlockChange>();
+  private List<Player>      who   = new ArrayList<Player>();
 
+  private void setBlock(BlockChange x) {
+    if(x.code>=0)
+      x.blk.setTypeIdAndData(x.mat.getId(),x.code,false);
+    else
+      x.blk.setType(x.mat);
+    if(x.items != null) {
+      // Should check here the block is a container
+      ContainerBlock cont = (ContainerBlock) x.blk.getState();
+      Inventory inv = cont.getInventory();
+      for(ItemStack s: x.items) {
+        inv.addItem(s);
+      }
+    }
+    if(x.getSpawner()!=null) {
+      CreatureSpawner spawner = (CreatureSpawner) x.blk.getState();
+      spawner.setCreatureTypeId(x.getSpawner());
+    }
+  }
+  
   @Override
   public void run() {
     int cnt=0;
     while(!high.isEmpty() && cnt < MAX_CHANGE) {
       BlockChange x = high.remove(0);
-      x.blk.setType(x.mat);
+      setBlock(x);
       cnt++;
     }
     while(!low.isEmpty() && cnt < MAX_CHANGE) {
       BlockChange x = low.remove(0);
-      x.blk.setType(x.mat);
+      setBlock(x);
       cnt++;
     } 
     if(cnt>0) {
@@ -60,11 +85,53 @@ public class BlockChangeHandler implements Runnable {
     }
   }
   
+  public void addLow(BlockChange b) {
+    low.add(b);
+  }
+  public void addHigh(BlockChange b) {
+    high.add(b);
+  }
   public void addLow(Block blk,Material mat) {
     low.add(new BlockChange(blk,mat));
   }
   public void addHigh(Block blk,Material mat) {
     high.add(new BlockChange(blk,mat));
+  }
+  public void addLow(Block blk,Material mat,List<ItemStack> items) {
+    low.add(new BlockChange(blk,mat,items));
+  }
+  public void addHigh(Block blk,Material mat,List<ItemStack> items) {
+    high.add(new BlockChange(blk,mat,items));
+  }
+  public void addLow(Block blk,Material mat, byte code) {
+    low.add(new BlockChange(blk,mat,code));
+  }
+  public void addHigh(Block blk,Material mat, byte code) {
+    high.add(new BlockChange(blk,mat,code));
+  }
+  public void addLow(World world,int x,int y,int z,Material mat) {
+    Block blk = world.getBlockAt(x,y,z);
+    low.add(new BlockChange(blk,mat));
+  }
+  public void addHigh(World world,int x,int y,int z,Material mat) {
+    Block blk = world.getBlockAt(x,y,z);
+    high.add(new BlockChange(blk,mat));
+  }
+  public void addLow(World world,int x,int y,int z,Material mat,List<ItemStack> items) {
+    Block blk = world.getBlockAt(x,y,z);
+    low.add(new BlockChange(blk,mat,items));
+  }
+  public void addHigh(World world,int x,int y,int z,Material mat,List<ItemStack> items) {
+    Block blk = world.getBlockAt(x,y,z);
+    high.add(new BlockChange(blk,mat,items));
+  }
+  public void addLow(World world,int x,int y,int z,Material mat,byte code) {
+    Block blk = world.getBlockAt(x,y,z);
+    low.add(new BlockChange(blk,mat,code));
+  }
+  public void addHigh(World world,int x,int y,int z,Material mat,byte code) {
+    Block blk = world.getBlockAt(x,y,z);
+    high.add(new BlockChange(blk,mat,code));
   }
   public void add(Player player) {
     who.add(player);

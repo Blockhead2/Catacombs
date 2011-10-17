@@ -132,13 +132,15 @@ public class CatBlockListener extends BlockListener {
       if(power.getType() == Material.REDSTONE_TORCH_ON) {
         Block upper_door = piston.getRelative(BlockFace.UP,3);
         Material m = upper_door.getType();
-        power.setType(m);
+        byte code = upper_door.getData();
+        power.setTypeIdAndData(m.getId(),code,false);
         upper_door.setType(Material.AIR);
       }  else {
         Block upper_door = piston.getRelative(BlockFace.UP,3);
         Material m = power.getType();
+        byte code = power.getData();
         power.setType(Material.REDSTONE_TORCH_ON);
-        upper_door.setType(m);
+        upper_door.setTypeIdAndData(m.getId(),code,false);
       }
     }
   }

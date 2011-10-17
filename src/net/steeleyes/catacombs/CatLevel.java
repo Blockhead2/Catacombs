@@ -19,13 +19,14 @@
 */
 package net.steeleyes.catacombs;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.block.CreatureSpawner;
-import org.bukkit.block.Chest;
 
 import net.steeleyes.maps.*;
 
@@ -228,31 +229,40 @@ public class CatLevel {
     return stairs_ok;
   }
 
-  private void renderTileSection(int xx,int y1,int y2, int zz, Material mat) {
-    for(int yy=y1;yy<=y2 && mat!=null;yy++) {
-      Material use = (mat==cnf.majorMat())?cnf.CobbleType():mat;
-
-      Block b = world.getBlockAt(xx,yy,zz);
-      if(mat==Material.AIR) {
-        use = cnf.AirType();
+  private void renderTileSection(BlockChangeHandler handler,int xx,int y1,int y2, int zz, Material mat) {
+    CatMat use = null;
+    if(cnf.majorMat().getMat() == mat) {
+      if(cnf.MinorChance()) {
+        use = cnf.minorMat();
+      } else {
+        use = cnf.majorMat();
       }
-      if(b.getType()==Material.IRON_ORE)
-        iron++;
-      if(b.getType()==Material.COAL_ORE)
-        coal++;
-      if(b.getType()==Material.DIAMOND_ORE)
-        diamond++;
-      if(b.getType()==Material.LAPIS_ORE)
-        lapis++;
-      if(b.getType()==Material.REDSTONE_ORE)
-        redstone++;
-      if(b.getType()==Material.GOLD_ORE)
-        gold++;
-      b.setType(use);
+    } else {
+      use = new CatMat(mat);
+    }
+    
+    for(int yy=y1;yy<=y2 && mat!=null;yy++) {
+      Block b = world.getBlockAt(xx,yy,zz);
+
+      if(b.getType()==Material.IRON_ORE)         iron++;
+      if(b.getType()==Material.COAL_ORE)         coal++;
+      if(b.getType()==Material.DIAMOND_ORE)      diamond++;
+      if(b.getType()==Material.LAPIS_ORE)        lapis++;
+      if(b.getType()==Material.REDSTONE_ORE)     redstone++;
+      if(b.getType()==Material.GOLD_ORE)         gold++;
+      
+      if(mat==Material.AIR) {
+        handler.addHigh(b,cnf.AirType());
+      } else {
+        if(use.getHas_code())
+          handler.addHigh(b,use.getMat(),use.getCode());
+        else
+          handler.addHigh(b,use.getMat());       
+      }
     }
   }
 
-  private void renderTile( int xx,int y, int zz,
+  private void renderTile(BlockChangeHandler handler, int xx,int y, int zz,
                           Material floor0,Material floor1,
                           Material room0,Material room1,
                           Material roof0,Material roof1) {
@@ -262,16 +272,16 @@ public class CatLevel {
     int room_h  = room_l+roomDepth-1;
     int roof_l  = room_h+1;
     int roof_h  = roof_l+roofDepth-1;
-    renderTileSection(xx,floor_l,floor_h-1,zz,floor0);
-    renderTileSection(xx,floor_h,floor_h,zz,floor1);
-    renderTileSection(xx,room_l,room_l+1,zz,room0);
-    renderTileSection(xx,room_l+2,room_h,zz,room1);
-    renderTileSection(xx,roof_l,roof_l,zz,roof0);
-    renderTileSection(xx,roof_l+1,roof_h,zz,roof1);
-    renderTileSection(xx,room_l+2,room_h,zz,room1);
+    renderTileSection(handler,xx,floor_l,floor_h-1,zz,floor0);
+    renderTileSection(handler,xx,floor_h,floor_h,zz,floor1);
+    renderTileSection(handler,xx,room_l,room_l+1,zz,room0);
+    renderTileSection(handler,xx,room_l+2,room_h,zz,room1);
+    renderTileSection(handler,xx,roof_l,roof_l,zz,roof0);
+    renderTileSection(handler,xx,roof_l+1,roof_h,zz,roof1);
+    renderTileSection(handler,xx,room_l+2,room_h,zz,room1);
   }
 
-  public void addLeveltoWorld () {
+  public void addLeveltoWorld (BlockChangeHandler handler) {
     if(level == null || world == null)
         return;
     Grid g = level.grid();
@@ -282,9 +292,11 @@ public class CatLevel {
     int roof_l  = room_h+1;
     int roof_h  = roof_l+roofDepth-1;
 
-    Material major = cnf.majorMat();
-    Material minor = cnf.minorMat();
-    Material cob = major;
+    CatMat major = cnf.majorMat();
+    CatMat minor = cnf.minorMat();
+    
+    // Short hand names to help a bit with code formatting
+    Material cob = major.getMat();
     Material air = Material.AIR;
     
     Boolean SquareHuts = false;
@@ -299,27 +311,25 @@ public class CatLevel {
         Square s = g.get(x,y);
         int xx = top.x+x-level.start().x;
         int zz = top.z-y+level.start().y;
-        //int zz = (g.size.y-1-y)+top.z-level.start().y;
-        //int zz = y+top.z-level.start_y;
 
         switch(s) {
-          case UPWALL:      renderTile(xx,top.y,zz,null,null,cob ,cob ,cob ,cob ); break;
-          case DOWNWALL:    renderTile(xx,top.y,zz,cob ,cob ,cob ,cob ,ecob,null); break;
-          case BOTHWALL:    renderTile(xx,top.y,zz,cob ,cob ,cob ,cob ,cob ,cob ); break;
+          case UPWALL:      renderTile(handler,xx,top.y,zz,null,null,cob ,cob ,cob ,cob ); break;
+          case DOWNWALL:    renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,ecob,null); break;
+          case BOTHWALL:    renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,cob ,cob ); break;
           case WALL:
           case WINDOW:
-          case FIXEDWALL:   renderTile(xx,top.y,zz,null,null,cob ,cob ,ecob,null); break;
+          case FIXEDWALL:   renderTile(handler,xx,top.y,zz,null,null,cob ,cob ,ecob,null); break;
           case WATER:
           case LAVA:        Material liq = (s==Square.LAVA)?Material.STATIONARY_LAVA:Material.STATIONARY_WATER;
-                            renderTile(xx,top.y,zz,cob ,liq ,air ,air ,cob,null);  break;
+                            renderTile(handler,xx,top.y,zz,cob ,liq ,air ,air ,cob,null);  break;
           case FLOOR:
-          case FIXEDFLOOR:  renderTile(xx,top.y,zz,null,cob ,air ,air ,cob,null);  break;
-          case FIXEDFLOORUP:   renderTile(xx,top.y,zz,null,cob ,air ,air ,cob,cob );  break;
-          case FIXEDFLOORDOWN: renderTile(xx,top.y,zz,cob ,cob ,air ,air ,cob,null);  break;
+          case FIXEDFLOOR:  renderTile(handler,xx,top.y,zz,null,cob ,air ,air ,cob,null);  break;
+          case FIXEDFLOORUP:   renderTile(handler,xx,top.y,zz,null,cob ,air ,air ,cob,cob );  break;
+          case FIXEDFLOORDOWN: renderTile(handler,xx,top.y,zz,cob ,cob ,air ,air ,cob,null);  break;
           case DOOR:
           case WEB:
           case ARCH:
-          case HIDDEN:      renderTile(xx,top.y,zz,null,cob ,air ,cob ,ecob,null); break;
+          case HIDDEN:      renderTile(handler,xx,top.y,zz,null,cob ,air ,cob ,ecob,null); break;
           case WORKBENCH:
           case SHROOM:
           case FURNACE:
@@ -332,69 +342,81 @@ public class CatLevel {
           case BIGCHEST:
           case MIDCHEST:
           case EMPTYCHEST:
-          case CHEST:       renderTile(xx,top.y,zz,null,cob ,air ,air ,cob ,null); break;
-          case SPAWNER:     renderTile(xx,top.y,zz,null,cob ,air ,air ,cob ,null); break;
+          case CHEST:       renderTile(handler,xx,top.y,zz,null,cob ,air ,air ,cob ,null); break;
+          case SPAWNER:     renderTile(handler,xx,top.y,zz,null,cob ,air ,air ,cob ,null); break;
           case O_FLOOR:     
-          case O_TORCH:     renderTile(xx,top.y,zz,null,cob ,air ,air ,null,null); break;
-          case UP:          renderTile(xx,top.y,zz,null,cob ,air ,air ,air ,air ); break;
+          case O_TORCH:     renderTile(handler,xx,top.y,zz,null,cob ,air ,air ,null,null); break;
+          case UP:          renderTile(handler,xx,top.y,zz,null,cob ,air ,air ,air ,air ); break;
           case DOWN:        if(can_go_lower)
-                              renderTile(xx,top.y,zz,air ,air ,air ,air ,cob ,null);
+                              renderTile(handler,xx,top.y,zz,air ,air ,air ,air ,cob ,null);
                             else
-                              renderTile(xx,top.y,zz,null,cob ,air ,air ,cob ,null);
+                              renderTile(handler,xx,top.y,zz,null,cob ,air ,air ,cob ,null);
                             break;
           default:
         }
         if(s==Square.HIDDEN) {
           int small = (cnf.Chance(50))?1:0;
-          world.getBlockAt(xx,room_l+(1-small),zz).setType(major);
-          world.getBlockAt(xx,room_l+small,zz).setType(minor);
-          world.getBlockAt(xx,floor_h-2,zz).setType(Material.REDSTONE_TORCH_ON);  // Any wall?
-          world.getBlockAt(xx,floor_h-1,zz).setTypeIdAndData(Material.PISTON_STICKY_BASE.getId(),(byte)9,false);
+          
+          // A bit of a knack to getting the block in the right order to make the secret door
+          //   TODO: Simplify the order
+          handler.addHigh(world,xx,room_l+(1-small),zz,Material.AIR);
+          handler.addHigh(world,xx,room_l+small,zz,Material.AIR);
+          handler.addHigh(world,xx,floor_h,zz,Material.AIR);
+          handler.addHigh(world,xx,floor_h-2,zz,Material.AIR);
+          
+          handler.addHigh(world,xx,floor_h-1,zz,Material.PISTON_STICKY_BASE,(byte)9);
+          handler.addLow(world,xx,room_l+(1-small),zz,major.getMat(),major.getCode());
+          handler.addLow(world,xx,room_l+small,zz,minor.getMat(),minor.getCode());
+          handler.addLow(world,xx,floor_h-2,zz,Material.REDSTONE_TORCH_ON);
+
         }
         if(s==Square.CHEST    || s==Square.MIDCHEST ||
            s==Square.BIGCHEST || s==Square.EMPTYCHEST) {
-          world.getBlockAt(xx,room_l,zz).setType(Material.CHEST);
-          Chest chest = (Chest) world.getBlockAt(xx,room_l,zz).getState();
+          List<ItemStack> chest = new ArrayList<ItemStack>();
+          
           if(s==Square.BIGCHEST) {
-            CatLoot.bigChest(cnf,chest.getInventory());
-            world.getBlockAt(xx,floor_h,zz).setType(Material.GRASS);
-          }  else if (s == Square.MIDCHEST) {
-            CatLoot.midChest(cnf,chest.getInventory());
-            if(coal>0)     chest.getInventory().addItem(new ItemStack(Material.COAL,coal));
-            if(iron>0)     chest.getInventory().addItem(new ItemStack(Material.IRON_ORE,iron));
-            if(lapis>0)    chest.getInventory().addItem(new ItemStack(Material.INK_SACK,lapis*6,(short)0,(byte)4));
-            if(redstone>0) chest.getInventory().addItem(new ItemStack(Material.REDSTONE,redstone*4));
-            if(diamond>0)  chest.getInventory().addItem(new ItemStack(Material.DIAMOND,diamond));
-            if(gold>0)     chest.getInventory().addItem(new ItemStack(Material.GOLD_ORE,gold));
+            CatLoot.bigChest(cnf,chest);
+            handler.addHigh(world,xx,floor_h,zz,Material.GRASS);
+          } else if (s == Square.MIDCHEST) {
+            CatLoot.midChest(cnf,chest);
+
+            // Swept ore goes into chest on first time around (not after a reset)
+            if(coal>0)     chest.add(new ItemStack(Material.COAL,coal));
+            if(iron>0)     chest.add(new ItemStack(Material.IRON_ORE,iron));
+            if(lapis>0)    chest.add(new ItemStack(Material.INK_SACK,lapis*6,(short)0,(byte)4));
+            if(redstone>0) chest.add(new ItemStack(Material.REDSTONE,redstone*4));
+            if(diamond>0)  chest.add(new ItemStack(Material.DIAMOND,diamond));
+            if(gold>0)     chest.add(new ItemStack(Material.GOLD_ORE,gold));
           }  else if (s == Square.CHEST) {
-            CatLoot.smallChest(cnf,chest.getInventory());
+            CatLoot.smallChest(cnf,chest);
           }
+          handler.addHigh(world,xx,room_l,zz,Material.CHEST,chest);
         }
 
         if(s==Square.DOWN && !can_go_lower) {
-          world.getBlockAt(xx,room_l,zz).setType(Material.CHEST);
-          Chest chest = (Chest) world.getBlockAt(xx,room_l,zz).getState();
-          CatLoot.bigChest(cnf,chest.getInventory());
+          List<ItemStack> chest = new ArrayList<ItemStack>();
+          CatLoot.bigChest(cnf,chest);
+          handler.addHigh(world,xx,room_l,zz,Material.CHEST,chest);
         }
         if(s==Square.WINDOW) {
-          world.getBlockAt(xx,room_l+1,zz).setType(Material.GLASS);
+          handler.addHigh(world,xx,room_l+1,zz,Material.GLASS);
         }
         if(s==Square.CAKE) {
-          world.getBlockAt(xx,room_l,zz).setType(Material.WOOD);
-          world.getBlockAt(xx,room_l+1,zz).setType(Material.CAKE_BLOCK);
+          handler.addHigh(world,xx,room_l,zz,Material.FENCE);
+          handler.addHigh(world,xx,room_l+1,zz,Material.CAKE_BLOCK);
         }
         if(s==Square.SOULSAND) {
-          world.getBlockAt(xx,floor_h,zz).setType(Material.SOUL_SAND);
+          handler.addHigh(world,xx,floor_h,zz,Material.SOUL_SAND);
         }
         if(s==Square.WEB) {
-          world.getBlockAt(xx,room_l,zz).setType(Material.WEB);
-          world.getBlockAt(xx,room_l+1,zz).setType(Material.WEB);
+          handler.addHigh(world,xx,room_l,zz,Material.WEB);
+          handler.addHigh(world,xx,room_l+1,zz,Material.WEB);
         }
         if(s==Square.WORKBENCH) {
-          world.getBlockAt(xx,room_l,zz).setType(Material.WORKBENCH);
+          handler.addHigh(world,xx,room_l,zz,Material.WORKBENCH);
         }
         if(s==Square.ANVIL) {
-          world.getBlockAt(xx,room_l,zz).setType(Material.IRON_BLOCK);
+          handler.addHigh(world,xx,room_l,zz,Material.IRON_BLOCK);
         }
       }
     }
@@ -408,56 +430,52 @@ public class CatLevel {
         int zz = top.z-y+level.start().y;
         if(s==Square.DOOR) {
           byte code = g.getDoorCode(x,y);
-          world.getBlockAt(xx,room_l,zz).setTypeIdAndData(Material.WOODEN_DOOR.getId(),(byte)code,false);
-          world.getBlockAt(xx,room_l+1,zz).setTypeIdAndData(Material.WOODEN_DOOR.getId(),(byte)(code+8),false);
+          handler.addLow(world,xx,room_l,zz,Material.WOODEN_DOOR,code);
+          handler.addLow(world,xx,room_l+1,zz,Material.WOODEN_DOOR,(byte)(code+8));
         }
         if(s==Square.UP) {
           byte code = getLadderCode(x,y);
           for(int yy=room_l;yy<=room_h;yy++) {
-            world.getBlockAt(xx,yy,zz).setTypeIdAndData(Material.LADDER.getId(),code,false);
+            handler.addLow(world,xx,yy,zz,Material.LADDER,code);
           }
           for(int yy=roof_l;yy<=roof_h;yy++) {
-            world.getBlockAt(xx,yy,zz).setTypeIdAndData(Material.LADDER.getId(),code,false);
+            handler.addLow(world,xx,yy,zz,Material.LADDER,code);
           }
         }
         if(s==Square.FURNACE) {
           byte code = getFurnaceCode(x,y);
-          world.getBlockAt(xx,room_l,zz).setTypeIdAndData(Material.FURNACE.getId(),code,false);
+          handler.addLow(world,xx,room_l,zz,Material.FURNACE,code);
         }
         if(s==Square.SHROOM) {
-          world.getBlockAt(xx,room_l,zz).setType(cnf.ShroomType());
+          handler.addLow(world,xx,room_l,zz,cnf.ShroomType());
         }
         if(s==Square.O_TORCH) {
-          world.getBlockAt(xx,room_l,zz).setTypeIdAndData(Material.TORCH.getId(),(byte)5,false);
+          handler.addLow(world,xx,room_l,zz,Material.TORCH,(byte)5);
         }
         if(s==Square.TORCH) {
-          world.getBlockAt(xx,room_l+2,zz).setType(Material.TORCH);
+          handler.addLow(world,xx,room_l+2,zz,Material.TORCH);
           if(cube.isHut())
-            world.getBlockAt(xx,roof_l+1,zz).setType(Material.TORCH);
+            handler.addLow(world,xx,roof_l+1,zz,Material.TORCH);
         }
         if(s==Square.BED_H) {
           byte code = (byte) (getBedCode(x,y) | 8);
-          world.getBlockAt(xx,room_l,zz).setTypeIdAndData(Material.BED_BLOCK.getId(),(byte)code,false);
+          handler.addLow(world,xx,room_l,zz,Material.BED_BLOCK,code);
         }
         if(s==Square.BED_F) {
           byte code = getBedCode(x,y);
-          world.getBlockAt(xx,room_l,zz).setTypeIdAndData(Material.BED_BLOCK.getId(),(byte)code,false);
+          handler.addLow(world,xx,room_l,zz,Material.BED_BLOCK,code);
         }
         if(s==Square.SPAWNER) {
-          world.getBlockAt(xx,room_l,zz).setType(Material.MOB_SPAWNER);
-          CreatureSpawner spawner = (CreatureSpawner) world.getBlockAt(xx,room_l,zz).getState();
+          BlockChange n = new BlockChange(world.getBlockAt(xx,room_l,zz),Material.MOB_SPAWNER);
           String type = cnf.SpawnerType();
-          spawner.setCreatureTypeId(type);
+          n.setSpawner(type);
+          handler.addLow(n);
           if(type.equals("Wolf")) {
-             world.getBlockAt(xx,floor_h,zz).setType(Material.GRASS);
-             if(world.getBlockAt(xx+1,floor_h,zz).getType() == major)
-               world.getBlockAt(xx+1,floor_h,zz).setType(Material.GRASS);
-             if(world.getBlockAt(xx-1,floor_h,zz).getType() == major)
-               world.getBlockAt(xx-1,floor_h,zz).setType(Material.GRASS);
-             if(world.getBlockAt(xx,floor_h,zz+1).getType() == major)
-               world.getBlockAt(xx,floor_h,zz+1).setType(Material.GRASS);
-             if(world.getBlockAt(xx,floor_h,zz-1).getType() == major)
-               world.getBlockAt(xx,floor_h,zz-1).setType(Material.GRASS);
+            handler.addLow(world,xx,floor_h,zz,Material.GRASS);
+            handler.addLow(world,xx+1,floor_h,zz,Material.GRASS);
+            handler.addLow(world,xx-1,floor_h,zz,Material.GRASS);
+            handler.addLow(world,xx,floor_h,zz+1,Material.GRASS);
+            handler.addLow(world,xx,floor_h,zz-1,Material.GRASS);
           }
         }
         if(s==Square.DOWN && can_go_lower) {
@@ -466,10 +484,10 @@ public class CatLevel {
             code = getLadderCode(level.end_dir());
           }
           for(int yy=floor_l;yy<=floor_h;yy++) {
-            world.getBlockAt(xx,yy,zz).setTypeIdAndData(Material.LADDER.getId(),code,false);
+            handler.addLow(world,xx,yy,zz,Material.LADDER,code);
           }
           code = getTrapDoorCode(x,y);
-          world.getBlockAt(xx,room_l,zz).setTypeIdAndData(Material.TRAP_DOOR.getId(),(byte)code,false);
+          handler.addLow(world,xx,room_l,zz,Material.TRAP_DOOR,code);
         }
       }
     }

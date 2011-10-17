@@ -19,6 +19,7 @@
 */
 package net.steeleyes.catacombs;
 
+import net.steeleyes.maps.CatMat;
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -109,23 +110,30 @@ public class CatCuboid extends Cuboid {
     return max_depth;
   } 
   
-  public Material guessMajorMat(int roofDepth) {
+  static int debug = 0;
+
+  public CatMat guessMajorMat(int roofDepth) {
     ArrayList<BlockFace> dirs = new ArrayList<BlockFace>();
     dirs.add(BlockFace.NORTH);
     dirs.add(BlockFace.EAST);
     dirs.add(BlockFace.SOUTH);
     dirs.add(BlockFace.WEST);
-    Material last = null;
-    Material best_mat = null;
-    Material mat=null;
+    final CatMat last = new CatMat(Material.AIR);
+    final CatMat best_mat = new CatMat(Material.AIR);
+    final CatMat mat = new CatMat(Material.AIR);
     int best=0;
     int cnt=0;
+    if(debug==1) System.out.println("[Catacombs] roofDepth="+roofDepth);
+
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         int y=yh-roofDepth;
         Block blk = world.getBlockAt(x,y,z);
-        mat = blk.getType();
-        if(mat != Material.AIR && mat != Material.TORCH) {
+        mat.getBlock(blk);
+        if(debug==1) System.out.println("[Catacombs] Block mat="+mat+" blk="+blk.getType());
+
+        if(!mat.is(Material.AIR) && !mat.is(Material.TORCH)) {
+        if(debug==1) System.out.println("[Catacombs]   soid block Block mat="+mat+" blk="+blk.getType());
           Boolean near_air = false;
           for(BlockFace dir : dirs) {
             Material near = blk.getRelative(dir).getType();
@@ -135,12 +143,13 @@ public class CatCuboid extends Cuboid {
             }
           }
           if(near_air) {
-            if(mat!=last) {
+           if(debug==1) System.out.println("[Catacombs]     near air Block mat="+mat+" blk="+blk.getType());
+           if(!mat.equals(last)) {
               if(cnt>best) {
-                best_mat = last;
+                best_mat.get(last);
                 best = cnt;
               }
-              last = mat;
+              last.get(mat);
               cnt=1;
             } else {
               cnt++;
@@ -150,9 +159,11 @@ public class CatCuboid extends Cuboid {
       }
     }
     if(cnt>best) {
-      best_mat = last;
+      best_mat.get(last);
       best = cnt;
     }
+    if(debug==1) System.out.println("[Catacombs] final guess mat = "+best_mat+" best="+best);
+    //debug++;
     return best_mat;
   }
   
@@ -201,7 +212,7 @@ public class CatCuboid extends Cuboid {
       setCube(handler,Material.STONE,true);
     else {
       CatCuboid floor = new CatCuboid(world,xl,yl,zl,xh,yh-num_air,zh);
-      CatCuboid upper = new CatCuboid(world,xl,yh-num_air+1,zl,xh,yh,zh);
+      CatCuboid upper = new CatCuboid(world,xl,yh-num_air+1,zl,xh,yh+1,zh);
       upper.setCube(handler,Material.AIR,emptyChest);
       floor.setCube(handler,Material.STONE,true);
     }
@@ -227,27 +238,27 @@ public class CatCuboid extends Cuboid {
     }
   }
   
-  public void addGlow(Material major,int roofDepth) {
+  public void addGlow(CatMat major,int roofDepth) {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         int y = yh-roofDepth+1;
         Block blk = world.getBlockAt(x,y,z);
         Block other = blk.getRelative(BlockFace.DOWN,1);
-        if(blk.getType() == major && other.getType() == Material.AIR) {
+        if(major.equals(blk) && other.getType() == Material.AIR) {
           blk.setType(Material.GLOWSTONE);
         }
       }
     }
   }
   
-  public void removeGlow(Material major,int roofDepth) {
+  public void removeGlow(CatMat major,int roofDepth) {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         int y = yh-roofDepth+1;
         Block blk = world.getBlockAt(x,y,z);
         Block other = blk.getRelative(BlockFace.DOWN,1);
         if(blk.getType() == Material.GLOWSTONE && other.getType() == Material.AIR) {
-          blk.setType(major);
+          major.setBlock(blk);
         }
       }
     }

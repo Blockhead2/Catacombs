@@ -19,6 +19,7 @@
 */
 package net.steeleyes.catacombs;
 
+import net.steeleyes.maps.CatMat;
 import java.util.ArrayList;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -44,8 +45,8 @@ public class Dungeon {
   public final ArrayList<CatLevel> levels = new ArrayList<CatLevel>();
   private String name;
   private String builder;
-  private Material major;// = Material.COBBLESTONE;
-  private Material minor;// = Material.MOSSY_COBBLESTONE;
+  private CatMat major;// = Material.COBBLESTONE;
+  private CatMat minor;// = Material.MOSSY_COBBLESTONE;
 
   private static Map<String,PrePlanned> hut_list = null;
  
@@ -63,7 +64,7 @@ public class Dungeon {
     minor = cnf.minorMat();
     setup_huts();
   }
-  public Dungeon(String name,CatConfig cnf,World world,Material major, Material minor){
+  public Dungeon(String name,CatConfig cnf,World world,CatMat major, CatMat minor){
     this.name = name;
     this.cnf = cnf;
     this.world = world;
@@ -88,19 +89,19 @@ public class Dungeon {
     }
   }
 
-  public Material getMajor() {
+  public CatMat getMajor() {
     return major;
   }
 
-  public void setMajor(Material major) {
+  public void setMajor(CatMat major) {
     this.major = major;
   }
 
-  public Material getMinor() {
+  public CatMat getMinor() {
     return minor;
   }
 
-  public void setMinor(Material minor) {
+  public void setMinor(CatMat minor) {
     this.minor = minor;
   }
 
@@ -117,11 +118,17 @@ public class Dungeon {
  
   public void guessMajor() {
     for(CatLevel l: levels) {
-      Material m = l.cube.guessMajorMat(l.getRoofDepth());
-      if(m!=null) {
+      CatMat m = l.cube.guessMajorMat(l.getRoofDepth());
+      //int roof = l.cube.guessRoofSize();
+      //int room = l.cube.guessRoomSize();
+      //System.out.println("Major mat = "+m+" roof="+roof+" room="+room);
+      if(!m.is(Material.AIR)) {
         major = m;
         break;
       }
+    }
+    if(major.is(Material.AIR)) {
+       System.err.println("[Catacombs] Can't figure out major mat for dungeon="+getName());
     }
   }
   
@@ -184,9 +191,9 @@ public class Dungeon {
 
   }
 
-  public void render() {
+  public void render(BlockChangeHandler handler) {
     for(CatLevel l : levels) {
-      l.addLeveltoWorld();
+      l.addLeveltoWorld(handler);
     }
     built = true;
   }

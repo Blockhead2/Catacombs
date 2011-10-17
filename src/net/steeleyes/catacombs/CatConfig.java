@@ -19,6 +19,7 @@
 */
 package net.steeleyes.catacombs;
 
+import net.steeleyes.maps.CatMat;
 import net.steeleyes.maps.Config;
 import java.util.List;
 import org.bukkit.util.config.Configuration;
@@ -67,9 +68,12 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean LeatherEquipChance()     { return Chance(LeatherEquipPct()); }
   public  Boolean MedEquipChance()         { return Chance(MedEquipPct()); }
   public  Boolean BigEquipChance()         { return Chance(BigEquipPct()); }
+  public  Boolean MinorChance()            { return Chance(MossyPct()); }
 
-  public  Material majorMat()              { return Material.matchMaterial(majorBlock());  } 
-  public  Material minorMat()              { return Material.matchMaterial(minorBlock());  } 
+  public  CatMat majorMat()                { return getBlockMaterial(majorBlock());  } 
+  public  CatMat minorMat()                { return getBlockMaterial(minorBlock());  } 
+  public  byte majorByte()                 { return getBlockByte(majorBlock());  } 
+  public  byte minorByte()                 { return getBlockByte(minorBlock());  } 
   
   public  void setRadiusMax(int r)         { setSInt(ECatConfig.RadiusMax.getStr(),r); }
 
@@ -149,7 +153,8 @@ public class CatConfig extends Config implements ICatConfig {
     return Material.BROWN_MUSHROOM;
   }
 
-  public Material CobbleType() {
+  @Deprecated
+  public CatMat CobbleType() {
     if(Chance(MossyPct()))
       return minorMat();
     return majorMat();
