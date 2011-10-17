@@ -149,17 +149,13 @@ public class CatLevel {
     int xh = x-level.start().x+level.grid().size.x-1;
     int yh = y+roomDepth+roofDepth-1;
     int zh = z+level.start().y;    
-    cube = new CatCuboid(world,xl,yl,zl,xh,yh,zh,CatCuboidType.HUT);
+    cube = new CatCuboid(world,xl,yl,zl,xh,yh,zh,CatCuboid.Type.HUT);
   }
   
   public CatLevel(Catacombs plugin, dbLevel lvl, World world) {
     build_ok = true;
     can_go_lower = true;
     this.cnf = plugin.cnf;
-    roomDepth = 0;
-    roofDepth = 0;
-    floorDepth = 0;
-    levelDepth = 0;
     this.world  = world;
 
     top = new Vector(lvl.getSx(),lvl.getSy(),lvl.getSz());
@@ -168,11 +164,23 @@ public class CatLevel {
 
     cube = new CatCuboid(world,lvl.getXl(),lvl.getYl(),lvl.getZl(),
             lvl.getXh(),lvl.getYh(),lvl.getZh(),
-            (lvl.getHut())?CatCuboidType.HUT:CatCuboidType.LEVEL);
+            (lvl.getHut())?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL);
     if(lvl.getEnable())
       cube.enable();
     else
       cube.suspend();
+    roofDepth = cube.guessRoofSize();
+    roomDepth = cube.guessRoomSize();
+    floorDepth = 0;
+    levelDepth = 0;
+  }
+
+  public int getRoofDepth() {
+    return roofDepth;
+  }
+
+  public int getRoomDepth() {
+    return roomDepth;
   }
   
   public Direction end_dir() {
@@ -282,7 +290,7 @@ public class CatLevel {
     Boolean SquareHuts = false;
     
     // Extra cobblestone (major) when outside
-    Material ecob = (SquareHuts && cube.getType()==CatCuboidType.HUT)?cob:null;
+    Material ecob = (SquareHuts && cube.isHut())?cob:null;
 
     // First pass - Place all the Blocks
     for(int x=0;x<g.size.x;x++) {
@@ -424,7 +432,7 @@ public class CatLevel {
         }
         if(s==Square.TORCH) {
           world.getBlockAt(xx,room_l+2,zz).setType(Material.TORCH);
-          if(cube.getType()==CatCuboidType.HUT)
+          if(cube.isHut())
             world.getBlockAt(xx,roof_l+1,zz).setType(Material.TORCH);
         }
         if(s==Square.BED_H) {
@@ -541,7 +549,7 @@ public class CatLevel {
   }
   
   public byte getLadderCode(int x, int y) {
-    if(cube.getType()==CatCuboidType.HUT)
+    if(cube.isHut())
       return 0;
     return getLadderCode(level.grid().getBackWallDir(x, y));
   }

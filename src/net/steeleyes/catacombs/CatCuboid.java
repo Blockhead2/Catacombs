@@ -31,6 +31,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Creature;
 import org.bukkit.Location;
+
+import java.util.ArrayList;
 /**
  *
  * @author John Keay
@@ -62,10 +64,98 @@ public class CatCuboid extends Cuboid {
   public void setType(Type t) {
     type = t;
   }
-  public Type getType() {
-    return type;
+  
+  //  Add 3 horrible routine to guess key facts that I didn't save in the .db
+  //    TODO: need to figure out how to expand the table without loosing backwards compatibility,
+  public int guessRoofSize() {
+    int depth = 256;
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        for(int y=yh,i=0;y>=yl;y--,i++) {
+          Block blk = world.getBlockAt(x,y,z);
+          Material mat = blk.getType();
+          if(mat == Material.AIR) { 
+            if(i==0) break;          // Stop if top is AIR
+            if(i<depth) depth = i;
+          }
+        }
+      }
+    }    
+    return depth;
+  } 
+  
+  public int guessRoomSize() {
+    int max_depth = 0;
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        int depth=0;
+        for(int y=yh,i=0;y>=yl;y--,i++) {
+          Block blk = world.getBlockAt(x,y,z);
+          Material mat = blk.getType();
+          if(mat == Material.AIR) { 
+            if(i==0)
+              break;          // Stop if top is AIR
+            depth++;
+          } else {
+            if(depth>0) {
+              if(depth>max_depth)
+                max_depth = depth;
+              break;          // Stop on first solid after air.
+            }
+          }
+        }
+      }
+    }    
+    return max_depth;
+  } 
+  
+  public Material guessMajorMat(int roofDepth) {
+    ArrayList<BlockFace> dirs = new ArrayList<BlockFace>();
+    dirs.add(BlockFace.NORTH);
+    dirs.add(BlockFace.EAST);
+    dirs.add(BlockFace.SOUTH);
+    dirs.add(BlockFace.WEST);
+    Material last = null;
+    Material best_mat = null;
+    Material mat=null;
+    int best=0;
+    int cnt=0;
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        int y=yh-roofDepth;
+        Block blk = world.getBlockAt(x,y,z);
+        mat = blk.getType();
+        if(mat != Material.AIR && mat != Material.TORCH) {
+          Boolean near_air = false;
+          for(BlockFace dir : dirs) {
+            Material near = blk.getRelative(dir).getType();
+            if(near==Material.AIR || near==Material.TORCH || near==Material.WEB) {
+              near_air=true;
+              break;
+            }
+          }
+          if(near_air) {
+            if(mat!=last) {
+              if(cnt>best) {
+                best_mat = last;
+                best = cnt;
+              }
+              last = mat;
+              cnt=1;
+            } else {
+              cnt++;
+            }  
+          }
+        }
+      }
+    }
+    if(cnt>best) {
+      best_mat = last;
+      best = cnt;
+    }
+    return best_mat;
   }
-
+  
   public Boolean getEnable() {
     return enable;
   }
@@ -84,7 +174,14 @@ public class CatCuboid extends Cuboid {
   
   public Boolean isEnabled() {
     return enable;
-  }  
+  }
+  
+  public Boolean isLevel() {
+    return type == Type.LEVEL;
+  }
+  public Boolean isHut() {
+    return type == Type.HUT;
+  }
   
   @Override
   public Boolean isIn(int x,int y,int z) {
@@ -130,29 +227,27 @@ public class CatCuboid extends Cuboid {
     }
   }
   
-  public void addGlow(Material major) {
+  public void addGlow(Material major,int roofDepth) {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
-        for(int y=yl;y<=yh;y++) {
-          Block blk = world.getBlockAt(x,y,z);
-          Block other = blk.getRelative(BlockFace.DOWN,1);
-          if(blk.getType() == major && other.getType() == Material.AIR) {
-            blk.setType(Material.GLOWSTONE);
-          }
+        int y = yh-roofDepth+1;
+        Block blk = world.getBlockAt(x,y,z);
+        Block other = blk.getRelative(BlockFace.DOWN,1);
+        if(blk.getType() == major && other.getType() == Material.AIR) {
+          blk.setType(Material.GLOWSTONE);
         }
       }
     }
   }
   
-  public void removeGlow(Material major) {
+  public void removeGlow(Material major,int roofDepth) {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
-        for(int y=yl;y<=yh;y++) {
-          Block blk = world.getBlockAt(x,y,z);
-          Block other = blk.getRelative(BlockFace.DOWN,1);
-          if(blk.getType() == Material.GLOWSTONE && other.getType() == Material.AIR) {
-            blk.setType(major);
-          }
+        int y = yh-roofDepth+1;
+        Block blk = world.getBlockAt(x,y,z);
+        Block other = blk.getRelative(BlockFace.DOWN,1);
+        if(blk.getType() == Material.GLOWSTONE && other.getType() == Material.AIR) {
+          blk.setType(major);
         }
       }
     }

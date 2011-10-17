@@ -168,7 +168,7 @@ public class CatDatabase {
           int hut = rs.getInt(ct+".hut");
           // TODO World needs to be saved with the cubes and restored
           list.add(new CatCuboid(null,xl,yl,zl,xh,yh,zh,
-                  (hut==1)?CatCuboidType.HUT:CatCuboidType.LEVEL));
+                  (hut==1)?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL));
         }
       } catch (SQLException e) {
         System.err.println("[Catacombs] getCubes:"+e.getMessage());
@@ -295,7 +295,7 @@ public class CatDatabase {
   }
 
   public void addCube(CatCuboid c,int did) {
-    int hut = (c.getType() ==CatCuboidType.HUT)?1:0;
+    int hut = (c.isHut())?1:0;
     write("INSERT INTO `"+ct+"` (stamp_create,did,xl,yl,zl,xh,yh,zh,hut) "+
           "VALUES (null,'"+did+"','"+c.xl+"','"+c.yl+"','"+c.zl+
           "','"+c.xh+"','"+c.yh+"','"+c.zh+"','"+hut+"')");

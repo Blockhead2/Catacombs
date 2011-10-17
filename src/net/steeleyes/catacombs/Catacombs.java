@@ -291,7 +291,7 @@ public class Catacombs extends JavaPlugin {
           System.out.println("[" + info.getName() + "]           dungeon:"+dname);
           for (CatCuboid cube: sql.getDungeonCubes(dname)) {
             dbLevel lvl = new dbLevel();
-            lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.getType()==CatCuboid.Type.HUT);
+            lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.isHut());
             db.save(lvl);
           }
         }
@@ -380,12 +380,34 @@ public class Catacombs extends JavaPlugin {
         }
       } else if(cmd(p,args,"delete","D")) {
         deleteDungeon(p,args[1]);
+      } else if(cmd(p,args,"reset")) {
+        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        if(dung!=null)
+          resetDungeon(p,dung.getName());
+        else 
+          p.sendMessage("Not in a dungeon"); 
       } else if(cmd(p,args,"reset","D")) {
         resetDungeon(p,args[1]);
+      } else if(cmd(p,args,"suspend")) {
+        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        if(dung!=null) {
+          suspendDungeon(p,dung.getName());
+          p.sendMessage("Suspend "+dung.getName()); 
+        } else 
+          p.sendMessage("Not in a dungeon"); 
       } else if(cmd(p,args,"suspend","D")) {
         suspendDungeon(p,args[1]);
+        p.sendMessage("Suspend "+args[1]); 
+      } else if(cmd(p,args,"enable")) {
+        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        if(dung!=null) {
+          enableDungeon(p,dung.getName());
+          p.sendMessage("Enable "+dung.getName()); 
+        }else 
+          p.sendMessage("Not in a dungeon"); 
       } else if(cmd(p,args,"enable","D")) {
         enableDungeon(p,args[1]);
+        p.sendMessage("Enable "+args[1]); 
       } else if(cmd(p,args,"style")) {
         p.sendMessage("Dungeon style="+cnf.getStyle()); 
       } else if(cmd(p,args,"style","s")) {
@@ -415,7 +437,7 @@ public class Catacombs extends JavaPlugin {
         } else {
           p.sendMessage("Not in a dungeon"); 
         }
-      } else if(cmd(p,args,"which")) {
+      } else if(cmd(p,args,"which") || cmd(p,args,"?")) {
         Dungeon dung = dungeons.which(p.getLocation().getBlock());
         if(dung == null) {
           p.sendMessage("Not in a dungeon"); 
@@ -605,7 +627,7 @@ public class Catacombs extends JavaPlugin {
     dung.teleportToBot(p); 
   }  
   public void enableDungeon(Player p,String dname) {
-    dungeons.enabled(dname,getDatabase());
+    dungeons.enable(dname,getDatabase());
   }  
   
   public void deleteDungeon(Player p,String dname) {
@@ -624,7 +646,7 @@ public class Catacombs extends JavaPlugin {
   public void resetDungeon(Player p,String dname) {
     Set<CatCuboid> cubes = dungeons.getCubes(dname);
     for(CatCuboid c: cubes) {
-      if(c.getType() != CatCuboid.Type.HUT) {
+      if(!c.isHut()) {
         c.clearBlock(Material.TORCH);
         c.refillChests(cnf);
       }

@@ -62,6 +62,7 @@ public class Dungeons {
         for (Entry<String,Dungeon> entry : dungeons.entrySet()) {
           Dungeon d = entry.getValue();
           d.registerCubes(plugin.prot);
+          d.guessMajor();
         }
       }
     }
@@ -105,7 +106,7 @@ public class Dungeons {
     return null;
   }
 
-  
+
   public void add(String dname, Dungeon d) {
     if(dungeons.containsKey(dname)) {
       Dungeon dung = dungeons.get(dname);
@@ -148,7 +149,7 @@ public class Dungeons {
       dung.suspend(db);
     }
   }  
-  public void enabled(String name,EbeanServer db) {
+  public void enable(String name,EbeanServer db) {
     if(dungeons.containsKey(name)) {
       Dungeon dung = dungeons.get(name);
       dung.enable(db);

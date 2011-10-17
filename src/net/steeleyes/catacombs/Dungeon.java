@@ -108,7 +108,17 @@ public class Dungeon {
         return false;
     return true;
   }
-
+ 
+  public void guessMajor() {
+    for(CatLevel l: levels) {
+      Material m = l.cube.guessMajorMat(l.getRoofDepth());
+      if(m!=null) {
+        major = m;
+        break;
+      }
+    }
+  }
+  
   public ArrayList<String> summary() {
     ArrayList<String> res = new ArrayList<String>();
     for(CatLevel l: levels) {
@@ -177,7 +187,7 @@ public class Dungeon {
   
   public Location getTopLocation() {
     for(CatLevel l : levels) {
-      if(l.cube.getType() == CatCuboidType.HUT) {
+      if(l.cube.isHut()) {
         return world.getBlockAt(l.top.x+1,l.top.y-3,l.top.z).getLocation();
       }
     }
@@ -218,7 +228,7 @@ public class Dungeon {
       n.setWname(world.getName());
       n.setPname(builder);
       CatCuboid cube = l.cube;
-      n.setHut(cube.getType() == CatCuboidType.HUT);
+      n.setHut(cube.isHut());
       n.setXl(cube.xl);
       n.setYl(cube.yl);
       n.setZl(cube.zl);
@@ -245,7 +255,7 @@ public class Dungeon {
       for(CatCuboid c: cubes) {
         c.clearMonsters();
         c.suspend();
-        c.addGlow(major);
+        c.addGlow(major,levels.get(0).getRoofDepth());
       }  
     } 
     if(db != null) {
@@ -264,7 +274,7 @@ public class Dungeon {
     if(cubes != null) {
       for(CatCuboid c: cubes) {
         c.enable();
-        c.removeGlow(major);
+        c.removeGlow(major,levels.get(0).getRoofDepth());
       }  
     } 
     if(db != null) {
@@ -295,7 +305,7 @@ public class Dungeon {
 
   public Boolean isNatural() {
     for (CatLevel l : levels) {
-      if(l.cube.getType()==CatCuboidType.LEVEL && !l.cube.isCubeNatural()) {
+      if(l.cube.isLevel() && !l.cube.isCubeNatural()) {
         return false;
       }
     }
@@ -319,7 +329,7 @@ public class Dungeon {
       int z = blk.getZ();
       for(CatLevel l : levels) {
         CatCuboid c =  l.cube;
-        if(c.getType()==CatCuboidType.LEVEL && c.isIn(x,y,z))
+        if(c.isLevel() && c.isIn(x,y,z))
           return true;
       }
     }
