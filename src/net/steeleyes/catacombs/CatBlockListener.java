@@ -75,7 +75,7 @@ public class CatBlockListener extends BlockListener {
       System.out.println("[Catacombs] break spawner");
       if(plugin.cnf.ProtectSpawners() &&
          plugin.prot.isProtected(block.getWorld().getName(),block.getX(),block.getY(),block.getZ())) {
-        System.out.println("[Catacombs] cancel");
+        System.out.println("[Catacombs] cancel event");
         event.setCancelled(true);
         return;
       }
