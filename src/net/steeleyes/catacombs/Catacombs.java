@@ -422,10 +422,26 @@ public class Catacombs extends JavaPlugin {
         }
       } else if(cmd(p,args,"unprot","D")) {
         unprotDungeon(p,args[1]);
+      } else if(cmd(p,args,"goto")) {
+        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        if(dung!=null) {
+          gotoDungeon(p,dung.getName());
+          p.sendMessage("Goto "+dung.getName()); 
+        }else 
+          p.sendMessage("Not in a dungeon"); 
       } else if(cmd(p,args,"goto","D")) {
         gotoDungeon(p,args[1]);
-      //} else if(cmd(p,args,"end","D")) {
-      //  gotoDungeonEnd(p,args[1]);
+        p.sendMessage("Goto "+args[1]); 
+      } else if(cmd(p,args,"end")) {
+        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        if(dung!=null) {
+          gotoDungeonEnd(p,dung.getName());
+          p.sendMessage("Goto end "+dung.getName()); 
+        }else 
+          p.sendMessage("Not in a dungeon");         
+      } else if(cmd(p,args,"end","D")) {
+        gotoDungeonEnd(p,args[1]);
+        p.sendMessage("Goto end "+args[1]); 
       } else if(cmd(p,args,"recall")) {
         Dungeon dung = dungeons.which(p.getLocation().getBlock());
         if(dung != null) {
@@ -470,10 +486,11 @@ public class Catacombs extends JavaPlugin {
     p.sendMessage("/cat build   <name>");
     p.sendMessage("/cat delete  <name>");
     p.sendMessage("/cat unprot  <name>");
-    p.sendMessage("/cat suspend <name>");
-    p.sendMessage("/cat enable  <name>");
-    p.sendMessage("/cat goto    <name>");
-    p.sendMessage("/cat reset   <name>");
+    p.sendMessage("/cat suspend [<name>]");
+    p.sendMessage("/cat enable  [<name>]");
+    p.sendMessage("/cat goto    [<name>]");
+    p.sendMessage("/cat end     [<name>]");
+    p.sendMessage("/cat reset   [<name>]");
     p.sendMessage("/cat resetall");
     p.sendMessage("/cat recall");
     p.sendMessage("/cat style [<style_name>]");
