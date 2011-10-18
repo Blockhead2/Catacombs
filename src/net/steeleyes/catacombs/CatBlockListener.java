@@ -26,6 +26,8 @@ import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+//import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
@@ -87,7 +89,34 @@ public class CatBlockListener extends BlockListener {
     if(plugin.prot.isProtected(block.getWorld().getName(),block.getX(),block.getY(),block.getZ()))
       event.setCancelled(true);
   }
+/*
+  @Override
+  public void onBlockPhysics(BlockPhysicsEvent event){
+    if(event.isCancelled())
+      return;
+    
+    if(plugin.prot.getCube(event.getBlock()) != null) {
+      System.out.println("[Catacombs] Physics cancelled "+event.getBlock());
+      event.setCancelled(true);
+    }
+  }
+  */
+  @Override
+  public void onBlockIgnite(BlockIgniteEvent event){
+    if(event.isCancelled())
+      return;
 
+    Block block = event.getBlock();
+
+    CatCuboid c = plugin.prot.getCube(block);
+    if(c != null) {
+    //if(plugin.prot.isProtected(block.getWorld().getName(),block.getX(),block.getY(),block.getZ()) ||
+    //   plugin.prot.isSuspended(block.getWorld().getName(),block.getX(),block.getY(),block.getZ())) {
+      //System.out.println("[Catacombs] Ignite cancelled "+block);
+      event.setCancelled(true);
+    }
+  }
+  
   @Override
   public void onBlockDamage(BlockDamageEvent event){
     if(event.isCancelled())

@@ -246,6 +246,8 @@ public class Catacombs extends JavaPlugin {
       if(!cnf.GoldOff()) {
         pm.registerEvent(Event.Type.ENTITY_DEATH,   entityListener, Event.Priority.Low, this);
       }
+      pm.registerEvent(Event.Type.BLOCK_IGNITE,     blockListener,  Event.Priority.Low, this);
+      //pm.registerEvent(Event.Type.BLOCK_PHYSICS,    blockListener,  Event.Priority.High, this);
 
       //pm.registerEvent(Event.Type.PLAYER_LOGIN,   playerListener, Event.Priority.Low, this);
 
