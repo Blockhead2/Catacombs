@@ -45,6 +45,7 @@ public enum ECatConfig {
     
     
     RadiusMax    (".RadiusMax", 12),
+    UnderFill    (".UnderFill", false),
     HutType      (".Hut.Type", "default"),
     majorBlock   (".Block.Major", "cobblestone"),
     minorBlock   (".Block.Minor", "mossy_cobblestone"),

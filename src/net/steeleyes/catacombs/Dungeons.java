@@ -21,7 +21,9 @@ package net.steeleyes.catacombs;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.Collections;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map.Entry;
 
 
@@ -174,8 +176,10 @@ public class Dungeons {
     }
   }   
   
-  public Set<String> getNames() {
-    return dungeons.keySet();
+  public List<String> getNames() {
+    List<String> list = new ArrayList(dungeons.keySet());
+    Collections.sort(list);
+    return list;
   }
   
   public Dungeon get(String dname) {

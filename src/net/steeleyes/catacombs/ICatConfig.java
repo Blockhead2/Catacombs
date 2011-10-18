@@ -33,6 +33,7 @@ public interface ICatConfig extends IConfig {
   public  Integer extraDepth();
 
   public  String  HutType();
+  public  Boolean UnderFill();
   public  String  majorBlock();
   public  String  minorBlock();
   public  Boolean emptyChest();

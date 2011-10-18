@@ -19,14 +19,14 @@
 */
 package net.steeleyes.catacombs;
 
-import java.util.Set;
+//import java.util.Set;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.entity.Player;
 import org.bukkit.World;
 import org.bukkit.Location;
-import org.bukkit.Material;
+//import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.Event;
 import org.bukkit.command.Command;
@@ -51,16 +51,43 @@ import org.bukkit.block.BlockFace;
  *
  * 
 Release v0.7
-  - Added /cat scatter <name> <depth> <radius> <max distance> command to plan and
-    build dungeons at some distance.
-  - Added option to protect spawners inside dungeons from destruction.
   - Added a couple of beds to the hut.
   - Fixed bug, removed extra loot on double chest refills.
   - Changed secret door code so it will work with any block (not just cobble/mossycobble)
+  - Changed suspend/enable dungeon commands so they work with ceilings that aren't cobble/mossycobble
   - Added options to allow catacombs to be built from almost any pair of (non-gravity effected
-    blocks).
-  - Added code to allow special (predefined) rooms to be included in the dungeon
+    blocks). These are configured as part of the style in config.yml.
+    Choose the blocks carefully. Don't come crying to me when the secret doors in
+    your melon/pumpkin dungeon don't work or when your sand dungeons collapse.
+    To control data values use "wool:13", "smooth_brick:2" etc for blue wool or
+    cracked bricks respectively. The names must be valid bukkit names see here for
+    the names http://jd.bukkit.org/apidocs/org/bukkit/Material.html The name check
+    is not case sensitive. 
+  - Added code to allow special (predefined) rooms to be included in the dungeon.
+  - Added configurations so you can choose the size of "Hut" you get at the top
+    of the dungeon. Current options are default, small, tiny, pit, medium, large
   - Dungeon builds happen over time rather than all at once.
+  - Added configuration to allow admins to control which blocks are considered
+    natural. For example. If you add 'air' to the list (set the floor depth to 4
+    or set the UnderFill configuration to make sure you have room for secret doors)
+    you can build down from the sky, for example.
+  - Added '/cat end <name>' to teleport admins to the end of the dungeon
+  - Changed reset/enable/suspend/goto/end commands so they default to the dungeon
+    you are in if a dungeon name isn't given.
+  - Changed '/cat list' so it lists the dungeons in alphabetical order.
+  - Changed code so delete and reset commands teleport any players inside the dungeon
+    up into the relative safety of the hut first (not the surface as before)
+  - Added checks to make sure dungeons can't be build that intersect
+  - Added checks to ensure dungeons are still all natural when you build them
+  - Uploaded the source code to https://github.com/Blockhead2/Catacombs
+  - Added code to prevent water and lava being picked up or put down in dungeon
+  - Added code to prevent lava pools burning your woolen or wood dungeons down.
+  - *EXPERIMENTAL* Added /cat scatter <name> <depth> <radius> <max distance> command to plan and
+    build dungeons at some distance. I got stuck when teleporting to them after
+    they were built, maybe ok if you walk. YOU HAVE BEEN WARNED EMPTY YOUR INVENTORY
+  - *EXPERIMENTAL* Added option to protect spawners inside dungeons from destruction.
+    I'm cancelling the event but the spawners are still breaking (need to debug)
+  - Known bukkit/minecraft issue. Client will crash if you build over a chest.
   
 Release v0.6
   - A big update to the Catacombs configuration system. The existing configuration

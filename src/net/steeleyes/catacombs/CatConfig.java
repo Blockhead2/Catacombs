@@ -30,6 +30,7 @@ public class CatConfig extends Config implements ICatConfig {
 
   public  Integer RadiusMax()              { return getSInt(ECatConfig.RadiusMax.getStr());  }
   public  String  HutType()                { return getSString(ECatConfig.HutType.getStr());  }
+  public  Boolean UnderFill()              { return getSBoolean(ECatConfig.UnderFill.getStr());  }
   public  String  majorBlock()             { return getSString(ECatConfig.majorBlock.getStr());  }
   public  String  minorBlock()             { return getSString(ECatConfig.minorBlock.getStr());  }
   public  Integer floorDepth()             { return getSInt(ECatConfig.floorDepth.getStr());  }
