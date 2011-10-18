@@ -46,6 +46,7 @@ public enum ECatConfig {
     
     RadiusMax    (".RadiusMax", 12),
     UnderFill    (".UnderFill", false),
+    OverFill     (".OverFill", false),
     HutType      (".Hut.Type", "default"),
     majorBlock   (".Block.Major", "cobblestone"),
     minorBlock   (".Block.Minor", "mossy_cobblestone"),
@@ -77,7 +78,7 @@ public enum ECatConfig {
     GoldMin      (".Mob.Gold.Min", 0),
     GoldMax      (".Mob.Gold.Max", 10),
     
-    LeatherEquipPct  (".Loot.Small.LeatherEquipPct", 10),
+    SmallEquipPct    (".Loot.Small.LeatherEquipPct", 10),
     MedEquipPct      (".Loot.Medium.EquipPct", 100),
     BigEquipPct      (".Loot.Big.EquipPct", 100),
     

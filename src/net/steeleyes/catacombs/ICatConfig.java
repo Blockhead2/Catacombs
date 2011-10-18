@@ -34,6 +34,7 @@ public interface ICatConfig extends IConfig {
 
   public  String  HutType();
   public  Boolean UnderFill();
+  public  Boolean OverFill();
   public  String  majorBlock();
   public  String  minorBlock();
   public  Boolean emptyChest();
@@ -52,7 +53,6 @@ public interface ICatConfig extends IConfig {
   public  String       SpawnerType();
   public  Integer      Gold();
   public  Material     ShroomType();
-  public  CatMat       CobbleType();
   public  Material     AirType();
   public  Boolean      isNatural(Block b);
   
@@ -60,7 +60,7 @@ public interface ICatConfig extends IConfig {
   public  List<String> LootMediumList();
   public  List<String> LootBigList();
 
-  public  Boolean LeatherEquipChance();
+  public  Boolean SmallEquipChance();
   public  Boolean MedEquipChance();
   public  Boolean BigEquipChance();
   public  Boolean MinorChance();

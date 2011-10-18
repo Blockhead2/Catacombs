@@ -62,13 +62,13 @@ public class CatLoot {
     }    
   }  
   static public void smallChest(CatConfig cnf,Inventory inv) {   
-    if(cnf.LeatherEquipChance())
+    if(cnf.SmallEquipChance())
       inv.addItem(leather_equipment(cnf));
     
     fillChest(cnf,inv,cnf.LootSmallList());
   }
   static public void smallChest(CatConfig cnf,List<ItemStack> items) {   
-    if(cnf.LeatherEquipChance())
+    if(cnf.SmallEquipChance())
       items.add(leather_equipment(cnf));
     
     fillChest(cnf,items,cnf.LootSmallList());

@@ -31,6 +31,7 @@ public class CatConfig extends Config implements ICatConfig {
   public  Integer RadiusMax()              { return getSInt(ECatConfig.RadiusMax.getStr());  }
   public  String  HutType()                { return getSString(ECatConfig.HutType.getStr());  }
   public  Boolean UnderFill()              { return getSBoolean(ECatConfig.UnderFill.getStr());  }
+  public  Boolean OverFill()               { return getSBoolean(ECatConfig.OverFill.getStr());  }
   public  String  majorBlock()             { return getSString(ECatConfig.majorBlock.getStr());  }
   public  String  minorBlock()             { return getSString(ECatConfig.minorBlock.getStr());  }
   public  Integer floorDepth()             { return getSInt(ECatConfig.floorDepth.getStr());  }
@@ -46,7 +47,7 @@ public class CatConfig extends Config implements ICatConfig {
   private Integer CaveSpiderPct()          { return getSInt(ECatConfig.CaveSpiderPct.getStr());  }
   private Integer GoldMin()                { return getSInt(ECatConfig.GoldMin.getStr());  }
   private Integer GoldMax()                { return getSInt(ECatConfig.GoldMax.getStr());  }
-  private Integer LeatherEquipPct()        { return getSInt(ECatConfig.LeatherEquipPct.getStr());  }
+  private Integer SmallEquipPct()          { return getSInt(ECatConfig.SmallEquipPct.getStr());  }
   private Integer MedEquipPct()            { return getSInt(ECatConfig.MedEquipPct.getStr());  }
   private Integer BigEquipPct()            { return getSInt(ECatConfig.BigEquipPct.getStr());  }
   public  List<String> LootSmallList()     { return getSStringList(ECatConfig.LootSmallList.getStr());  }
@@ -67,7 +68,7 @@ public class CatConfig extends Config implements ICatConfig {
   public  List<String> BannedCommands()    { return getSStringList(ECatConfig.BannedCommands.getStr());  }
   private List<String> NaturalBlocks()     { return getSStringList(ECatConfig.NaturalBlocks.getStr());  }
   
-  public  Boolean LeatherEquipChance()     { return Chance(LeatherEquipPct()); }
+  public  Boolean SmallEquipChance()       { return Chance(SmallEquipPct()); }
   public  Boolean MedEquipChance()         { return Chance(MedEquipPct()); }
   public  Boolean BigEquipChance()         { return Chance(BigEquipPct()); }
   public  Boolean MinorChance()            { return Chance(MossyPct()); }
@@ -160,7 +161,6 @@ public class CatConfig extends Config implements ICatConfig {
       
       if(cnf.getProperty(path)==null) {
         Object val = att.getDef();
-        //System.out.println("Setting "+path+" = "+val);
         cnf.setProperty(path,val);
       }
     }  
@@ -193,13 +193,6 @@ public class CatConfig extends Config implements ICatConfig {
     if(Chance(50))
       return Material.RED_MUSHROOM;
     return Material.BROWN_MUSHROOM;
-  }
-
-  @Deprecated
-  public CatMat CobbleType() {
-    if(Chance(MossyPct()))
-      return minorMat();
-    return majorMat();
   }
 
   public Material AirType() {

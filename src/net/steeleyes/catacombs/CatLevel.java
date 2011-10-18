@@ -304,6 +304,7 @@ public class CatLevel {
     // Extra cobblestone (major) when outside
     Material ecob = (SquareHuts && cube.isHut())?cob:null;
     Material undr = (cnf.UnderFill())?cob:null;
+    Material over = (cnf.OverFill() && cube.isLevel())?cob:null;
 
     // First pass - Place all the Blocks
     for(int x=0;x<g.size.x;x++) {
@@ -315,22 +316,22 @@ public class CatLevel {
 
         switch(s) {
           case UPWALL:         renderTile(handler,xx,top.y,zz,undr,undr,cob ,cob ,cob ,cob ); break;
-          case DOWNWALL:       renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,ecob,null); break;
+          case DOWNWALL:       renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,ecob,over); break;
           case BOTHWALL:       renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,cob ,cob ); break;
           case WALL:
           case WINDOW:
-          case FIXEDWALL:      renderTile(handler,xx,top.y,zz,undr,undr,cob ,cob ,ecob,null); break;
+          case FIXEDWALL:      renderTile(handler,xx,top.y,zz,undr,undr,cob ,cob ,ecob,over); break;
           case WATER:
           case LAVA:           Material liq = (s==Square.LAVA)?Material.STATIONARY_LAVA:Material.STATIONARY_WATER;
-                               renderTile(handler,xx,top.y,zz,cob ,liq ,air ,air ,cob ,null);  break;
+                               renderTile(handler,xx,top.y,zz,cob ,liq ,air ,air ,cob ,over);  break;
           case FLOOR:
-          case FIXEDFLOOR:     renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,null);  break;
+          case FIXEDFLOOR:     renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);  break;
           case FIXEDFLOORUP:   renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,cob );  break;
-          case FIXEDFLOORDOWN: renderTile(handler,xx,top.y,zz,cob ,cob ,air ,air ,cob ,null);  break;
+          case FIXEDFLOORDOWN: renderTile(handler,xx,top.y,zz,cob ,cob ,air ,air ,cob ,over);  break;
           case DOOR:
           case WEB:
-          case ARCH:           renderTile(handler,xx,top.y,zz,undr,cob ,air ,cob ,ecob,null); break;
-          case HIDDEN:         renderTile(handler,xx,top.y,zz,cob ,cob ,air ,cob ,ecob,null); break;
+          case ARCH:           renderTile(handler,xx,top.y,zz,undr,cob ,air ,cob ,ecob,over); break;
+          case HIDDEN:         renderTile(handler,xx,top.y,zz,cob ,cob ,air ,cob ,ecob,over); break;
           case WORKBENCH:
           case SHROOM:
           case FURNACE:
@@ -343,15 +344,15 @@ public class CatLevel {
           case BIGCHEST:
           case MIDCHEST:
           case EMPTYCHEST:
-          case CHEST:          renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,null); break;
-          case SPAWNER:        renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,null); break;
+          case CHEST:          renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over); break;
+          case SPAWNER:        renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over); break;
           case O_FLOOR:     
-          case O_TORCH:        renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,null,null); break;
+          case O_TORCH:        renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,over,over); break;
           case UP:             renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,air ,air ); break;
           case DOWN:         if(can_go_lower)
-                               renderTile(handler,xx,top.y,zz,air ,air ,air ,air ,cob ,null);
+                               renderTile(handler,xx,top.y,zz,air ,air ,air ,air ,cob ,over);
                              else
-                               renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,null);
+                               renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);
                              break;
           default:
         }
