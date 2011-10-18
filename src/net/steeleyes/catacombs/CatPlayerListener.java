@@ -56,7 +56,7 @@ public class CatPlayerListener  extends PlayerListener{
     Player player = event.getPlayer();
     Block blk = player.getLocation().getBlock();
     World w = blk.getWorld();
-    if(plugin.prot.isProtected(w.getName(),blk.getX(),blk.getY(),blk.getZ())) {
+    if(plugin.prot.isProtected(blk)) {
       for(String cmd:plugin.cnf.BannedCommands()) {
         if (event.getMessage().startsWith(cmd)) {
           player.sendMessage("'"+cmd+"' is blocked in dungeons");

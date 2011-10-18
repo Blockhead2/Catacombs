@@ -47,14 +47,6 @@ public class MultiWorldProtect {
       p.remove(cube);
     }
   }
-
-  public Boolean isProtected(String world,int x, int y, int z) {
-    if(protect.containsKey(world)) {
-      WorldProtect p = protect.get(world);
-      return p.isProtected(x,y,z);
-    }
-    return false;
-  }
   
   public Boolean isProtected(Block blk) {
     String world = blk.getWorld().getName();
@@ -65,20 +57,24 @@ public class MultiWorldProtect {
     return false;
   }  
   
-  public Boolean isSuspended(String world,int x, int y, int z) {
+  public Boolean isSuspended(Block blk) {
+    String world = blk.getWorld().getName();
     if(protect.containsKey(world)) {
       WorldProtect p = protect.get(world);
-      return p.isSuspended(x,y,z);
+      return p.isSuspended(blk);
     }
     return false;
   }
-  public CatCuboid getCube(String world,int x, int y, int z) {
+  
+  public Boolean isInRaw(Block blk) {
+    String world = blk.getWorld().getName();
     if(protect.containsKey(world)) {
       WorldProtect p = protect.get(world);
-      return p.getCube(x,y,z);
+      return p.isInRaw(blk);
     }
-    return null;
+    return false;
   }
+  
   public CatCuboid getCube(Block blk) {
     String world = blk.getWorld().getName();
     if(protect.containsKey(world)) {

@@ -192,16 +192,20 @@ public class CatCuboid extends Cuboid {
   public Boolean isHut() {
     return type == Type.HUT;
   }
+ 
+  public Boolean isProtected(Block blk) {
+    return enable && world.getName().equals(blk.getWorld().getName()) &&
+      super.isIn(blk.getX(),blk.getY(),blk.getZ());
+  }
   
-  @Override
-  public Boolean isIn(int x,int y,int z) {
-    return enable && super.isIn(x, y, z);
-  }  
-  public Boolean isInRaw(int x,int y,int z) {
-    return super.isIn(x, y, z);
-  }   
-  public Boolean isInSuspended(int x,int y,int z) {
-    return !enable && super.isIn(x, y, z);
+  public Boolean isInRaw(Block blk) {
+    return  world.getName().equals(blk.getWorld().getName()) &&
+      super.isIn(blk.getX(),blk.getY(),blk.getZ());
+  } 
+  
+  public Boolean isSuspended(Block blk) {
+    return !enable &&  world.getName().equals(blk.getWorld().getName()) &&
+      super.isIn(blk.getX(),blk.getY(),blk.getZ());
   }  
   
   public void unrender(BlockChangeHandler handler,Boolean emptyChest) {

@@ -138,17 +138,28 @@ public class Dungeon {
     }
     return res;
   }
-  public Boolean isIn(Block blk) {
+  
+  public Boolean isProtected(Block blk) {
     for(CatLevel l : levels) {
-      if(l.cube.isIn(blk.getX(),blk.getY(),blk.getZ())) {
+      if(l.cube.isProtected(blk)) {
         return true;
       }
     }
     return false;
   }
+  
+  public Boolean isSuspened(Block blk) {
+    for(CatLevel l : levels) {
+      if(l.cube.isSuspended(blk)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   public Boolean isInRaw(Block blk) {
     for(CatLevel l : levels) {
-      if(l.cube.isInRaw(blk.getX(),blk.getY(),blk.getZ())) {
+      if(l.cube.isInRaw(blk)) {
         return true;
       }
     }
@@ -374,7 +385,7 @@ public class Dungeon {
     for(Player player : world.getPlayers()) {
       Location ploc = player.getLocation();
       Block blk = player.getLocation().getBlock();
-      if(isIn(blk)) {
+      if(isProtected(blk)) {
         Location tloc = getTopLocation();
         if(tloc!=null) {
           player.teleport(tloc);

@@ -61,7 +61,7 @@ public class CatEntityListener extends EntityListener {
     if(eTarget instanceof LivingEntity) {
       LivingEntity leTarget = (LivingEntity) eTarget;
       Block mob_blk = leTarget.getLocation().getBlock();
-        if(plugin.prot.isProtected(mob_blk.getWorld().getName(),mob_blk.getX(),mob_blk.getY(),mob_blk.getZ())) {
+        if(plugin.prot.isProtected(mob_blk)) {
         EntityDamageEvent edEvent = leTarget.getLastDamageCause();
         if (edEvent instanceof EntityDamageByEntityEvent) {
           EntityDamageByEntityEvent edbeEvent = (EntityDamageByEntityEvent)edEvent;
@@ -120,7 +120,7 @@ public class CatEntityListener extends EntityListener {
     if(true) {
       Location loc = sEvent.getLocation();
       Block blk = loc.getBlock();
-      if(plugin.prot.isSuspended(blk.getWorld().getName(),blk.getX(),blk.getY(),blk.getZ())) {
+      if(plugin.prot.isSuspended(blk)) {
         sEvent.setCancelled(true);
         return;
       }
@@ -132,7 +132,7 @@ public class CatEntityListener extends EntityListener {
       if(type == CreatureType.PIG_ZOMBIE) {
         Location loc = sEvent.getLocation();
         Block blk = loc.getBlock();
-        if(plugin.prot.isProtected(blk.getWorld().getName(),blk.getX(),blk.getY(),blk.getZ())) {
+        if(plugin.prot.isProtected(blk)) {
           PigZombie z = (PigZombie) sEvent.getEntity();
           if(blk.getLightLevel()>10) {  // Light stops these zombies
             if(plugin.debug)
@@ -147,7 +147,7 @@ public class CatEntityListener extends EntityListener {
       } else if(type == CreatureType.WOLF) {
         Location loc = sEvent.getLocation();
         Block blk = loc.getBlock();
-        if(plugin.prot.isProtected(blk.getWorld().getName(),blk.getX(),blk.getY(),blk.getZ())) {
+        if(plugin.prot.isProtected(blk)) {
           if(blk.getLightLevel()>10) {  // Light stops these Wolves
             if(plugin.debug)
               System.out.println("[" + plugin.info.getName() + "] Wolf spawn is cancelled (good light)");
@@ -175,11 +175,10 @@ public class CatEntityListener extends EntityListener {
       return;
    
     Location loc = eEvent.getLocation();
-    World w = loc.getWorld();
     Block blk = loc.getBlock();
     List<Block> list = eEvent.blockList();
 
-    if(plugin.prot.isProtected(w.getName(),blk.getX(),blk.getY(),blk.getZ()) ||
+    if(plugin.prot.isProtected(blk) ||
        any_protected(list)) {
       /*
       List<Block> delete = new ArrayList<Block>();
@@ -210,7 +209,7 @@ public class CatEntityListener extends EntityListener {
   
   private Boolean any_protected(List<Block> list) {
     for(Block b : list) {
-      if(plugin.prot.isProtected(b.getWorld().getName(),b.getX(),b.getY(),b.getZ())) {
+      if(plugin.prot.isProtected(b)) {
         return true;
       }
     }
@@ -223,8 +222,7 @@ public class CatEntityListener extends EntityListener {
       return;
 
     Block blk = eEvent.getBlock();
-    World w = blk.getWorld();
-    if(plugin.prot.isProtected(w.getName(),blk.getX(),blk.getY(),blk.getZ())) {
+    if(plugin.prot.isProtected(blk)) {
       eEvent.setCancelled(true);
       //System.out.println("[" + plugin.info.getName() + "] Enderman pick up in dungeon cancelled");
     }

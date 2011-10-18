@@ -36,41 +36,34 @@ public class WorldProtect {
   public void remove(CatCuboid cube) {
     protect.remove(cube);
   }
-
-  // isProtected/isSuspended could use getCube instead
-  public Boolean isProtected(int x, int y, int z) {
-    for(CatCuboid c : protect) {
-      if(c.isIn(x, y, z))
-        return true;
-    }
-    return false;
-  }
   
   public Boolean isProtected(Block blk) {
     for(CatCuboid c : protect) {
-      if(c.isIn(blk.getX(),blk.getY(),blk.getZ()))
+      if(c.isProtected(blk))
+        return true;
+    }
+    return false;
+  } 
+  
+  public Boolean isSuspended(Block blk) {
+    for(CatCuboid c : protect) {
+      if(c.isSuspended(blk))
         return true;
     }
     return false;
   }  
   
-  public Boolean isSuspended(int x, int y, int z) {
+  public Boolean isInRaw(Block blk) {
     for(CatCuboid c : protect) {
-      if(c.isInSuspended(x, y, z))
+      if(c.isInRaw(blk))
         return true;
     }
     return false;
-  }
-  public CatCuboid getCube(int x, int y, int z) {
-    for(CatCuboid c : protect) {
-      if(c.isInRaw(x, y, z))
-        return c;
-    }
-    return null;
-  }
+  } 
+  
   public CatCuboid getCube(Block blk) {
     for(CatCuboid c : protect) {
-      if(c.isInRaw(blk.getX(),blk.getY(),blk.getZ()))
+      if(c.isInRaw(blk))
         return c;
     }
     return null;

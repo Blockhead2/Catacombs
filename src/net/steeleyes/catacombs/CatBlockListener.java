@@ -52,7 +52,7 @@ public class CatBlockListener extends BlockListener {
     if(mat == Material.TORCH)
       return;
 
-    if(plugin.prot.isProtected(block.getWorld().getName(),block.getX(),block.getY(),block.getZ()))
+    if(plugin.prot.isProtected(block))
       event.setCancelled(true);
   }
 
@@ -76,7 +76,7 @@ public class CatBlockListener extends BlockListener {
     if(mat == Material.MOB_SPAWNER) {
       System.out.println("[Catacombs] break spawner");
       if(plugin.cnf.ProtectSpawners() &&
-         plugin.prot.isProtected(block.getWorld().getName(),block.getX(),block.getY(),block.getZ())) {
+         plugin.prot.isProtected(block)) {
         System.out.println("[Catacombs] cancel event");
         event.setCancelled(true);
         return;
@@ -86,7 +86,7 @@ public class CatBlockListener extends BlockListener {
       return;        
     }
     
-    if(plugin.prot.isProtected(block.getWorld().getName(),block.getX(),block.getY(),block.getZ()))
+    if(plugin.prot.isProtected(block))
       event.setCancelled(true);
   }
 /*

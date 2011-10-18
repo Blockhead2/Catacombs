@@ -602,7 +602,7 @@ public class Catacombs extends JavaPlugin {
         cnf.setRadiusMax(radius);
         dung.prospect(p,mx,my,mz,dir,depth);
         cnf.setRadiusMax(tmp_radius);
-        if(dung.isOk()) {
+        if(dung.isOk()) {  // TODO: Need to call buildDungeon in here
           dung.show();
           dungeons.add(dname,dung);
           dung.saveDB(getDatabase());
@@ -627,10 +627,11 @@ public class Catacombs extends JavaPlugin {
       Dungeon dung = dungeons.get(dname);
       if(dung.isBuilt()) {
         System.out.println("[catacombs] Dungeon "+dname+" has already been built");
+      } else if(!dung.isNatural()) {
+        p.sendMessage("Loaction of '"+dname+"' is no longer solid-natural (replan)");
       } else {
         p.sendMessage("Building "+dname);
         dung.saveDB(getDatabase());
-        //testDatabase();
         dung.registerCubes(/*sql,*/prot);
         dung.render(handler);
         handler.add(p);
