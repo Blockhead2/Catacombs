@@ -239,15 +239,17 @@ public class Catacombs extends JavaPlugin {
 
       PluginManager pm = this.getServer().getPluginManager();
       if(!cnf.DungeonProtectOff()) {
-        pm.registerEvent(Event.Type.BLOCK_PLACE,    blockListener,  Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.BLOCK_BREAK,    blockListener,  Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.BLOCK_PLACE,      blockListener,  Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.BLOCK_BREAK,      blockListener,  Event.Priority.Low, this);
       }
       if(!cnf.SecretDoorOff())
-        pm.registerEvent(Event.Type.BLOCK_DAMAGE,   blockListener,  Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.BLOCK_DAMAGE,     blockListener,  Event.Priority.Low, this);
       if(!cnf.GoldOff()) {
-        pm.registerEvent(Event.Type.ENTITY_DEATH,   entityListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.ENTITY_DEATH,     entityListener, Event.Priority.Low, this);
       }
-      pm.registerEvent(Event.Type.BLOCK_IGNITE,     blockListener,  Event.Priority.Low, this);
+      pm.registerEvent(Event.Type.BLOCK_IGNITE,       blockListener,  Event.Priority.Low, this);
+      pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL, playerListener, Event.Priority.Low, this);
+      pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY,playerListener, Event.Priority.Low, this);
       //pm.registerEvent(Event.Type.BLOCK_PHYSICS,    blockListener,  Event.Priority.High, this);
 
       //pm.registerEvent(Event.Type.PLAYER_LOGIN,   playerListener, Event.Priority.Low, this);

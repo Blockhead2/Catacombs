@@ -22,6 +22,8 @@ package net.steeleyes.catacombs;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.block.Block;
 import org.bukkit.World;
 
@@ -62,6 +64,30 @@ public class CatPlayerListener  extends PlayerListener{
           return;
         }
       }
+    }
+  }
+  
+  @Override
+  public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+    if (event.isCancelled())
+      return;
+    
+    Block block = event.getBlockClicked();
+    CatCuboid c = plugin.prot.getCube(block);
+    if(c != null) {
+      event.setCancelled(true);
+    }
+  }
+
+  @Override
+  public void onPlayerBucketFill(PlayerBucketFillEvent event) {
+    if (event.isCancelled())
+      return;
+    
+    Block block = event.getBlockClicked();
+    CatCuboid c = plugin.prot.getCube(block);
+    if(c != null) {
+      event.setCancelled(true);
     }
   }
 }
