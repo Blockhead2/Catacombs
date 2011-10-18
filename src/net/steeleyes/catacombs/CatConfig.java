@@ -23,6 +23,7 @@ import net.steeleyes.maps.Config;
 import java.util.List;
 import org.bukkit.util.config.Configuration;
 //import org.bukkit.configuration.Configuration;
+import org.bukkit.block.Block;
 import org.bukkit.Material;
 
 public class CatConfig extends Config implements ICatConfig {
@@ -63,6 +64,7 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean SaveDungeons()           { return getSBoolean(ECatConfig.SaveDungeons.getStr());  }
   public  String  Economy()                { return getSString(ECatConfig.Economy.getStr());  }
   public  List<String> BannedCommands()    { return getSStringList(ECatConfig.BannedCommands.getStr());  }
+  private List<String> NaturalBlocks()     { return getSStringList(ECatConfig.NaturalBlocks.getStr());  }
   
   public  Boolean LeatherEquipChance()     { return Chance(LeatherEquipPct()); }
   public  Boolean MedEquipChance()         { return Chance(MedEquipPct()); }
@@ -88,13 +90,6 @@ public class CatConfig extends Config implements ICatConfig {
   public String MySQLAddr()       { return getSString("MySQL.Server.Address"); }
   public int    MySQLPort()       { return getSInt("MySQL.Server.Port"); }  
   
-  
-  /*public xxCatConfig(String filename) {
-    super(filename);
-    setDefaults();
-    cnf.save();
-  }*/
-  
   public CatConfig(Configuration config) {
     super(config);
     setDefaults();
@@ -107,8 +102,18 @@ public class CatConfig extends Config implements ICatConfig {
     checkLoot(LootBigList());
     checkBlockMaterial(majorBlock());
     checkBlockMaterial(minorBlock());    
+    checkBlockMaterialList(NaturalBlocks());    
   }
     
+  public Boolean checkBlockMaterialList(List<String> list) {
+    Boolean ok = true;
+    for(String name:list) {
+      if(!checkBlockMaterial(name))
+        ok = false;
+    }
+    return ok;
+  }
+  
   public Boolean checkBlockMaterial(String name) {
     CatMat mat = getBlockMaterial(name);
     if(mat==null) {
@@ -135,6 +140,15 @@ public class CatConfig extends Config implements ICatConfig {
     if(code>=0)
       return new CatMat(mat,code);
     return new CatMat(mat);
+  }
+  
+  public Boolean isNatural(Block blk) {
+    String mname = blk.getType().toString().toLowerCase();
+    for(String n: NaturalBlocks()) {
+      if(n.equalsIgnoreCase(mname))
+        return true;
+    }
+    return false;
   }
   
   private void setDefaults() {

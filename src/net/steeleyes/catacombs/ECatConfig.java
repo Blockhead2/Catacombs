@@ -36,9 +36,14 @@ public enum ECatConfig {
     SaveDungeons            ("Admin.SaveDungeons", true),
     Economy                 ("Admin.Economy", "any"),
     BannedCommands          ("Admin.BannedCommands", Arrays.asList(
-            "/spawn", "/kill", "/warp", "/setwarp","/home")),
-
-         
+      "/spawn",
+      "/kill",
+      "/warp",
+      "/setwarp",
+      "/home"
+    )),
+    
+    
     RadiusMax    (".RadiusMax", 12),
     HutType      (".Hut.Type", "default"),
     majorBlock   (".Block.Major", "cobblestone"),
@@ -49,6 +54,20 @@ public enum ECatConfig {
     extraDepth   (".Depth.firstLevel", 2),
     MossyPct     (".Block.MossyPct", 2),
     AirWebPct    (".Block.AirWebPct", 1),
+    NaturalBlocks(".Block.Natural", Arrays.asList(  // Most common blocks first for efficiency
+      "stone",
+      "dirt",
+      "sand",
+      "sandstone",
+      "gravel",
+      "coal_ore",
+      "iron_ore",
+      "redstone_ore",
+      "gold_ore",
+      "diamond_ore",
+      "lapis_ore"
+    )),    
+    
     SpiderPct    (".Mob.Type.SpiderPct", 5),
     SkeletonPct  (".Mob.Type.SkeletonPct", 25),
     WolfPct      (".Mob.Type.WolfPct", 10),
@@ -62,51 +81,51 @@ public enum ECatConfig {
     BigEquipPct      (".Loot.Big.EquipPct", 100),
     
     LootSmallList    (".Loot.Small.List", Arrays.asList(
-        "leather:10:1-6",
-        "torch:50:1-30",
-        "ink_sack:10:1-5",
-        "wheat:10:1-5",
-        "gold_ingot:10:1-5",
-        "redstone:5:1-4",
-        "glowstone_dust:15:1-6",
-        "slime_ball:7:1",
-        "iron_ingot:20:1-4",
-        "arrow:10:1-25",
-        "sulphur:10:1-5",
-        "pumpkin:5:1",
-        "flint:10:1-6",
-        "gold_record:2:1",
-        "green_record:2:1",
-        "saddle:2:1",
-        "diamond:1:1",
-        "mossy_cobblestone:5:1-12",
-        "obsidian:2:1-8",
-        "golden_apple:2:1",
-        "cookie:4:8",
-        "bread:3:4",
-        "apple:3:4",
-        "cooked_fish:3:4",
-        "cooked_beef:3:4",
-        "cooked_chicken:3:4",
-        "grilled_pork:3:4",
-        "melon_seeds:2:1",
-        "pumpkin_seeds:2:1",
-        "bowl:7:1",
-        "seeds:4:1-6",
-        "book:7:1-4",
-        "paper:7:1-4",
-        "compass:5:1",
-        "watch:5:1",
-        "painting:5:1"   
-      )),
+      "leather:10:1-6",
+      "torch:50:1-30",
+      "ink_sack:10:1-5",
+      "wheat:10:1-5",
+      "gold_ingot:10:1-5",
+      "redstone:5:1-4",
+      "glowstone_dust:15:1-6",
+      "slime_ball:7:1",
+      "iron_ingot:20:1-4",
+      "arrow:10:1-25",
+      "sulphur:10:1-5",
+      "pumpkin:5:1",
+      "flint:10:1-6",
+      "gold_record:2:1",
+      "green_record:2:1",
+      "saddle:2:1",
+      "diamond:1:1",
+      "mossy_cobblestone:5:1-12",
+      "obsidian:2:1-8",
+      "golden_apple:2:1",
+      "cookie:4:8",
+      "bread:3:4",
+      "apple:3:4",
+      "cooked_fish:3:4",
+      "cooked_beef:3:4",
+      "cooked_chicken:3:4",
+      "grilled_pork:3:4",
+      "melon_seeds:2:1",
+      "pumpkin_seeds:2:1",
+      "bowl:7:1",
+      "seeds:4:1-6",
+      "book:7:1-4",
+      "paper:7:1-4",
+      "compass:5:1",
+      "watch:5:1",
+      "painting:5:1"   
+    )),
  
     LootMediumList   (".Loot.Medium.List",new ArrayList<String>(
-      )),
+    )),
     
     LootBigList      (".Loot.Big.List", Arrays.asList(
-        "diamond:100:1-3",
-        "golden_apple:30:1" 
-      ));
+      "diamond:100:1-3",
+      "golden_apple:30:1" 
+    ));
 
 
     //MySQLEnabled     ("MySQL.Enabled", false),

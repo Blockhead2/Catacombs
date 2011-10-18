@@ -224,6 +224,20 @@ public class Dungeon {
     built = true;
   }
   
+  public void delete(BlockChangeHandler handler) {
+    allPlayersToTop();
+    for(CatLevel l : levels) {
+      l.delete(handler);
+    }
+  }
+  
+  public void reset() {
+    allPlayersToTopProt();
+    for(CatLevel l : levels) {
+      l.reset();
+    }
+  }
+  
   public Location getTopLocation() {
     for(CatLevel l : levels) {
       if(l.cube.isHut()) {
@@ -344,7 +358,7 @@ public class Dungeon {
 
   public Boolean isNatural() {
     for (CatLevel l : levels) {
-      if(l.cube.isLevel() && !l.cube.isCubeNatural()) {
+      if(l.cube.isLevel() && !l.cube.isNatural(cnf)) {
         return false;
       }
     }

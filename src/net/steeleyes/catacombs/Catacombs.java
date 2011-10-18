@@ -588,7 +588,7 @@ public class Catacombs extends JavaPlugin {
         Location loc = world.getBlockAt(x,start_blk.getY(),z).getLocation();
         safe_blk = world.getHighestBlockAt(loc).getLocation().getBlock();
         safe_blk = safe_blk.getRelative(BlockFace.DOWN);
-        if(!CatCuboid.isBlockNatural(safe_blk))
+        if(!cnf.isNatural(safe_blk))
           safe_blk = null;
         att2++;
       } while (safe_blk == null && att2 < 20);
@@ -646,46 +646,31 @@ public class Catacombs extends JavaPlugin {
   public void suspendDungeon(Player p,String dname) {
     dungeons.suspend(dname,getDatabase());
   }
+  
   public void gotoDungeon(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
     dung.teleportToTop(p); 
   }
+  
   public void gotoDungeonEnd(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
     dung.teleportToBot(p); 
   }  
+  
   public void enableDungeon(Player p,String dname) {
     dungeons.enable(dname,getDatabase());
   }  
   
   public void deleteDungeon(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
-    Set<CatCuboid> cubes = dung.getCubes();
-    dung.allPlayersToTop();  // Everyone to the top, the dungeon is going away
-    for(CatCuboid c: cubes) {
-      //c.clearPlayers();
-      c.clearMonsters();
-    }
-    for(CatCuboid c: cubes) {
-      c.unrender(handler,cnf.emptyChest());
-    }
+    dung.delete(handler);
     handler.add(p);
     dungeons.remove(dname,prot,getDatabase());
   }
   
   public void resetDungeon(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
-    Set<CatCuboid> cubes = dung.getCubes();
-    dung.allPlayersToTopProt();  // Players to top only to top if enabled
-    for(CatCuboid c: cubes) {
-      if(!c.isHut()) {
-        c.clearBlock(Material.TORCH);
-        c.refillChests(cnf);
-      }
-      //c.clearPlayers();
-      c.clearMonsters();
-      c.closeDoors();
-    }
+    dung.reset();
   }
   
   public void unprotDungeon(Player p,String dname) {

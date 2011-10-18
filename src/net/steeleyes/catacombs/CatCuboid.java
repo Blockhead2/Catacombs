@@ -217,8 +217,7 @@ public class CatCuboid extends Cuboid {
       super.isIn(blk.getX(),blk.getY(),blk.getZ());
   }  
   
-  public void unrender(BlockChangeHandler handler,Boolean emptyChest) {
-    int num_air = 4;
+  public void unrender(BlockChangeHandler handler,Boolean emptyChest,int num_air) {
     // TODO Figure out num_air by inspection
     if(type==Type.LEVEL)
       setCube(handler,Material.STONE,true);
@@ -423,7 +422,7 @@ public class CatCuboid extends Cuboid {
              before == Material.TRAP_DOOR ||
              before == Material.WATER ||
              before == Material.LAVA ||
-             before == Material.BED_BLOCK ||
+             before == Material.BED_BLOCK ||   // Not sure how best to delete beds
              before == Material.RED_MUSHROOM ||
              before == Material.BROWN_MUSHROOM ||
              before == Material.REDSTONE_TORCH_ON ||
@@ -444,52 +443,12 @@ public class CatCuboid extends Cuboid {
     }
   }
 
-/*
-  public void setDirt(BlockChangeHandler handler) {
-    for(int x=xl;x<=xh;x++) {
-      for(int z=zl;z<=zh;z++) {
-        for(int y=yl;y<=yh;y++) {
-          Block blk = world.getBlockAt(x,y,z);
-          handler.addLow(blk,Material.DIRT);
-          //blk.setType(Material.DIRT);
-        }
-      }
-    }
-  }
-  
-  public void setStone(BlockChangeHandler handler) {
-    for(int x=xl;x<=xh;x++) {
-      for(int z=zl;z<=zh;z++) {
-        for(int y=yl;y<=yh;y++) {
-          Block blk = world.getBlockAt(x,y,z);
-          if(!isBlockNatural(blk)) {
-            handler.addLow(blk,Material.STONE);
-            //blk.setType(Material.STONE);
-          }
-        }
-      }
-    }
-  }
-  public void setAir(BlockChangeHandler handler) {
-    for(int x=xl;x<=xh;x++) {
-      for(int z=zl;z<=zh;z++) {
-        for(int y=yl;y<=yh;y++) {
-          Block blk = world.getBlockAt(x,y,z);
-          if(blk.getType() != Material.AIR) {
-            handler.addLow(blk,Material.AIR);
-            //blk.setType(Material.AIR);
-          }
-        }
-      }
-    }
-  }
-*/
-  public Boolean isCubeNatural() {
+  public Boolean isNatural(CatConfig cnf) {
     for(int x=xl;x<=xh;x++) {
       for(int y=yl;y<=yh;y++) {
         for(int z=zl;z<=zh;z++) {
           Block blk = world.getBlockAt(x,y,z);
-          if(!isBlockNatural(blk)) {
+          if(!cnf.isNatural(blk)) {
             return false;
           }
         }
@@ -512,19 +471,5 @@ public class CatCuboid extends Cuboid {
     return true;
   }
 
-  public static Boolean isBlockNatural(Block blk) {
-    Material mat = blk.getType();
-    return mat == Material.STONE ||
-           mat == Material.DIRT ||
-           mat == Material.SAND ||
-           mat == Material.GRAVEL ||
-           mat == Material.GOLD_ORE ||
-           mat == Material.IRON_ORE ||
-           mat == Material.COAL_ORE ||
-           mat == Material.REDSTONE_ORE ||
-           mat == Material.DIAMOND_ORE ||
-           mat == Material.LAPIS_ORE ||
-           mat == Material.SANDSTONE;
-  }
 
 }

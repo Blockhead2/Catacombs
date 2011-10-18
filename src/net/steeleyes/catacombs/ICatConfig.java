@@ -22,6 +22,7 @@ package net.steeleyes.catacombs;
 
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import net.steeleyes.maps.IConfig;
 
 public interface ICatConfig extends IConfig { 
@@ -52,6 +53,7 @@ public interface ICatConfig extends IConfig {
   public  Material     ShroomType();
   public  CatMat       CobbleType();
   public  Material     AirType();
+  public  Boolean      isNatural(Block b);
   
   public  List<String> LootSmallList();
   public  List<String> LootMediumList();

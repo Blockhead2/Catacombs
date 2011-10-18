@@ -492,7 +492,21 @@ public class CatLevel {
       }
     }
   }
-
+  
+  public void delete(BlockChangeHandler handler) {
+    cube.clearMonsters();
+    cube.unrender(handler, cnf.emptyChest(),roofDepth+roomDepth);
+  }
+  
+  public void reset() {
+    if(!cube.isHut()) {
+      cube.clearBlock(Material.TORCH);
+      cube.refillChests(cnf);
+    }
+    cube.clearMonsters();
+    cube.closeDoors();
+  }
+  
   private CatCuboid getNaturalCuboid(CatConfig cnf,World world,int ox,int oy, int oz) {
     int lx = ox;
     int lz = oz;
@@ -538,6 +552,7 @@ public class CatLevel {
     return space;
   }
 
+  // TODO: Add hooks so users can get blocks that stopped this check
   private Boolean areBlocksNatural(int cx, int cy, int cz,int dx,int dy,int dz, int cnt) {
     // For testing
     if(world==null)
@@ -545,7 +560,7 @@ public class CatLevel {
 
     for(int i=1;i<=cnt;i++) {
       Block blk = world.getBlockAt(cx,cy,cz);
-      if(!CatCuboid.isBlockNatural(blk)) {
+      if(!cnf.isNatural(blk)) {
         return false;
       }
       cx += dx;
