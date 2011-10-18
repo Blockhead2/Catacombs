@@ -43,11 +43,13 @@ public class CatBlockListener extends BlockListener {
     if(event.isCancelled())
       return;
 
-    Player player = event.getPlayer();
     Block block = event.getBlock();
     Material mat = block.getType();
-    if(plugin.debug)
+    
+    if(plugin.debug) {
+      Player player = event.getPlayer();
       player.sendMessage("PLACE : " + mat+ " ("+block.getX()+","+block.getY()+","+block.getZ()+")");
+    }
 
     if(mat == Material.TORCH)
       return;
@@ -61,11 +63,12 @@ public class CatBlockListener extends BlockListener {
    // if(event.isCancelled())
    //   return;
 
-    Player player = event.getPlayer();
     Block block = event.getBlock();
     Material mat = block.getType();
-    if(plugin.debug)
+    if(plugin.debug) {
+      Player player = event.getPlayer();
       player.sendMessage("BREAK : " + mat+ " ("+block.getX()+","+block.getY()+","+block.getZ()+")");
+    }
 
     if(mat == Material.TORCH ||
        mat == Material.RED_MUSHROOM ||
@@ -73,10 +76,11 @@ public class CatBlockListener extends BlockListener {
        mat == Material.WEB)
       return;
 
+    Boolean is_prot = plugin.prot.isProtected(block);
+    
     if(mat == Material.MOB_SPAWNER) {
       System.out.println("[Catacombs] break spawner");
-      if(plugin.cnf.ProtectSpawners() &&
-         plugin.prot.isProtected(block)) {
+      if(plugin.cnf.ProtectSpawners() && is_prot) {
         System.out.println("[Catacombs] cancel event");
         event.setCancelled(true);
         return;
@@ -86,7 +90,7 @@ public class CatBlockListener extends BlockListener {
       return;        
     }
     
-    if(plugin.prot.isProtected(block))
+    if(is_prot)
       event.setCancelled(true);
   }
 /*
@@ -94,11 +98,9 @@ public class CatBlockListener extends BlockListener {
   public void onBlockPhysics(BlockPhysicsEvent event){
     if(event.isCancelled())
       return;
-    
-    if(plugin.prot.getCube(event.getBlock()) != null) {
-      System.out.println("[Catacombs] Physics cancelled "+event.getBlock());
+
+    if(plugin.prot.isInRaw(event.getBlock()))
       event.setCancelled(true);
-    }
   }
   */
   @Override
@@ -106,15 +108,8 @@ public class CatBlockListener extends BlockListener {
     if(event.isCancelled())
       return;
 
-    Block block = event.getBlock();
-
-    CatCuboid c = plugin.prot.getCube(block);
-    if(c != null) {
-    //if(plugin.prot.isProtected(block.getWorld().getName(),block.getX(),block.getY(),block.getZ()) ||
-    //   plugin.prot.isSuspended(block.getWorld().getName(),block.getX(),block.getY(),block.getZ())) {
-      //System.out.println("[Catacombs] Ignite cancelled "+block);
+    if(plugin.prot.isInRaw(event.getBlock()))
       event.setCancelled(true);
-    }
   }
   
   @Override
@@ -122,55 +117,41 @@ public class CatBlockListener extends BlockListener {
     if(event.isCancelled())
       return;
 
-    Player player = event.getPlayer();
     Block block = event.getBlock();
     
-    //Material major = Material.COBBLESTONE;
-    //Material minor = Material.MOSSY_COBBLESTONE;
-    CatCuboid c = plugin.prot.getCube(block);
-    if(c==null) { //outside the dungeon
-      if(plugin.cnf.SecretDoorOnlyInDungeon())
-        return;    
-    } else {
-      //major = c.getMajor();
-      //minor = c.getMinor();
-    }
-    
-    //if(plugin.cnf.SecretDoorOnlyInDungeon() &&
-    //   !plugin.prot.isProtected(block.getWorld().getName(),block.getX(),block.getY(),block.getZ())) {
-    //  return;
-   // }
+    if(!plugin.prot.isInRaw(block) && plugin.cnf.SecretDoorOnlyInDungeon())
+      return;    
 
     Material mat = block.getType();
     if(plugin.debug) {
+      Player player = event.getPlayer();
       player.sendMessage("DAMAGE : " + mat+"  ID:"+block.getData() +" ("+block.getX()+","+block.getY()+","+block.getZ()+")");
     }
-    if(true) {
-      Block piston = null;
-      for(int i=1;i<=3;i++) {
-        piston = block.getRelative(BlockFace.DOWN,i);
-        if(piston.getType() == Material.PISTON_STICKY_BASE)
-          break;
-        piston = null;
-      }
-      if(piston == null || (piston.getData() & 7) != 1) // Piston needs to point up
-        return;
 
-      Block power = piston.getRelative(BlockFace.DOWN,1);
+    Block piston = null;
+    for(int i=1;i<=3;i++) {
+      piston = block.getRelative(BlockFace.DOWN,i);
+      if(piston.getType() == Material.PISTON_STICKY_BASE)
+        break;
+      piston = null;
+    }
+    if(piston == null || (piston.getData() & 7) != 1) // Piston needs to point up
+      return;
 
-      if(power.getType() == Material.REDSTONE_TORCH_ON) {
-        Block upper_door = piston.getRelative(BlockFace.UP,3);
-        Material m = upper_door.getType();
-        byte code = upper_door.getData();
-        power.setTypeIdAndData(m.getId(),code,false);
-        upper_door.setType(Material.AIR);
-      }  else {
-        Block upper_door = piston.getRelative(BlockFace.UP,3);
-        Material m = power.getType();
-        byte code = power.getData();
-        power.setType(Material.REDSTONE_TORCH_ON);
-        upper_door.setTypeIdAndData(m.getId(),code,false);
-      }
+    Block power = piston.getRelative(BlockFace.DOWN,1);
+
+    if(power.getType() == Material.REDSTONE_TORCH_ON) {
+      Block upper_door = piston.getRelative(BlockFace.UP,3);
+      Material m = upper_door.getType();
+      byte code = upper_door.getData();
+      power.setTypeIdAndData(m.getId(),code,false);
+      upper_door.setType(Material.AIR);
+    }  else {
+      Block upper_door = piston.getRelative(BlockFace.UP,3);
+      Material m = power.getType();
+      byte code = power.getData();
+      power.setType(Material.REDSTONE_TORCH_ON);
+      upper_door.setTypeIdAndData(m.getId(),code,false);
     }
   }
 

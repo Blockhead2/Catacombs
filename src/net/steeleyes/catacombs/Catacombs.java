@@ -629,6 +629,8 @@ public class Catacombs extends JavaPlugin {
         System.out.println("[catacombs] Dungeon "+dname+" has already been built");
       } else if(!dung.isNatural()) {
         p.sendMessage("Loaction of '"+dname+"' is no longer solid-natural (replan)");
+      } else if(prot.overlaps(dung)) {
+        p.sendMessage("'"+dname+"' overlaps another completed dungeon (replan or remove it)");
       } else {
         p.sendMessage("Building "+dname);
         dung.saveDB(getDatabase());

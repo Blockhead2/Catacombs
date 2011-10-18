@@ -184,18 +184,5 @@ public class Dungeons {
     }
     return null;
   }
-/*
-  public void render(String dname) {
-    if(dungeons.containsKey(dname)) {
-      Dungeon dung = dungeons.get(dname);
-      if(dung.isBuilt()) {
-        System.out.println("[catacombs] Dungeon "+dname+" has already been built");
-      } else {
-        System.out.println("[catacombs] Building dungeon "+dname);
-        dung.render();
-        //dung.registerCubes(sql,protection,dname);
-      }
-    }
-  }
-*/
+
 }

@@ -111,6 +111,9 @@ public class CatCuboid extends Cuboid {
   
   static int debug = 0;
 
+  // TODO: Badly need to make the major/minor block names persist!!
+  //   Hunt for a frequent soild block just below the roof level that's
+  //   next to air/web/torch. Call that the major material
   public CatMat guessMajorMat(int roofDepth) {
     ArrayList<BlockFace> dirs = new ArrayList<BlockFace>();
     dirs.add(BlockFace.NORTH);
@@ -189,17 +192,23 @@ public class CatCuboid extends Cuboid {
   public Boolean isLevel() {
     return type == Type.LEVEL;
   }
+  
   public Boolean isHut() {
     return type == Type.HUT;
   }
- 
+  
+  public Boolean overlaps(CatCuboid that) {
+    return world.getName().equals(that.world.getName()) &&
+      intersects(that);
+  }
+  
   public Boolean isProtected(Block blk) {
     return enable && world.getName().equals(blk.getWorld().getName()) &&
       super.isIn(blk.getX(),blk.getY(),blk.getZ());
   }
   
   public Boolean isInRaw(Block blk) {
-    return  world.getName().equals(blk.getWorld().getName()) &&
+    return world.getName().equals(blk.getWorld().getName()) &&
       super.isIn(blk.getX(),blk.getY(),blk.getZ());
   } 
   

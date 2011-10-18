@@ -37,6 +37,14 @@ public class WorldProtect {
     protect.remove(cube);
   }
   
+  public Boolean overlaps(Dungeon dung) {
+    for(CatCuboid c : protect) {
+      if(dung.overlaps(c))
+        return true;
+    }
+    return false;
+  }  
+  
   public Boolean isProtected(Block blk) {
     for(CatCuboid c : protect) {
       if(c.isProtected(blk))

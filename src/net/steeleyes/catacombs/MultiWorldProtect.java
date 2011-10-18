@@ -48,6 +48,15 @@ public class MultiWorldProtect {
     }
   }
   
+  public Boolean overlaps(Dungeon dung) {
+    String world = dung.getName();
+    if(protect.containsKey(world)) {
+      WorldProtect p = protect.get(world);
+      return p.overlaps(dung);
+    }
+    return false;
+  }
+  
   public Boolean isProtected(Block blk) {
     String world = blk.getWorld().getName();
     if(protect.containsKey(world)) {

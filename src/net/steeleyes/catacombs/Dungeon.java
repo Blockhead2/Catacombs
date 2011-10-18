@@ -139,6 +139,15 @@ public class Dungeon {
     return res;
   }
   
+  public Boolean overlaps(CatCuboid that) {
+    for(CatLevel l : levels) {
+      if(l.cube.overlaps(that)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   public Boolean isProtected(Block blk) {
     for(CatLevel l : levels) {
       if(l.cube.isProtected(blk)) {
