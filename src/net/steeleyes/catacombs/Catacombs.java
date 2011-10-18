@@ -57,9 +57,10 @@ Release v0.7
   - Added a couple of beds to the hut.
   - Fixed bug, removed extra loot on double chest refills.
   - Changed secret door code so it will work with any block (not just cobble/mossycobble)
-  - Added options to allow catacombs to be built from any pair of (non-gravity effected
+  - Added options to allow catacombs to be built from almost any pair of (non-gravity effected
     blocks).
   - Added code to allow special (predefined) rooms to be included in the dungeon
+  - Dungeon builds happen over time rather than all at once.
   
 Release v0.6
   - A big update to the Catacombs configuration system. The existing configuration

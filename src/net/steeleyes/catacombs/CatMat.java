@@ -17,7 +17,7 @@
  * @copyright Copyright (C) 2011
  * @license GNU GPL <http://www.gnu.org/licenses/>
 */
-package net.steeleyes.maps;
+package net.steeleyes.catacombs;
 
 import org.bukkit.block.Block;
 import org.bukkit.Material;

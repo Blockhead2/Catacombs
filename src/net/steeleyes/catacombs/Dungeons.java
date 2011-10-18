@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.steeleyes.maps.CatMat;
 
 import com.avaje.ebean.EbeanServer;
 import org.bukkit.Material;

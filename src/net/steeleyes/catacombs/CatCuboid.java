@@ -19,7 +19,6 @@
 */
 package net.steeleyes.catacombs;
 
-import net.steeleyes.maps.CatMat;
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.block.Block;

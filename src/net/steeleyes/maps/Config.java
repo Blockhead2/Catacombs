@@ -19,6 +19,7 @@
 */
 package net.steeleyes.maps;
 
+//import net.steeleyes.catacombs.CatMat;
 import java.io.File;
 import java.util.List;
 import java.util.Random;
@@ -106,34 +107,8 @@ public class Config implements IConfig {
   public void setStyle(String style) {
     this.style = style;
   }
+
   
-  public Boolean checkBlockMaterial(String name) {
-    CatMat mat = getBlockMaterial(name);
-    if(mat==null) {
-      System.err.println("[Catacombs] Unknown material '"+name+"' must be a number or a valid bukkit block material name or name:code or number:code");
-      return false;
-    }
-    return true;
-  }
-  
-  public CatMat getBlockMaterial(String name) {
-    CatMat m = null;
-    byte code = -1;
-    if(name.contains(":")) {
-      String tmp[] = name.split(":");
-      name = tmp[0];
-      try {
-        code = Byte.parseByte(tmp[1]);
-      } catch(Exception e) {
-      }
-    }
-    Material mat = Material.matchMaterial(name);
-    if(mat == null || !mat.isBlock())
-      return null;
-    if(code>=0)
-      return new CatMat(mat,code);
-    return new CatMat(mat);
-  }
   public byte getBlockByte(String name) {
     if(name.contains(":")) {
       String tmp[] = name.split(":");

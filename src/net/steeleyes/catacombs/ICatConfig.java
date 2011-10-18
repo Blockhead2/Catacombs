@@ -23,7 +23,6 @@ package net.steeleyes.catacombs;
 import java.util.List;
 import org.bukkit.Material;
 import net.steeleyes.maps.IConfig;
-import net.steeleyes.maps.CatMat;
 
 public interface ICatConfig extends IConfig { 
   public  Integer RadiusMax();
