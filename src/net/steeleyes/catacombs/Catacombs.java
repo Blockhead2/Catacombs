@@ -656,9 +656,11 @@ public class Catacombs extends JavaPlugin {
   }  
   
   public void deleteDungeon(Player p,String dname) {
-    Set<CatCuboid> cubes = dungeons.getCubes(dname);
+    Dungeon dung = dungeons.get(dname);
+    Set<CatCuboid> cubes = dung.getCubes();
+    dung.allPlayersToTop();  // Everyone to the top, the dungeon is going away
     for(CatCuboid c: cubes) {
-      c.clearPlayers();
+      //c.clearPlayers();
       c.clearMonsters();
     }
     for(CatCuboid c: cubes) {
@@ -669,13 +671,15 @@ public class Catacombs extends JavaPlugin {
   }
   
   public void resetDungeon(Player p,String dname) {
-    Set<CatCuboid> cubes = dungeons.getCubes(dname);
+    Dungeon dung = dungeons.get(dname);
+    Set<CatCuboid> cubes = dung.getCubes();
+    dung.allPlayersToTopProt();  // Players to top only to top if enabled
     for(CatCuboid c: cubes) {
       if(!c.isHut()) {
         c.clearBlock(Material.TORCH);
         c.refillChests(cnf);
       }
-      c.clearPlayers();
+      //c.clearPlayers();
       c.clearMonsters();
       c.closeDoors();
     }

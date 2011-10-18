@@ -138,7 +138,14 @@ public class Dungeon {
     }
     return res;
   }
-  
+  public Boolean isIn(Block blk) {
+    for(CatLevel l : levels) {
+      if(l.cube.isIn(blk.getX(),blk.getY(),blk.getZ())) {
+        return true;
+      }
+    }
+    return false;
+  }
   public Boolean isInRaw(Block blk) {
     for(CatLevel l : levels) {
       if(l.cube.isInRaw(blk.getX(),blk.getY(),blk.getZ())) {
@@ -346,6 +353,37 @@ public class Dungeon {
       }
     }
     return false;
+  }
+  
+  public void allPlayersToTop() {
+    for(Player player : world.getPlayers()) {
+      Location ploc = player.getLocation();
+      Block blk = player.getLocation().getBlock();
+      if(isInRaw(blk)) {
+        Location tloc = getTopLocation();
+        if(tloc!=null) {
+          player.teleport(tloc);
+        } else {
+          Location safe_place = world.getHighestBlockAt(ploc).getLocation();
+          player.teleport(safe_place);
+        }
+      }
+    }
+  }
+  public void allPlayersToTopProt() {
+    for(Player player : world.getPlayers()) {
+      Location ploc = player.getLocation();
+      Block blk = player.getLocation().getBlock();
+      if(isIn(blk)) {
+        Location tloc = getTopLocation();
+        if(tloc!=null) {
+          player.teleport(tloc);
+        } else {
+          Location safe_place = world.getHighestBlockAt(ploc).getLocation();
+          player.teleport(safe_place);
+        }
+      }
+    }
   }
 /*
   public Boolean intersects(HashMap<String,Stack> prot) {
