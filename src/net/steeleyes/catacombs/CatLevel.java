@@ -324,6 +324,7 @@ public class CatLevel {
           case WATER:
           case LAVA:           Material liq = (s==Square.LAVA)?Material.STATIONARY_LAVA:Material.STATIONARY_WATER;
                                renderTile(handler,xx,top.y,zz,cob ,liq ,air ,air ,cob ,over);  break;
+          case BARS:
           case FLOOR:
           case FIXEDFLOOR:     renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);  break;
           case FIXEDFLOORUP:   renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,cob );  break;
@@ -401,7 +402,11 @@ public class CatLevel {
           handler.addHigh(world,xx,room_l,zz,Material.CHEST,chest);
         }
         if(s==Square.WINDOW) {
-          handler.addHigh(world,xx,room_l+1,zz,Material.GLASS);
+          handler.addHigh(world,xx,room_l+1,zz,Material.THIN_GLASS);
+        }
+        if(s==Square.BARS) {
+          handler.addHigh(world,xx,room_l,zz,Material.IRON_FENCE);
+          handler.addHigh(world,xx,room_l+1,zz,Material.IRON_FENCE);
         }
         if(s==Square.CAKE) {
           handler.addHigh(world,xx,room_l,zz,Material.FENCE);

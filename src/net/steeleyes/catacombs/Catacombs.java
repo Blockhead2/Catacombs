@@ -48,8 +48,14 @@ import org.bukkit.block.BlockFace;
 
 /**
  * 
- *
+Release v0.8
+* 
+* 
+
  * 
+ */
+
+/**
 Release v0.7
   - Added a couple of beds to the hut.
   - Fixed bug, removed extra loot on double chest refills.
@@ -288,8 +294,10 @@ public class Catacombs extends JavaPlugin {
       if(!cnf.MessyCreepers())
         pm.registerEvent(Event.Type.ENTITY_EXPLODE, entityListener, Event.Priority.Low, this);
 
-      if(!cnf.MessyEndermen())
+      if(!cnf.MessyEndermen()) {
         pm.registerEvent(Event.Type.ENDERMAN_PICKUP, entityListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.ENDERMAN_PLACE, entityListener, Event.Priority.Low, this);
+      }
 
       pm.registerEvent(Event.Type.PLUGIN_ENABLE, serverListener, Event.Priority.Low, this);
       pm.registerEvent(Event.Type.PLUGIN_DISABLE, serverListener, Event.Priority.Low, this);

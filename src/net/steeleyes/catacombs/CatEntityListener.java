@@ -26,10 +26,9 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EndermanPickupEvent;
+import org.bukkit.event.entity.EndermanPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import java.util.List;
-import java.util.ArrayList;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.Location;
@@ -159,12 +158,6 @@ public class CatEntityListener extends EntityListener {
               System.out.println("[" + plugin.info.getName() + "] Wolf has spawned (making it angry)");
           }
         }
-  //    } else if(type == CreatureType.ENDERMAN) {
-  //      Location loc = sEvent.getLocation();
-  //      Block blk = loc.getBlock();
-  //      if(plugin.prot.isProtected(blk.getWorld().getName(),blk.getX(),blk.getY(),blk.getZ())) {
-  //        sEvent.setCancelled(true);
-  //      }
       }
     }
   }
@@ -222,10 +215,17 @@ public class CatEntityListener extends EntityListener {
       return;
 
     Block blk = eEvent.getBlock();
-    if(plugin.prot.isProtected(blk)) {
+    if(plugin.prot.isProtected(blk))
       eEvent.setCancelled(true);
-      //System.out.println("[" + plugin.info.getName() + "] Enderman pick up in dungeon cancelled");
-    }
   }
+  
+  @Override
+  public void onEndermanPlace(EndermanPlaceEvent eEvent) {
+    if(eEvent.isCancelled())
+      return;
 
+    Block blk = eEvent.getLocation().getBlock();
+    if(plugin.prot.isProtected(blk))
+      eEvent.setCancelled(true);
+  }
 }

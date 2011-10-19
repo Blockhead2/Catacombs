@@ -36,6 +36,7 @@ public enum Square {
   FIXEDFLOORDOWN(':'),
   O_FLOOR('`'),
   WINDOW('G'),
+  BARS('I'),
   DOOR('+'),
   UP('^'),
   DOWN('V'),
