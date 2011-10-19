@@ -71,10 +71,7 @@ public class CatBlockListener extends BlockListener {
       player.sendMessage("BREAK : " + mat+ " ("+block.getX()+","+block.getY()+","+block.getZ()+")");
     }
 
-    if(mat == Material.TORCH ||
-       mat == Material.RED_MUSHROOM ||
-       mat == Material.BROWN_MUSHROOM ||
-       mat == Material.WEB)
+    if(plugin.cnf.isBreakable(block))
       return;
 
     Boolean is_prot = plugin.prot.isProtected(block);

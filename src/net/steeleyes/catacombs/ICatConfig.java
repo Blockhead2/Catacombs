@@ -56,6 +56,7 @@ public interface ICatConfig extends IConfig {
   public  Material     ShroomType();
   public  Material     AirType();
   public  Boolean      isNatural(Block b);
+  public  Boolean      isBreakable(Block b);
   
   public  List<String> TrapList();
   public  List<String> LootSmallList();

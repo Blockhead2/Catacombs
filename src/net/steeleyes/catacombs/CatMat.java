@@ -27,9 +27,20 @@ public class CatMat {
   private byte code = 0;
   private Boolean has_code = false;
   
+  // TODO: Add creator function from Strings like this 'smooth_brick:2'
+  
   public CatMat(Material mat) {
     this.mat = mat;
   }
+  
+  public CatMat(Block blk) {
+    this.mat = blk.getType();
+    if(blk.getData()>0) {
+      this.code = blk.getData();
+      has_code = true;
+    }
+  }
+  
   public CatMat(Material mat, byte code) {
     this.mat = mat;
     this.code = code;

@@ -42,7 +42,12 @@ public enum ECatConfig {
       "/setwarp",
       "/home"
     )),
-    
+    BreakList               ("Admin.Breakable", Arrays.asList(
+      "torch",
+      "red_mushroom",
+      "brown_mushroom",
+      "web"
+    )),     
     
     RadiusMax    (".RadiusMax", 12),
     UnderFill    (".UnderFill", false),
@@ -72,8 +77,8 @@ public enum ECatConfig {
     )),    
     TrapList(".Trap.Ammo", Arrays.asList(  // Most common blocks first for efficiency
       "arrow:100:10"
-    )),    
-    
+    )),
+
     SpiderPct    (".Mob.Type.SpiderPct", 5),
     SkeletonPct  (".Mob.Type.SkeletonPct", 25),
     WolfPct      (".Mob.Type.WolfPct", 10),

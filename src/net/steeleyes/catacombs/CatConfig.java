@@ -69,6 +69,7 @@ public class CatConfig extends Config implements ICatConfig {
   public  String  Economy()                { return getSString(ECatConfig.Economy.getStr());  }
   public  List<String> BannedCommands()    { return getSStringList(ECatConfig.BannedCommands.getStr());  }
   private List<String> NaturalBlocks()     { return getSStringList(ECatConfig.NaturalBlocks.getStr());  }
+  private List<String> BreakList()         { return getSStringList(ECatConfig.BreakList.getStr());  }
   
   public  Boolean SmallEquipChance()       { return Chance(SmallEquipPct()); }
   public  Boolean MedEquipChance()         { return Chance(MedEquipPct()); }
@@ -108,6 +109,7 @@ public class CatConfig extends Config implements ICatConfig {
     checkBlockMaterial(majorBlock());
     checkBlockMaterial(minorBlock());    
     checkBlockMaterialList(NaturalBlocks());    
+    checkBlockMaterialList(BreakList());    
   }
     
   public Boolean checkBlockMaterialList(List<String> list) {
@@ -128,6 +130,7 @@ public class CatConfig extends Config implements ICatConfig {
     return true;
   }
   
+  // TODO: Move this into CatMat
   public CatMat getBlockMaterial(String name) {
     CatMat m = null;
     byte code = -1;
@@ -147,6 +150,7 @@ public class CatConfig extends Config implements ICatConfig {
     return new CatMat(mat);
   }
   
+  // TODO: Need to use a CatMat list here like isBreakable
   public Boolean isNatural(Block blk) {
     String mname = blk.getType().toString().toLowerCase();
     for(String n: NaturalBlocks()) {
@@ -156,6 +160,17 @@ public class CatConfig extends Config implements ICatConfig {
     return false;
   }
   
+  // TODO: Cache the list in CatMat form to save time
+  //    need to refresh list when the style is changed
+  public Boolean isBreakable(Block blk) {
+    CatMat b = new CatMat(blk);
+    for(String n: BreakList()) {
+      CatMat i = getBlockMaterial(n);
+      if(b.equals(i))
+        return true;
+    }
+    return false;
+  }  
   private void setDefaults() {
     for(ECatConfig att : ECatConfig.values()) {
       String path = att.getStr();
