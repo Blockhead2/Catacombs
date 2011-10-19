@@ -382,6 +382,13 @@ public class Catacombs extends JavaPlugin {
     if(sender instanceof Player) {
       Player player = (Player) sender;
       return Commands(player,args);
+    } else {
+      if(args[0].equals("resetall")) {
+        for(String name : dungeons.getNames()) {
+          System.out.println("Reseting dungeon '"+name+"'");
+          resetDungeon(null,name);
+        }
+      }
     }
     return false;
   }

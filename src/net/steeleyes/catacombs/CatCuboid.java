@@ -41,8 +41,6 @@ public class CatCuboid extends Cuboid {
   private Type type = Type.LEVEL;
   private Boolean enable = true;
   private World world = null;
-  // World
-  // Dungeon
   public enum Type { LEVEL, HUT }
 
   public CatCuboid(World world,int xl,int yl,int zl,int xh,int yh, int zh, Type type) {
