@@ -27,6 +27,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockRedstoneEvent;
 //import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -93,16 +94,7 @@ public class CatBlockListener extends BlockListener {
     if(is_prot)
       event.setCancelled(true);
   }
-/*
-  @Override
-  public void onBlockPhysics(BlockPhysicsEvent event){
-    if(event.isCancelled())
-      return;
 
-    if(plugin.prot.isInRaw(event.getBlock()))
-      event.setCancelled(true);
-  }
-  */
   @Override
   public void onBlockIgnite(BlockIgniteEvent event){
     if(event.isCancelled())

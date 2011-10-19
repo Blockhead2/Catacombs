@@ -405,6 +405,8 @@ public class CatLevel {
           if(s==Square.BIGCHEST) {
             CatLoot.bigChest(cnf,chest);
             handler.addHigh(world,xx,floor_h,zz,Material.GRASS);
+            if(cnf.ResetButton())
+              handler.addLow(world,xx,room_l+1,zz,Material.STONE_BUTTON,getLadderCode(x,y));
           } else if (s == Square.MIDCHEST) {
             CatLoot.midChest(cnf,chest);
 

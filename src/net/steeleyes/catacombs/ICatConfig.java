@@ -35,6 +35,7 @@ public interface ICatConfig extends IConfig {
   public  String  HutType();
   public  Boolean UnderFill();
   public  Boolean OverFill();
+  public  Boolean ResetButton();
   public  String  majorBlock();
   public  String  minorBlock();
   public  Boolean emptyChest();

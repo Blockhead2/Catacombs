@@ -19,11 +19,13 @@
 */
 package net.steeleyes.catacombs;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.block.Block;
 import org.bukkit.World;
 
@@ -65,6 +67,23 @@ public class CatPlayerListener  extends PlayerListener{
       }
     }
   }
+  
+  @Override
+  public void onPlayerInteract(PlayerInteractEvent event) {
+    if (event.isCancelled())
+      return;
+    
+    Block blk = event.getClickedBlock();
+    if(blk.getType()==Material.STONE_BUTTON && plugin.prot.isInRaw(blk)) {
+      plugin.Commands(event.getPlayer(),new String[] {"reset"} );
+    }
+    
+    // Will be hand for boss mob spawn!
+    //if(blk.getType()==Material.CHEST && plugin.prot.isInRaw(blk)) {
+    //  System.out.println("[Catacombs] Chest open");
+    //  event.setCancelled(true);
+    //}
+  }  
   
   @Override
   public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
