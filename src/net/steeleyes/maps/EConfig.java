@@ -31,6 +31,7 @@ public enum EConfig {
   HiddenPct      (".Archway.Type.HiddenPct",        10),
   DoorPct        (".Archway.Type.DoorPct",          20),
   WebDoorPct     (".Archway.Type.WebDoorPct",       10),
+  TrapPct        (".Room.Clutter.TrapPct",          10),
   SandPct        (".Room.Clutter.SandPct",          10),
   ChestPct       (".Room.Clutter.ChestPct",         35),
   SpawnerPct     (".Room.Clutter.SpawnerPct",       50),

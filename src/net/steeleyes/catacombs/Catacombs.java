@@ -510,7 +510,9 @@ public class Catacombs extends JavaPlugin {
     } catch (IllegalAccessException e) {
       p.sendMessage(e.getMessage());
     } catch (Exception e) {
-      //p.sendMessage(e.getMessage());
+      String msg = e.getMessage();
+      if(msg != null)
+        p.sendMessage(msg);
     }
     return true;
   }

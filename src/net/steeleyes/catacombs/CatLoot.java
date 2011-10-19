@@ -27,7 +27,7 @@ import org.bukkit.inventory.Inventory;
 
 public class CatLoot {
 
-  static private void fillChest(CatConfig cnf, Inventory inv, List<String> list) {
+  static public void fillChest(CatConfig cnf, Inventory inv, List<String> list) {
     for(String loot : list) {
       String tmp[] = loot.split(":");
       Material m = Material.matchMaterial(tmp[0]);
@@ -44,7 +44,7 @@ public class CatLoot {
       }
     }    
   }
-  static private void fillChest(CatConfig cnf, List<ItemStack> inv, List<String> list) {
+  static public void fillChest(CatConfig cnf, List<ItemStack> inv, List<String> list) {
     for(String loot : list) {
       String tmp[] = loot.split(":");
       Material m = Material.matchMaterial(tmp[0]);

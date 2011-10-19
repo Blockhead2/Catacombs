@@ -56,6 +56,7 @@ public interface ICatConfig extends IConfig {
   public  Material     AirType();
   public  Boolean      isNatural(Block b);
   
+  public  List<String> TrapList();
   public  List<String> LootSmallList();
   public  List<String> LootMediumList();
   public  List<String> LootBigList();

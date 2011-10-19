@@ -25,7 +25,6 @@ import java.util.List;
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.block.ContainerBlock;
-import org.bukkit.block.Dispenser;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.Block;

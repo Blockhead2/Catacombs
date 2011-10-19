@@ -50,6 +50,7 @@ public class CatConfig extends Config implements ICatConfig {
   private Integer SmallEquipPct()          { return getSInt(ECatConfig.SmallEquipPct.getStr());  }
   private Integer MedEquipPct()            { return getSInt(ECatConfig.MedEquipPct.getStr());  }
   private Integer BigEquipPct()            { return getSInt(ECatConfig.BigEquipPct.getStr());  }
+  public  List<String> TrapList()          { return getSStringList(ECatConfig.TrapList.getStr());  }
   public  List<String> LootSmallList()     { return getSStringList(ECatConfig.LootSmallList.getStr());  }
   public  List<String> LootMediumList()    { return getSStringList(ECatConfig.LootMediumList.getStr());  }
   public  List<String> LootBigList()       { return getSStringList(ECatConfig.LootBigList.getStr());  }
@@ -99,6 +100,7 @@ public class CatConfig extends Config implements ICatConfig {
   }
   
   public void checkConfig() {
+    checkLoot(TrapList());
     checkLoot(LootSmallList());
     checkLoot(LootMediumList());
     checkLoot(LootBigList());

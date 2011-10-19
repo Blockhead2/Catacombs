@@ -318,9 +318,13 @@ public class Room {
   }
 
   private void dressRoom() {
+ 
+    if(cnf.TrapChance())
+      trapRandom();
+    
     if(cnf.ChestChance())
       chestRandom();
-
+    
     if(cnf.SpawnerChance())
       objectRandom(Square.SPAWNER);
 
@@ -404,6 +408,27 @@ public class Room {
       }
     }
   }
+  private Boolean trapRandom() {
+    wallLoc loc;
+    if(true) {
+      loc = wallLocation(this);
+      if(loc != null) {
+        int dx = loc.dir.turn180().dx(1);
+        int dy = loc.dir.turn180().dy(1);
+        if(grid.get(loc.x,loc.y) == Square.WALL &&
+           grid.get(loc.x+dx,loc.y+dy) == Square.FLOOR &&  
+           grid.get(loc.x+dx*2,loc.y+dy*2) == Square.FLOOR &&    
+           grid.get(loc.x+dx*3,loc.y+dy*3) == Square.FLOOR ) {
+          grid.set(loc.x,loc.y,Square.ARROW);
+          grid.set(loc.x+dx,loc.y+dy,Square.RED2);
+          grid.set(loc.x+dx*2,loc.y+dy*2,Square.RED1);
+          grid.set(loc.x+dx*3,loc.y+dy*3,Square.PRESSURE);
+          return true;
+        }        
+      }
+    }    
+    return false;
+  }
 
   private Boolean chestRandom() {
     int inset = 1;
@@ -453,8 +478,19 @@ public class Room {
     }
     return false;
   }
-
-  private Direction placeFrom(Room from) {
+  
+  private class wallLoc {
+    public int x;
+    public int y;
+    public Direction dir;
+    public wallLoc(int x,int y,Direction dir) {
+      this.x=x;
+      this.y=y;
+      this.dir=dir;
+    }
+  }
+  
+  private wallLoc wallLocation(Room from) {
     Direction dir = Direction.any(cnf.rnd);
 
     if(dir.horizontal()) {
@@ -468,7 +504,14 @@ public class Room {
       wayin_x = from.origin_x+offset;
       wayin_y = (dir==Direction.NORTH)?from.origin_y+from.size_y-1:from.origin_y;
     }
-    return this.placeFrom(wayin_x,wayin_y,dir);
+    return new wallLoc(wayin_x,wayin_y,dir);
+    //return this.placeFrom(wayin_x,wayin_y,dir);
+  }
+  private Direction placeFrom(Room from) {
+    wallLoc w = wallLocation(from);
+    if(w==null)
+      return null;
+    return this.placeFrom(w.x,w.y,w.dir); //wayin_x,wayin_y,dir);
   }
 
   private Direction placeFrom(int x, int y) {

@@ -23,6 +23,7 @@ public interface IConfig {
   public  Boolean SandChance();
   public  Boolean ChestChance();
   public  Boolean SpawnerChance();
+  public  Boolean TrapChance();
   public  Boolean PoolChance();
   public  Boolean FullPoolChance();
   public  Boolean SpecialChance();

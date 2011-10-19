@@ -23,8 +23,8 @@ import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.ContainerBlock;
-
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Dispenser;
 import org.bukkit.block.Chest;
 
 import org.bukkit.entity.Player;
@@ -317,9 +317,8 @@ public class CatCuboid extends Cuboid {
         for(int y=yl;y<=yh;y++) {
           Block blk = world.getBlockAt(x,y,z);
           if(blk.getType() == Material.CHEST) {
-            Chest chest = (Chest) blk.getState();
-            if(type == Type.HUT) {  // Leave chests in the hut
-            } else {
+            if(type == Type.LEVEL) {  // Leave chests in the hut
+              Chest chest = (Chest) blk.getState();
               chest.getInventory().clear(); // Clear and refill chests inside
               if(isBigChest(blk)) {
                 CatLoot.bigChest(config,chest.getInventory());
@@ -329,6 +328,10 @@ public class CatCuboid extends Cuboid {
                 CatLoot.smallChest(config,chest.getInventory());
               }
             }
+          } else if(blk.getType() == Material.DISPENSER) {
+            Dispenser cont = (Dispenser) blk.getState();
+            cont.getInventory().clear(); // Clear and refill chests inside
+            CatLoot.fillChest(config,cont.getInventory(),config.TrapList());
           }
         }
       }

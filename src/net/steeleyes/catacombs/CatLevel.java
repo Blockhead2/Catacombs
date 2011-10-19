@@ -377,9 +377,8 @@ public class CatLevel {
         }
         if(s==Square.ARROW) {
           List<ItemStack> stuff = new ArrayList<ItemStack>();
-          stuff.add(new ItemStack(Material.ARROW,8));
+          CatLoot.fillChest(cnf,stuff,cnf.TrapList());
           byte code = getTrapCode(x,y);
-          System.out.println("[Catacombs] Dispenser code="+code);
           handler.addHigh(world,xx,room_l,zz,Material.DISPENSER,code,stuff);
           handler.addLow(world,xx,floor_h-1,zz,Material.REDSTONE_TORCH_OFF,(byte)5);
         }
@@ -642,7 +641,6 @@ public class CatLevel {
   }
   public byte getTrapCode(int x, int y) {
     Direction dir = level.grid().getTrapDir(x, y);
-    System.out.println("[Catacombs] Dispenser needed at location "+x+" "+y+" dir="+dir);
     switch(dir) {
       case NORTH: return 2;
       case EAST:  return 5;

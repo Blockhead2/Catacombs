@@ -69,6 +69,9 @@ public enum ECatConfig {
       "diamond_ore",
       "lapis_ore"
     )),    
+    TrapList(".Trap.Ammo", Arrays.asList(  // Most common blocks first for efficiency
+      "arrow:100:10"
+    )),    
     
     SpiderPct    (".Mob.Type.SpiderPct", 5),
     SkeletonPct  (".Mob.Type.SkeletonPct", 25),

@@ -47,6 +47,7 @@ public class Config implements IConfig {
   private Integer HiddenPct()        { return getSInt(EConfig.HiddenPct.getStr());  }
   private Integer DoorPct()          { return getSInt(EConfig.DoorPct.getStr());  }
   private Integer WebDoorPct()       { return getSInt(EConfig.WebDoorPct.getStr());  }
+  private Integer TrapPct()          { return getSInt(EConfig.TrapPct.getStr());  }
   private Integer SandPct()          { return getSInt(EConfig.SandPct.getStr());  }
   private Integer ChestPct()         { return getSInt(EConfig.ChestPct.getStr());  }
   private Integer SpawnerPct()       { return getSInt(EConfig.SpawnerPct.getStr());  }
@@ -61,6 +62,7 @@ public class Config implements IConfig {
   public  Boolean SandChance()       { return Chance(SandPct()); }
   public  Boolean ChestChance()      { return Chance(ChestPct()); }
   public  Boolean SpawnerChance()    { return Chance(SpawnerPct()); }
+  public  Boolean TrapChance()       { return Chance(TrapPct()); }
   public  Boolean PoolChance()       { return Chance(PoolPct()); }
   public  Boolean FullPoolChance()   { return Chance(FullPoolPct()); }
   public  Boolean CorridorChance()   { return Chance(CorridorPct()); }
