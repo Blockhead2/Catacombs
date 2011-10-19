@@ -38,7 +38,6 @@ public class CatPlayerListener  extends PlayerListener{
   public void onPlayerLogin(PlayerLoginEvent event){
     Player player = event.getPlayer();
 
-    // TODO register player
     //plugin.sql.playerlogin(player.getName());
     if(plugin.debug) {
       if(plugin.permissions.admin(player)) {

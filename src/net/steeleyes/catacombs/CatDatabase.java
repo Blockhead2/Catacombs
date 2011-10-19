@@ -166,7 +166,6 @@ public class CatDatabase {
           int zl  = rs.getInt(ct+".zl");
           int zh  = rs.getInt(ct+".zh");
           int hut = rs.getInt(ct+".hut");
-          // TODO World needs to be saved with the cubes and restored
           list.add(new CatCuboid(null,xl,yl,zl,xh,yh,zh,
                   (hut==1)?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL));
         }

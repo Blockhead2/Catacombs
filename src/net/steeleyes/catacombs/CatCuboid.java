@@ -218,11 +218,11 @@ public class CatCuboid extends Cuboid {
   }  
   
   public void unrender(BlockChangeHandler handler,Boolean emptyChest,int num_air) {
-    // TODO Figure out num_air by inspection
     if(type==Type.LEVEL)
       setCube(handler,Material.STONE,true);
     else {
       CatCuboid floor = new CatCuboid(world,xl,yl,zl,xh,yh-num_air,zh);
+      // Go one higher to cover anything (torches typically) on the hut roof.
       CatCuboid upper = new CatCuboid(world,xl,yh-num_air+1,zl,xh,yh+1,zh);
       upper.setCube(handler,Material.AIR,emptyChest);
       floor.setCube(handler,Material.STONE,true);

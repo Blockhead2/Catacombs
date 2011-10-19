@@ -217,8 +217,6 @@ Release v0.3
   - Changed block place,damage,break routines to integrate better with other plugins
  *
  *
- * TODO list
- *   - Should use a ServerListener for establishing contact with plugins.
  *
  */
 
