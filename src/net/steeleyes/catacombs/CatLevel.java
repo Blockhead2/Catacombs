@@ -346,7 +346,11 @@ public class CatLevel {
           case MIDCHEST:
           case EMPTYCHEST:
           case CHEST:          renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over); break;
-          case SPAWNER:        renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over); break;
+          case ARROW:          renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,ecob,over); break;
+          case RED1:           
+          case RED2:           
+          case PRESSURE:       renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);  break;
+          case SPAWNER:        renderTile(handler,xx,top.y,zz,cob ,cob ,air ,air ,cob ,over); break;
           case O_FLOOR:     
           case O_TORCH:        renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,over,over); break;
           case UP:             renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,air ,air ); break;
@@ -356,6 +360,28 @@ public class CatLevel {
                                renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);
                              break;
           default:
+        }
+        
+        if(s==Square.PRESSURE) {
+          handler.addHigh(world,xx,room_l,zz,Material.STONE_PLATE);
+          //handler.addHigh(world,xx,floor_h-1,zz,Material.AIR);
+          handler.addLow(world,xx,floor_h-1,zz,Material.REDSTONE_WIRE);
+        }
+        if(s==Square.RED1) {
+          handler.addHigh(world,xx,floor_h-1,zz,Material.AIR);
+          handler.addLow(world,xx,floor_h-2,zz,Material.REDSTONE_TORCH_ON,getRed1Code(x,y));
+        }
+        if(s==Square.RED2) {
+          handler.addHigh(world,xx,floor_h-1,zz,Material.AIR);
+          handler.addLow(world,xx,floor_h-2,zz,Material.REDSTONE_WIRE);
+        }
+        if(s==Square.ARROW) {
+          List<ItemStack> stuff = new ArrayList<ItemStack>();
+          stuff.add(new ItemStack(Material.ARROW,8));
+          byte code = getTrapCode(x,y);
+          System.out.println("[Catacombs] Dispenser code="+code);
+          handler.addHigh(world,xx,room_l,zz,Material.DISPENSER,code,stuff);
+          handler.addLow(world,xx,floor_h-1,zz,Material.REDSTONE_TORCH_OFF,(byte)5);
         }
         if(s==Square.HIDDEN) {
           int small = (cnf.Chance(50))?1:0;
@@ -611,6 +637,27 @@ public class CatLevel {
       case EAST:  return 5;
       case SOUTH: return 3;
       case WEST:  return 2;
+    }
+    return 4;
+  }
+  public byte getTrapCode(int x, int y) {
+    Direction dir = level.grid().getTrapDir(x, y);
+    System.out.println("[Catacombs] Dispenser needed at location "+x+" "+y+" dir="+dir);
+    switch(dir) {
+      case NORTH: return 2;
+      case EAST:  return 5;
+      case SOUTH: return 3;
+      case WEST:  return 4;
+    }
+    return 4;
+  }
+  public byte getRed1Code(int x, int y) {
+    Direction dir = level.grid().getPlateDir(x, y);
+    switch(dir) {
+      case NORTH: return 3;
+      case EAST:  return 2;
+      case SOUTH: return 4;
+      case WEST:  return 1;
     }
     return 4;
   }

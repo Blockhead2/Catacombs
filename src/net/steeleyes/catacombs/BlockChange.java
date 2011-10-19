@@ -57,6 +57,10 @@ public class BlockChange {
   public void setSpawner(String spawner) {
     this.spawner = spawner;
   }
+
+  public void setItems(List<ItemStack> items) {
+    this.items = items;
+  }
   
   
 }

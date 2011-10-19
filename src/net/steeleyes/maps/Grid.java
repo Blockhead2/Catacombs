@@ -188,7 +188,27 @@ public class Grid {
       return Direction.NORTH;
     return Direction.SOUTH;
   }
-
+  
+  public Direction getPlateDir(int x, int y) {
+    if(get(x+1,y)==Square.PRESSURE)
+      return Direction.EAST;
+    if(get(x-1,y)==Square.PRESSURE)
+      return Direction.WEST;
+    if(get(x,y+1)==Square.PRESSURE)
+      return Direction.NORTH;
+    return Direction.SOUTH;
+  }
+   
+  public Direction getTrapDir(int x, int y) {
+    if(get(x+1,y)==Square.RED2)
+      return Direction.EAST;
+    if(get(x-1,y)==Square.RED2)
+      return Direction.WEST;
+    if(get(x,y+1)==Square.RED2)
+      return Direction.NORTH;
+    return Direction.SOUTH;
+  } 
+  
   public byte getDoorCode(int x, int y) {
     if(get(x+1,y).isWall() && get(x-1,y).isWall())
       return 3;

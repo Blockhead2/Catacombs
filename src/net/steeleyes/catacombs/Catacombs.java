@@ -501,7 +501,7 @@ public class Catacombs extends JavaPlugin {
       } else if(cmd(p,args,"test")) {
         debug = !debug;
         Dungeon dung = dungeons.which(p.getLocation().getBlock());
-        dung.guessMajor();
+        //dung.guessMajor();
         //testDatabase();
         p.sendMessage("[catacombs] Direction "+getCardinalDirection(p));
       } else {
@@ -510,7 +510,7 @@ public class Catacombs extends JavaPlugin {
     } catch (IllegalAccessException e) {
       p.sendMessage(e.getMessage());
     } catch (Exception e) {
-      p.sendMessage(e.getMessage());
+      //p.sendMessage(e.getMessage());
     }
     return true;
   }

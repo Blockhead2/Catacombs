@@ -25,6 +25,7 @@ import java.util.List;
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.block.ContainerBlock;
+import org.bukkit.block.Dispenser;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.Block;
@@ -35,10 +36,11 @@ import org.bukkit.block.CreatureSpawner;
 public class BlockChangeHandler implements Runnable {  
   private final int MAX_CHANGE = 10000;
   private int changed = 0;
-  
-  private List<BlockChange> high  = new ArrayList<BlockChange>();
-  private List<BlockChange> low   = new ArrayList<BlockChange>();
-  private List<Player>      who   = new ArrayList<Player>();
+    
+  private final List<BlockChange> delay = new ArrayList<BlockChange>();
+  private final List<BlockChange> high  = new ArrayList<BlockChange>();
+  private final List<BlockChange> low   = new ArrayList<BlockChange>();
+  private final List<Player>      who   = new ArrayList<Player>();
 
   private void setBlock(BlockChange x) {
     if(x.code>=0)
@@ -46,12 +48,16 @@ public class BlockChangeHandler implements Runnable {
     else
       x.blk.setType(x.mat);
     if(x.items != null) {
-      // Should check here the block is a container
-      ContainerBlock cont = (ContainerBlock) x.blk.getState();
-      Inventory inv = cont.getInventory();
-      for(ItemStack s: x.items) {
-        inv.addItem(s);
-      }
+      if(x.blk.getState() instanceof ContainerBlock) {
+        ContainerBlock cont = (ContainerBlock) x.blk.getState();
+        Inventory inv = cont.getInventory();
+        for(ItemStack s: x.items) {
+          inv.addItem(s);
+        }
+        if(x.mat == Material.DISPENSER) {
+          delay.add(new BlockChange(x.blk,null,x.code));
+        }
+      }  
     }
     if(x.getSpawner()!=null) {
       CreatureSpawner spawner = (CreatureSpawner) x.blk.getState();
@@ -61,6 +67,12 @@ public class BlockChangeHandler implements Runnable {
   
   @Override
   public void run() {
+    
+    while(!delay.isEmpty()) {
+      BlockChange x = delay.remove(0);
+      x.blk.setData(x.code);   
+    }
+    
     int cnt=0;
     while(!high.isEmpty() && cnt < MAX_CHANGE) {
       BlockChange x = high.remove(0);
@@ -85,6 +97,9 @@ public class BlockChangeHandler implements Runnable {
     }
   }
   
+  
+  
+  // TODO: Tidy this mess up
   public void addLow(BlockChange b) {
     low.add(b);
   }
@@ -96,6 +111,16 @@ public class BlockChangeHandler implements Runnable {
   }
   public void addHigh(Block blk,Material mat) {
     high.add(new BlockChange(blk,mat));
+  }
+  public void addLow(Block blk,Material mat,byte code,List<ItemStack> items) {
+    BlockChange ch = new BlockChange(blk,mat,code);
+    ch.setItems(items);
+    low.add(ch);
+  }
+  public void addHigh(Block blk,Material mat,byte code,List<ItemStack> items) {
+    BlockChange ch = new BlockChange(blk,mat,code);
+    ch.setItems(items);
+    high.add(ch);
   }
   public void addLow(Block blk,Material mat,List<ItemStack> items) {
     low.add(new BlockChange(blk,mat,items));
@@ -120,6 +145,18 @@ public class BlockChangeHandler implements Runnable {
   public void addLow(World world,int x,int y,int z,Material mat,List<ItemStack> items) {
     Block blk = world.getBlockAt(x,y,z);
     low.add(new BlockChange(blk,mat,items));
+  }
+  public void addLow(World world,int x,int y,int z,Material mat,byte code,List<ItemStack> items) {
+    Block blk = world.getBlockAt(x,y,z);
+    BlockChange ch = new BlockChange(blk,mat,code);
+    ch.setItems(items);
+    low.add(ch);
+  }
+  public void addHigh(World world,int x,int y,int z,Material mat,byte code,List<ItemStack> items) {
+    Block blk = world.getBlockAt(x,y,z);
+    BlockChange ch = new BlockChange(blk,mat,code);
+    ch.setItems(items);
+    high.add(ch);
   }
   public void addHigh(World world,int x,int y,int z,Material mat,List<ItemStack> items) {
     Block blk = world.getBlockAt(x,y,z);

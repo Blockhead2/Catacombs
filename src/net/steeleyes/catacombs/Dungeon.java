@@ -499,7 +499,7 @@ public class Dungeon {
         ".#T....:VD.",
         ".t$.t.t.Dt.",
         "...##+##...",
-        "....t.t...."
+        ">21x......."
       }));
       name = "large";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
