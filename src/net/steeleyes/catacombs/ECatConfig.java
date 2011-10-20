@@ -87,11 +87,11 @@ public enum ECatConfig {
     GoldMin      (".Mob.Gold.Min", 0),
     GoldMax      (".Mob.Gold.Max", 10),
     
-    SmallEquipPct    (".Loot.Small.LeatherEquipPct", 10),
-    MedEquipPct      (".Loot.Medium.EquipPct", 100),
-    BigEquipPct      (".Loot.Big.EquipPct", 100),
+    SmallEquipPct(".Loot.Small.LeatherEquipPct", 10),
+    MedEquipPct  (".Loot.Medium.EquipPct", 100),
+    BigEquipPct  (".Loot.Big.EquipPct", 100),
     
-    LootSmallList    (".Loot.Small.List", Arrays.asList(
+    LootSmallList(".Loot.Small.List", Arrays.asList(
       "leather:10:1-6",
       "torch:50:1-30",
       "ink_sack:10:1-5",
@@ -130,10 +130,10 @@ public enum ECatConfig {
       "painting:5:1"   
     )),
  
-    LootMediumList   (".Loot.Medium.List",new ArrayList<String>(
+    LootMediumList(".Loot.Medium.List",new ArrayList<String>(
     )),
     
-    LootBigList      (".Loot.Big.List", Arrays.asList(
+    LootBigList(".Loot.Big.List", Arrays.asList(
       "diamond:100:1-3",
       "golden_apple:30:1" 
     ));

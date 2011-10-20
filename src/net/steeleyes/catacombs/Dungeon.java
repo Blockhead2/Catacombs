@@ -21,6 +21,7 @@ package net.steeleyes.catacombs;
 
 import java.util.ArrayList;
 import org.bukkit.World;
+import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.Material;
 import org.bukkit.Location;
@@ -262,15 +263,28 @@ public class Dungeon {
   public void teleportToTop(Player player) {
     Location loc = getTopLocation();
     if(loc!=null) {
-      player.teleport(loc);
+      teleport(player, loc);
     }
   }  
   public void teleportToBot(Player player) {
     Location loc = getBotLocation();
     if(loc!=null) {
-      player.teleport(loc);
+      teleport(player, loc);
     }
   }    
+  
+  // Check chunks are loaded and fresh
+  public void teleport(Player p, Location loc) {
+    World w = loc.getWorld();
+    Chunk chunk = w.getChunkAt(loc);
+    if (!w.isChunkLoaded(chunk))
+      w.loadChunk(chunk);
+    else
+      w.refreshChunk(chunk.getX(), chunk.getZ());   
+    p.teleport(loc);
+  }
+  
+  
   public void saveDB(EbeanServer db) {
     int num = 0;
     

@@ -347,7 +347,7 @@ public class CatCuboid extends Cuboid {
       }
     }
   }
-
+/*
   public void clearPlayers() {
     for(Entity ent : world.getEntities()) {
       if(ent instanceof Player) {
@@ -362,7 +362,7 @@ public class CatCuboid extends Cuboid {
       }
     }
   }
-
+*/
   public Boolean isBigChest(Block blk) {
     int cnt = 0;
     Material major = Material.COBBLESTONE;
