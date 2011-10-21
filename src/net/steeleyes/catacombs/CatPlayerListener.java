@@ -20,6 +20,7 @@
 package net.steeleyes.catacombs;
 
 import org.bukkit.Material;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -82,6 +83,7 @@ public class CatPlayerListener  extends PlayerListener{
     //if(blk.getType()==Material.CHEST && plugin.prot.isInRaw(blk)) {
     //  System.out.println("[Catacombs] Chest open");
     //  event.setCancelled(true);
+    //  plugin.test_encounter = new CatEncounter(blk);
     //}
   }  
   

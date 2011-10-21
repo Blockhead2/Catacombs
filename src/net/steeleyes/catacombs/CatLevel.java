@@ -205,6 +205,10 @@ public class CatLevel {
   public int getRoomDepth() {
     return roomDepth;
   }
+
+  public int getFloorDepth() {
+    return (floorDepth==0)?4:floorDepth;
+  }
   
   public Direction end_dir() {
     if(level==null)

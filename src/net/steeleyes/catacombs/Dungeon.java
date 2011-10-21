@@ -340,8 +340,8 @@ public class Dungeon {
     CatLevel l = getLowest(CatCuboid.Type.LEVEL);
     if(l==null || l.getBot().y==0)
       return null;
-
-    return getSafePlace(world.getBlockAt(l.getBot().x,l.getBot().y+5,l.getBot().z));
+    int depth = l.getFloorDepth(); 
+    return getSafePlace(world.getBlockAt(l.getBot().x,l.getBot().y+depth,l.getBot().z));
   }  
   
   public Boolean teleportToTop(Player player) {
@@ -548,6 +548,24 @@ public class Dungeon {
         "``#t....x....t#``",
         "```#GGG#+#GGG#```",
         "~``````~`~``````~"
+      }));
+      name = "testboss";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
+        "#################",
+        "#..t....t....t..#",
+        "#...............#",
+        "#t......o......t#",
+        "#...............#",
+        "#...............#",
+        "#.......t.......#",
+        "#t.....t#t.....t#",
+        "#.......t.......#",
+        "#...............#",
+        "#.......:.......#",
+        "#t.....:V:.....t#",
+        "#.......:.......#",
+        "#..t....t....t..#",
+        "########+########"
       }));
     }
   }

@@ -352,22 +352,7 @@ public class CatCuboid extends Cuboid {
       }
     }
   }
-/*
-  public void clearPlayers() {
-    for(Entity ent : world.getEntities()) {
-      if(ent instanceof Player) {
-        Player player = (Player) ent;
-        Location loc = ent.getLocation();
-        Block blk = loc.getBlock();
-        if(isIn(blk.getX(),blk.getY(),blk.getZ())) {
-          Location safe_place = world.getHighestBlockAt(loc).getLocation();
-          System.out.println("[Catacombs] "+player.getName()+" is in dungeon, moving to 'safety'");
-          player.teleport(safe_place);
-        }
-      }
-    }
-  }
-*/
+
   public Boolean isBigChest(Block blk) {
     int cnt = 0;
     Material major = Material.COBBLESTONE;

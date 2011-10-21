@@ -238,6 +238,8 @@ public class Catacombs extends JavaPlugin {
   public  Boolean               debug=false;
   private Boolean               enabled= false;
   
+  //public CatEncounter           test_encounter;
+  
   private final CatBlockListener   blockListener   = new CatBlockListener(this);
   private final CatEntityListener  entityListener  = new CatEntityListener(this);
   private final CatPlayerListener  playerListener  = new CatPlayerListener(this);
