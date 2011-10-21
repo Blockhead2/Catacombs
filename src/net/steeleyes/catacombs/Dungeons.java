@@ -110,7 +110,13 @@ public class Dungeons {
     }
     return null;
   }
-
+  
+  public void debugMajor() {
+    for(Entry<String,Dungeon> e: dungeons.entrySet()) {
+      Dungeon dung = e.getValue();
+      dung.debugMajor();
+    }
+  }
 
   public void add(String dname, Dungeon d) {
     if(dungeons.containsKey(dname)) {
@@ -177,7 +183,7 @@ public class Dungeons {
   }   
   
   public List<String> getNames() {
-    List<String> list = new ArrayList(dungeons.keySet());
+    List<String> list = new ArrayList<String>(dungeons.keySet());
     Collections.sort(list);
     return list;
   }

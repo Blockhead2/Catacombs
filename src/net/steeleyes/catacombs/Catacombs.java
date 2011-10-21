@@ -503,11 +503,12 @@ public class Catacombs extends JavaPlugin {
           p.sendMessage("Dungeon '"+dung.getName()+"'");           
         }
       } else if(cmd(p,args,"test")) {
-        debug = !debug;
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        dungeons.debugMajor();
+        //debug = !debug;
+        //Dungeon dung = dungeons.which(p.getLocation().getBlock());
         //dung.guessMajor();
         //testDatabase();
-        p.sendMessage("[catacombs] Direction "+getCardinalDirection(p));
+        //p.sendMessage("[catacombs] Direction "+getCardinalDirection(p));
       } else {
         help(p);
       }

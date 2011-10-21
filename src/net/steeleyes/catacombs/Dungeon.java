@@ -131,6 +131,21 @@ public class Dungeon {
        System.err.println("[Catacombs] Can't figure out major mat for dungeon="+getName());
     }
   }
+  public void debugMajor() {
+    for(CatLevel l: levels) {
+      int roof = l.cube.guessRoofSize();
+      int room = l.cube.guessRoomSize();
+      CatMat m = l.cube.guessMajorMat(roof);
+      if(!m.is(Material.AIR)) {
+        System.out.println("[Catacombs] Dungeon '"+name+"'  Major="+m+" roofDepth="+roof+" roomDepth="+room);
+        major = m;
+        break;
+      }
+    }
+    if(major.is(Material.AIR)) {
+       System.err.println("[Catacombs] Can't figure out major mat for dungeon="+getName());
+    }
+  }
   
   public ArrayList<String> summary() {
     ArrayList<String> res = new ArrayList<String>();
