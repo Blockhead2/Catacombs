@@ -41,21 +41,21 @@ public class CatPermissions {
     }
   }
   private Boolean permission(Player player, String permission) {
-    if(enabled) {
+    if(enabled && player != null) {
       return ((PermissionHandler) permissionHandler).has(player, permission);
     }
     return player.isOp();
   }
 
   public boolean admin(Player player){
-    if (enabled) {
+    if (enabled && player != null) {
       return permission(player, "catacombs.admin");
     }
     return true;
   }
 
   public Boolean hasPermission(Player player,String perm) {
-    if (enabled) {
+    if (enabled && player != null) {
       return permission(player, "catacombs.admin") ||
              permission(player, perm);
     }

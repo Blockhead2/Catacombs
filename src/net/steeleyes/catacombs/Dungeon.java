@@ -30,23 +30,22 @@ import org.bukkit.entity.Player;
 import net.steeleyes.maps.Direction;
 import net.steeleyes.maps.Square;
 import net.steeleyes.maps.PrePlanned;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
 import com.avaje.ebean.EbeanServer;
+import org.bukkit.block.BlockFace;
 
 public class Dungeon {
   private CatConfig cnf = null;
   private World world;
-  // TODO set back to private
-  public final ArrayList<CatLevel> levels = new ArrayList<CatLevel>();
+  private final ArrayList<CatLevel> levels = new ArrayList<CatLevel>();
   private String name;
   private String builder;
-  private CatMat major;// = Material.COBBLESTONE;
-  private CatMat minor;// = Material.MOSSY_COBBLESTONE;
+  private CatMat major;
+  private CatMat minor;
 
   private static Map<String,PrePlanned> hut_list = null;
  
@@ -71,6 +70,10 @@ public class Dungeon {
     this.major = major;
     this.minor = minor;
     setup_huts();
+  }
+  
+  public void add(CatLevel l) {
+    levels.add(l);
   }
   
   @Override
@@ -118,10 +121,7 @@ public class Dungeon {
  
   public void guessMajor() {
     for(CatLevel l: levels) {
-      CatMat m = l.cube.guessMajorMat(l.getRoofDepth());
-      //int roof = l.cube.guessRoofSize();
-      //int room = l.cube.guessRoomSize();
-      //System.out.println("Major mat = "+m+" roof="+roof+" room="+room);
+      CatMat m = l.getCube().guessMajorMat(l.getRoofDepth());
       if(!m.is(Material.AIR)) {
         major = m;
         break;
@@ -157,7 +157,7 @@ public class Dungeon {
   
   public Boolean overlaps(CatCuboid that) {
     for(CatLevel l : levels) {
-      if(l.cube.overlaps(that)) {
+      if(l.getCube().overlaps(that)) {
         return true;
       }
     }
@@ -166,7 +166,7 @@ public class Dungeon {
   
   public Boolean isProtected(Block blk) {
     for(CatLevel l : levels) {
-      if(l.cube.isProtected(blk)) {
+      if(l.getCube().isProtected(blk)) {
         return true;
       }
     }
@@ -175,7 +175,7 @@ public class Dungeon {
   
   public Boolean isSuspened(Block blk) {
     for(CatLevel l : levels) {
-      if(l.cube.isSuspended(blk)) {
+      if(l.getCube().isSuspended(blk)) {
         return true;
       }
     }
@@ -184,7 +184,7 @@ public class Dungeon {
   
   public Boolean isInRaw(Block blk) {
     for(CatLevel l : levels) {
-      if(l.cube.isInRaw(blk)) {
+      if(l.getCube().isInRaw(blk)) {
         return true;
       }
     }
@@ -205,17 +205,17 @@ public class Dungeon {
     
     CatLevel level = new CatLevel(cnf,world,x,y,z,getHut(cnf.HutType()),dir);
     levels.add(level);
-    if(level.build_ok && maxLevels >0) {
+    if(level.getBuild_ok() && maxLevels >0) {
       CatLevel from = level;
-      while(from.can_go_lower && from.build_ok && levels.size() < maxLevels+1) {
+      while(from.getCan_go_lower() && from.getBuild_ok() && levels.size() < maxLevels+1) {
         Direction tmp_dir = from.end_dir();
         if(tmp_dir != null) {
           tmp_dir = tmp_dir.turn180();
         } else {
           tmp_dir = Direction.ANY;
         }
-        CatLevel lvl = new CatLevel(cnf,world,from.bot,tmp_dir);
-        if(lvl.build_ok) {
+        CatLevel lvl = new CatLevel(cnf,world,from.getBot(),tmp_dir);
+        if(lvl.getBuild_ok()) {
           from.stealDirection(lvl);
           levels.add(lvl);
           from = lvl;
@@ -253,39 +253,113 @@ public class Dungeon {
       l.reset();
     }
   }
+  public void suspend(EbeanServer db) {
+    for(CatLevel l : levels) {
+      l.suspend(major);
+    }
+        
+    if(db != null) {
+      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
+      if (list != null && !list.isEmpty()) {
+        for(dbLevel cube: list) {
+          cube.setEnable(false);
+          db.save(cube);
+        }
+      }
+    }
+  }
+  
+  public void enable(EbeanServer db) {
+    for(CatLevel l : levels) {
+      l.suspend(major);
+    }
+
+    if(db != null) {
+      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
+      if (list != null && !list.isEmpty()) {
+        for(dbLevel cube: list) {
+          cube.setEnable(true);
+          db.save(cube);
+        }
+      }
+    }  
+  }  
+  
+  public void remove(EbeanServer db) {
+    if(db != null) {
+      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
+      if (list != null && !list.isEmpty()) {
+        for(dbLevel cube: list) {
+          db.delete(cube);
+        }
+      }
+    }  
+  }  
+  
+  private Location getSafePlace(Block blk) {
+    Location loc = null;
+    for(BlockFace dir : Arrays.asList(
+      BlockFace.NORTH,BlockFace.EAST,
+      BlockFace.SOUTH,BlockFace.WEST,BlockFace.UP)) {
+      Block tmp = blk.getRelative(BlockFace.NORTH);
+      if(tmp.getType()==Material.AIR) {
+        loc = tmp.getLocation();
+        break;
+      }      
+    }
+    if(loc==null) {
+      loc = blk.getLocation();
+    }
+    loc.setX(loc.getX()+0.5);
+    loc.setZ(loc.getZ()+0.5);
+    return loc;
+  }
+  
+  public CatLevel getLowest(CatCuboid.Type type) {
+    CatLevel lvl = null;
+    int lowest = 128;
+    for(CatLevel l : levels) {
+      if(l.getCube().getType() == type && l.getCube().yl<lowest) {
+        lowest = l.getCube().yl;
+        lvl = l;
+      }
+    }
+    return lvl;
+  }
   
   public Location getTopLocation() {
-    for(CatLevel l : levels) {
-      if(l.cube.isHut()) {
-        return world.getBlockAt(l.top.x+1,l.top.y-3,l.top.z).getLocation();
-      }
-    }
-    return null;
+    CatLevel l = getLowest(CatCuboid.Type.HUT);
+    if(l==null || l.getTop().y==0)
+      return null;
+    
+    int depth = l.getRoofDepth()+l.getRoomDepth();
+    return getSafePlace(world.getBlockAt(l.getTop().x,l.getTop().y-depth+1,l.getTop().z));
   }
+  
   public Location getBotLocation() {
-   Location loc = null;
-   int lowest = 128;
-    for(CatLevel l : levels) {
-      if(l.bot.y>0 && l.bot.y+5<lowest) {
-        loc = world.getBlockAt(l.bot.x+1,l.bot.y+5,l.bot.z).getLocation();
-        lowest = l.bot.y+5;
-        loc.setX(loc.getX()-0.5);
-        loc.setZ(loc.getZ()+0.5);
-      }
-    }
-    return loc;
+    CatLevel l = getLowest(CatCuboid.Type.LEVEL);
+    if(l==null || l.getBot().y==0)
+      return null;
+
+    return getSafePlace(world.getBlockAt(l.getBot().x,l.getBot().y+5,l.getBot().z));
   }  
-  public void teleportToTop(Player player) {
+  
+  public Boolean teleportToTop(Player player) {
     Location loc = getTopLocation();
     if(loc!=null) {
       teleport(player, loc);
+      return true;
     }
+    return false;
   }  
-  public void teleportToBot(Player player) {
+  
+  public Boolean teleportToBot(Player player) {
     Location loc = getBotLocation();
     if(loc!=null) {
       teleport(player, loc);
+      return true;
     }
+    return false;
   }    
   
   // Check chunks are loaded and fresh
@@ -309,7 +383,7 @@ public class Dungeon {
       n.setDname(name);
       n.setWname(world.getName());
       n.setPname(builder);
-      CatCuboid cube = l.cube;
+      CatCuboid cube = l.getCube();
       n.setHut(cube.isHut());
       n.setXl(cube.xl);
       n.setYl(cube.yl);
@@ -317,12 +391,12 @@ public class Dungeon {
       n.setXh(cube.xh);
       n.setYh(cube.yh);
       n.setZh(cube.zh);
-      n.setSx(l.top.x);
-      n.setSy(l.top.y);
-      n.setSz(l.top.z);
-      n.setEx(l.bot.x);
-      n.setEy(l.bot.y);
-      n.setEz(l.bot.z);
+      n.setSx(l.getTop().x);
+      n.setSy(l.getTop().y);
+      n.setSz(l.getTop().z);
+      n.setEx(l.getBot().x);
+      n.setEy(l.getBot().y);
+      n.setEz(l.getBot().z);
       n.setDx(cube.dx());  // Dx and Dy strictly aren't needed, they could be computed from cube size
       n.setDy(cube.dz());  // 3D-2D so use dz for Y size
       n.setMap(l.getMap());
@@ -331,55 +405,6 @@ public class Dungeon {
       db.save(n);
     }
   }
-  public void suspend(EbeanServer db) {
-    Set<CatCuboid> cubes = getCubes();
-    if(cubes != null) {
-      for(CatCuboid c: cubes) {
-        c.clearMonsters();
-        c.suspend();
-        c.addGlow(major,levels.get(0).getRoofDepth());
-      }  
-    } 
-    if(db != null) {
-      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
-      if (list != null && !list.isEmpty()) {
-        for(dbLevel cube: list) {
-          cube.setEnable(false);
-          db.save(cube);
-        }
-      }
-    }  
-  }
-  
-  public void enable(EbeanServer db) {
-    Set<CatCuboid> cubes = getCubes();
-    if(cubes != null) {
-      for(CatCuboid c: cubes) {
-        c.enable();
-        c.removeGlow(major,levels.get(0).getRoofDepth());
-      }  
-    } 
-    if(db != null) {
-      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
-      if (list != null && !list.isEmpty()) {
-        for(dbLevel cube: list) {
-          cube.setEnable(true);
-          db.save(cube);
-        }
-      }
-    }  
-  }  
-  
-  public void remove(EbeanServer db) {
-    if(db != null) {
-      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
-      if (list != null && !list.isEmpty()) {
-        for(dbLevel cube: list) {
-          db.delete(cube);
-        }
-      }
-    }  
-  }  
     
   public Boolean isBuilt() {
     return built;
@@ -387,19 +412,11 @@ public class Dungeon {
 
   public Boolean isNatural() {
     for (CatLevel l : levels) {
-      if(l.cube.isLevel() && !l.cube.isNatural(cnf)) {
+      if(l.getCube().isLevel() && !l.getCube().isNatural(cnf)) {
         return false;
       }
     }
     return true;
-  }
-  
-  public Set<CatCuboid> getCubes() {
-    Set<CatCuboid> cubes = new HashSet<CatCuboid>();
-    for (CatLevel l : levels) {
-      cubes.add(l.cube);
-    }
-    return cubes;
   }
 
   public Boolean isInhabited() {
@@ -410,7 +427,7 @@ public class Dungeon {
       int y = blk.getY();
       int z = blk.getZ();
       for(CatLevel l : levels) {
-        CatCuboid c =  l.cube;
+        CatCuboid c =  l.getCube();
         if(c.isLevel() && c.isIn(x,y,z))
           return true;
       }
@@ -448,36 +465,18 @@ public class Dungeon {
       }
     }
   }
-/*
-  public Boolean intersects(HashMap<String,Stack> prot) {
-    String wld = world.getName();
-    if(prot.containsKey(wld)) {
-      Stack s = prot.get(wld);
-      for(int i=0;i<levels.size();i++) {
-        CatLevel l = (CatLevel) levels.index(i);
-        if(l != null && l.cube != null) {
-          for(int j=0;j<s.size();j++) {
-            Cuboid c = (Cuboid) s.index(j);
-            if(l.cube.intersects(c))
-              return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-*/
+
   public void registerCubes(MultiWorldProtect prot) {
     String wld = world.getName();
     for(CatLevel l : levels) {
-      prot.add(wld,l.cube);
+      prot.add(wld,l.getCube());
     }
   }
   
   public void unregisterCubes(MultiWorldProtect prot) {
     String wld = world.getName();
     for(CatLevel l : levels) {
-      prot.remove(wld,l.cube);
+      prot.remove(wld,l.getCube());
     }
   }
 

@@ -35,31 +35,37 @@ import org.bukkit.block.CreatureSpawner;
 public class BlockChangeHandler implements Runnable {  
   private final int MAX_CHANGE = 10000;
   private int changed = 0;
+  
+  private Catacombs plugin;
     
   private final List<BlockChange> delay = new ArrayList<BlockChange>();
   private final List<BlockChange> high  = new ArrayList<BlockChange>();
   private final List<BlockChange> low   = new ArrayList<BlockChange>();
   private final List<Player>      who   = new ArrayList<Player>();
 
+  public BlockChangeHandler(Catacombs plugin) {
+    this.plugin = plugin;
+  }
+
   private void setBlock(BlockChange x) {
-    if(x.code>=0)
-      x.blk.setTypeIdAndData(x.mat.getId(),x.code,false);
+    if(x.getCode()>=0)
+      x.getBlk().setTypeIdAndData(x.getMat().getId(),x.getCode(),false);
     else
-      x.blk.setType(x.mat);
-    if(x.items != null) {
-      if(x.blk.getState() instanceof ContainerBlock) {
-        ContainerBlock cont = (ContainerBlock) x.blk.getState();
+      x.getBlk().setType(x.getMat());
+    if(x.getItems() != null) {
+      if(x.getBlk().getState() instanceof ContainerBlock) {
+        ContainerBlock cont = (ContainerBlock) x.getBlk().getState();
         Inventory inv = cont.getInventory();
-        for(ItemStack s: x.items) {
+        for(ItemStack s: x.getItems()) {
           inv.addItem(s);
         }
-        if(x.mat == Material.DISPENSER) {
-          delay.add(new BlockChange(x.blk,null,x.code));
+        if(x.getMat() == Material.DISPENSER) {
+          delay.add(new BlockChange(x.getBlk(),null,x.getCode()));
         }
       }  
     }
     if(x.getSpawner()!=null) {
-      CreatureSpawner spawner = (CreatureSpawner) x.blk.getState();
+      CreatureSpawner spawner = (CreatureSpawner) x.getBlk().getState();
       spawner.setCreatureTypeId(x.getSpawner());
     }
   }
@@ -69,7 +75,7 @@ public class BlockChangeHandler implements Runnable {
     
     while(!delay.isEmpty()) {
       BlockChange x = delay.remove(0);
-      x.blk.setData(x.code);   
+      x.getBlk().setData(x.getCode());   
     }
     
     int cnt=0;
@@ -89,7 +95,8 @@ public class BlockChangeHandler implements Runnable {
     if(cnt == 0 && changed > 0) {
       System.out.println("[Catacombs] Block Handler #changes="+changed);
       for(Player p : who) {
-        p.sendMessage("Catacomb changes complete");
+        if(plugin != null)
+          plugin.inform(p,"Catacomb changes complete");
       }
       who.clear();
       changed = 0;
@@ -98,7 +105,7 @@ public class BlockChangeHandler implements Runnable {
   
   
   
-  // TODO: Tidy this mess up
+  // figure out a good way to avoid the long list of combinations here
   public void addLow(BlockChange b) {
     low.add(b);
   }
@@ -111,6 +118,18 @@ public class BlockChangeHandler implements Runnable {
   public void addHigh(Block blk,Material mat) {
     high.add(new BlockChange(blk,mat));
   }
+  public void addLow(Block blk,Material mat, byte code) {
+    low.add(new BlockChange(blk,mat,code));
+  }
+  public void addHigh(Block blk,Material mat, byte code) {
+    high.add(new BlockChange(blk,mat,code));
+  }
+  public void addLow(Block blk,Material mat,List<ItemStack> items) {
+    low.add(new BlockChange(blk,mat,items));
+  }
+  public void addHigh(Block blk,Material mat,List<ItemStack> items) {
+    high.add(new BlockChange(blk,mat,items));
+  }
   public void addLow(Block blk,Material mat,byte code,List<ItemStack> items) {
     BlockChange ch = new BlockChange(blk,mat,code);
     ch.setItems(items);
@@ -121,18 +140,8 @@ public class BlockChangeHandler implements Runnable {
     ch.setItems(items);
     high.add(ch);
   }
-  public void addLow(Block blk,Material mat,List<ItemStack> items) {
-    low.add(new BlockChange(blk,mat,items));
-  }
-  public void addHigh(Block blk,Material mat,List<ItemStack> items) {
-    high.add(new BlockChange(blk,mat,items));
-  }
-  public void addLow(Block blk,Material mat, byte code) {
-    low.add(new BlockChange(blk,mat,code));
-  }
-  public void addHigh(Block blk,Material mat, byte code) {
-    high.add(new BlockChange(blk,mat,code));
-  }
+  
+  
   public void addLow(World world,int x,int y,int z,Material mat) {
     Block blk = world.getBlockAt(x,y,z);
     low.add(new BlockChange(blk,mat));
@@ -141,9 +150,21 @@ public class BlockChangeHandler implements Runnable {
     Block blk = world.getBlockAt(x,y,z);
     high.add(new BlockChange(blk,mat));
   }
+  public void addLow(World world,int x,int y,int z,Material mat,byte code) {
+    Block blk = world.getBlockAt(x,y,z);
+    low.add(new BlockChange(blk,mat,code));
+  }
+  public void addHigh(World world,int x,int y,int z,Material mat,byte code) {
+    Block blk = world.getBlockAt(x,y,z);
+    high.add(new BlockChange(blk,mat,code));
+  }  
   public void addLow(World world,int x,int y,int z,Material mat,List<ItemStack> items) {
     Block blk = world.getBlockAt(x,y,z);
     low.add(new BlockChange(blk,mat,items));
+  }
+  public void addHigh(World world,int x,int y,int z,Material mat,List<ItemStack> items) {
+    Block blk = world.getBlockAt(x,y,z);
+    high.add(new BlockChange(blk,mat,items));
   }
   public void addLow(World world,int x,int y,int z,Material mat,byte code,List<ItemStack> items) {
     Block blk = world.getBlockAt(x,y,z);
@@ -157,18 +178,7 @@ public class BlockChangeHandler implements Runnable {
     ch.setItems(items);
     high.add(ch);
   }
-  public void addHigh(World world,int x,int y,int z,Material mat,List<ItemStack> items) {
-    Block blk = world.getBlockAt(x,y,z);
-    high.add(new BlockChange(blk,mat,items));
-  }
-  public void addLow(World world,int x,int y,int z,Material mat,byte code) {
-    Block blk = world.getBlockAt(x,y,z);
-    low.add(new BlockChange(blk,mat,code));
-  }
-  public void addHigh(World world,int x,int y,int z,Material mat,byte code) {
-    Block blk = world.getBlockAt(x,y,z);
-    high.add(new BlockChange(blk,mat,code));
-  }
+  
   public void add(Player player) {
     who.add(player);
   } 

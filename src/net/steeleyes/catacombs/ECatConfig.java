@@ -42,7 +42,7 @@ public enum ECatConfig {
       "/setwarp",
       "/home"
     )),
-    BreakList               ("Admin.Breakable", Arrays.asList(
+    BreakBlocks             ("Admin.Breakable", Arrays.asList(
       "torch",
       "red_mushroom",
       "brown_mushroom",

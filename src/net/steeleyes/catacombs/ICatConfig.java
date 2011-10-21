@@ -68,6 +68,9 @@ public interface ICatConfig extends IConfig {
   public  Boolean BigEquipChance();
   public  Boolean MinorChance();
 
+  public  CatMat majorMat();
+  public  CatMat minorMat(); 
+
   
   public  Boolean MySQLEnabled();
   public  String MySQLPrefix();
@@ -77,5 +80,5 @@ public interface ICatConfig extends IConfig {
   public  String MySQLAddr();
   public  int    MySQLPort();
   
-
+  public  void setRadiusMax(int r);
 }

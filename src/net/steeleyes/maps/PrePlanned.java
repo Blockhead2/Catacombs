@@ -47,9 +47,9 @@ public class PrePlanned {
   private void initialize_access(Direction dir) {
     List<Integer> tmp = new ArrayList<Integer>();
     access.put(dir,tmp);
-    int x = (dir.vertical())?1:((dir==Direction.WEST)?0:grid.size.x-1);
-    int y = (dir.vertical())?((dir==Direction.SOUTH)?0:grid.size.y-1):1;
-    int sz = (dir.vertical())?grid.size.x:grid.size.y;
+    int x = (dir.vertical())?1:((dir==Direction.WEST)?0:grid.getSize().x-1);
+    int y = (dir.vertical())?((dir==Direction.SOUTH)?0:grid.getSize().y-1):1;
+    int sz = (dir.vertical())?grid.getSize().x:grid.getSize().y;
     //System.out.println("[catacombs] Init "+name+" "+dir);
     for(int o=1;o<sz-1;o++) {
       if(grid.get(x,y)==Square.WALL &&
@@ -90,10 +90,10 @@ public class PrePlanned {
   }
   
   public int sx() {
-    return grid.size.x;
+    return grid.getSize().x;
   }
   public int sy() {
-    return grid.size.y;
+    return grid.getSize().y;
   }
   
   public Square get(int x,int y) {

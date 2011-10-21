@@ -27,12 +27,13 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Dispenser;
 import org.bukkit.block.Chest;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Creature;
 import org.bukkit.Location;
 
+import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 /**
  *
  * @author John Keay
@@ -61,6 +62,10 @@ public class CatCuboid extends Cuboid {
 
   public void setType(Type t) {
     type = t;
+  }
+
+  public Type getType() {
+    return type;
   }
   
   //  Add 3 horrible routine to guess key facts that I didn't save in the .db
@@ -113,11 +118,11 @@ public class CatCuboid extends Cuboid {
   //   Hunt for a frequent soild block just below the roof level that's
   //   next to air/web/torch. Call that the major material
   public CatMat guessMajorMat(int roofDepth) {
-    ArrayList<BlockFace> dirs = new ArrayList<BlockFace>();
-    dirs.add(BlockFace.NORTH);
-    dirs.add(BlockFace.EAST);
-    dirs.add(BlockFace.SOUTH);
-    dirs.add(BlockFace.WEST);
+    List<BlockFace> dirs = new ArrayList<BlockFace>(Arrays.asList(
+      BlockFace.NORTH,BlockFace.EAST,
+      BlockFace.SOUTH,BlockFace.WEST
+    ));
+
     final CatMat last = new CatMat(Material.AIR);
     final CatMat best_mat = new CatMat(Material.AIR);
     final CatMat mat = new CatMat(Material.AIR);

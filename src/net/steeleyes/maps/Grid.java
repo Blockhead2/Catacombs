@@ -20,9 +20,9 @@
 package net.steeleyes.maps;
 
 public class Grid {
-  public final Vector2D size = new Vector2D();
+  private final Vector2D size = new Vector2D();
   private Square[][] area;
-  public int used=0;
+  private int used=0;
   
   public Grid(int sx,int sy) {
     size.set(sx, sy);
@@ -69,6 +69,17 @@ public class Grid {
       }
     }
   }
+
+  public Vector2D getSize() {
+    return size;
+  }
+  public int sx() {
+    return size.x;
+  }
+  public int sy() {
+    return size.y;
+  }
+  
   public Square get(int x,int y) {
     if(x<0 || y<0 || x>= size.x || y>= size.y) return Square.FIXEDWALL;
     return area[x][y];

@@ -33,7 +33,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 
 public class Dungeons {
-  public final HashMap<String,Dungeon> dungeons = new HashMap<String,Dungeon>();
+  private final HashMap<String,Dungeon> dungeons = new HashMap<String,Dungeon>();
 
   public Dungeons(Catacombs plugin,EbeanServer db) {
     if(db!=null) {
@@ -62,7 +62,7 @@ public class Dungeons {
             dung = dungeons.get(dname);
           }
           CatLevel clevel = new CatLevel(plugin,info,world);
-          dung.levels.add(clevel);      
+          dung.add(clevel);
         }
         for (Entry<String,Dungeon> entry : dungeons.entrySet()) {
           Dungeon d = entry.getValue();
@@ -145,15 +145,7 @@ public class Dungeons {
       dung.registerCubes(prot);
     }
   }
-  
-  public Set<CatCuboid> getCubes(String name) {
-    if(dungeons.containsKey(name)) {
-      Dungeon dung = dungeons.get(name);
-      return dung.getCubes();
-    }
-    return null;
-  }
-  
+
   public void suspend(String name,EbeanServer db) {
     if(dungeons.containsKey(name)) {
       Dungeon dung = dungeons.get(name);
