@@ -1,6 +1,6 @@
 name: Catacombs
 main: net.steeleyes.catacombs.Catacombs
-version: 0.8
+version: 0.9
 depend:
 softdepend: [Permissions,iConomy, BOSEconomy, Currency, MultiCurrency]
 commands:

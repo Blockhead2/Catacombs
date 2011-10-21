@@ -411,9 +411,10 @@ public class CatCuboid extends Cuboid {
           if(before == Material.LADDER ||
              before == Material.TORCH ||
              before == Material.TRAP_DOOR ||
+             before == Material.CHEST ||
              before == Material.WATER ||
              before == Material.LAVA ||
-             before == Material.BED_BLOCK ||   // Not sure how best to delete beds
+             before == Material.BED_BLOCK ||
              before == Material.RED_MUSHROOM ||
              before == Material.BROWN_MUSHROOM ||
              before == Material.REDSTONE_TORCH_ON ||
@@ -421,13 +422,7 @@ public class CatCuboid extends Cuboid {
              ) {
             handler.addHigh(blk,mat);
           } else {
-            if(before == Material.CHEST) {
-              // A bukkit bug crashes the client when chests are deleted.
-              //blk.setType(Material.DIRT);
-              //handler.addHigh(blk,mat);
-            } else {
-              handler.addLow(blk,mat);
-            }
+            handler.addLow(blk,mat);
           }
         }
       }
