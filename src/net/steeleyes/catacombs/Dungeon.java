@@ -133,9 +133,9 @@ public class Dungeon {
   }
   public void debugMajor() {
     for(CatLevel l: levels) {
-      int roof = l.cube.guessRoofSize();
-      int room = l.cube.guessRoomSize();
-      CatMat m = l.cube.guessMajorMat(roof);
+      int roof = l.getCube().guessRoofSize();
+      int room = l.getCube().guessRoomSize();
+      CatMat m = l.getCube().guessMajorMat(roof);
       if(!m.is(Material.AIR)) {
         System.out.println("[Catacombs] Dungeon '"+name+"'  Major="+m+" roofDepth="+roof+" roomDepth="+room);
         major = m;
