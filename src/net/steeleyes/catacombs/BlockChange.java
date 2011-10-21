@@ -27,11 +27,11 @@ import org.bukkit.inventory.ItemStack;
 
 
 public class BlockChange {
-  Block blk;
-  Material mat;
-  byte code=-1;
-  List<ItemStack> items = null;
-  String spawner = null;
+  private Block blk;
+  private Material mat;
+  private byte code=-1;
+  private List<ItemStack> items = null;
+  private String spawner = null;
   
   public BlockChange(Block blk, Material mat) {
     this.blk = blk;
@@ -48,6 +48,22 @@ public class BlockChange {
     this.blk = blk;
     this.mat = mat;
     this.code = code;
+  }
+
+  public Block getBlk() {
+    return blk;
+  }
+
+  public byte getCode() {
+    return code;
+  }
+
+  public List<ItemStack> getItems() {
+    return items;
+  }
+
+  public Material getMat() {
+    return mat;
   }
 
   public String getSpawner() {

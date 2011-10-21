@@ -21,12 +21,16 @@ package net.steeleyes.catacombs;
 
 import net.steeleyes.maps.Config;
 import java.util.List;
+import java.util.ArrayList;
 import org.bukkit.util.config.Configuration;
 //import org.bukkit.configuration.Configuration;
 import org.bukkit.block.Block;
 import org.bukkit.Material;
 
 public class CatConfig extends Config implements ICatConfig {
+  
+  private transient List<CatMat> NaturalList = null;
+  private transient List<CatMat> BreakList = null;
 
   public  Integer RadiusMax()              { return getSInt(ECatConfig.RadiusMax.getStr());  }
   public  String  HutType()                { return getSString(ECatConfig.HutType.getStr());  }
@@ -69,17 +73,15 @@ public class CatConfig extends Config implements ICatConfig {
   public  String  Economy()                { return getSString(ECatConfig.Economy.getStr());  }
   public  List<String> BannedCommands()    { return getSStringList(ECatConfig.BannedCommands.getStr());  }
   private List<String> NaturalBlocks()     { return getSStringList(ECatConfig.NaturalBlocks.getStr());  }
-  private List<String> BreakList()         { return getSStringList(ECatConfig.BreakList.getStr());  }
+  private List<String> BreakBlocks()       { return getSStringList(ECatConfig.BreakBlocks.getStr());  }
   
   public  Boolean SmallEquipChance()       { return Chance(SmallEquipPct()); }
   public  Boolean MedEquipChance()         { return Chance(MedEquipPct()); }
   public  Boolean BigEquipChance()         { return Chance(BigEquipPct()); }
   public  Boolean MinorChance()            { return Chance(MossyPct()); }
 
-  public  CatMat majorMat()                { return getBlockMaterial(majorBlock());  } 
-  public  CatMat minorMat()                { return getBlockMaterial(minorBlock());  } 
-  public  byte majorByte()                 { return getBlockByte(majorBlock());  } 
-  public  byte minorByte()                 { return getBlockByte(minorBlock());  } 
+  public  CatMat majorMat()                { return CatMat.parseMaterial(majorBlock());  } 
+  public  CatMat minorMat()                { return CatMat.parseMaterial(minorBlock());  } 
   
   public  void setRadiusMax(int r)         { setSInt(ECatConfig.RadiusMax.getStr(),r); }
 
@@ -99,78 +101,55 @@ public class CatConfig extends Config implements ICatConfig {
     super(config);
     setDefaults();
     cnf.save();
+    checkConfig();
   }
   
-  public void checkConfig() {
+  private void checkConfig() {
     checkLoot(TrapList());
     checkLoot(LootSmallList());
     checkLoot(LootMediumList());
     checkLoot(LootBigList());
-    checkBlockMaterial(majorBlock());
-    checkBlockMaterial(minorBlock());    
-    checkBlockMaterialList(NaturalBlocks());    
-    checkBlockMaterialList(BreakList());    
+    CatMat.parseMaterial(majorBlock());
+    CatMat.parseMaterial(minorBlock());
+    NaturalList = cacheBlockMaterialList(NaturalBlocks());    
+    BreakList = cacheBlockMaterialList(BreakBlocks());    
   }
-    
-  public Boolean checkBlockMaterialList(List<String> list) {
-    Boolean ok = true;
-    for(String name:list) {
-      if(!checkBlockMaterial(name))
-        ok = false;
-    }
-    return ok;
+
+  @Override
+  public void setStyle(String style) {  // Recache material lists if style changes
+    super.setStyle(style);
+    NaturalList = cacheBlockMaterialList(NaturalBlocks());    
+    BreakList = cacheBlockMaterialList(BreakBlocks());    
   }
   
-  public Boolean checkBlockMaterial(String name) {
-    CatMat mat = getBlockMaterial(name);
-    if(mat==null) {
-      System.err.println("[Catacombs] Unknown material '"+name+"' must be a number or a valid bukkit block material name or name:code or number:code");
-      return false;
+  private List<CatMat> cacheBlockMaterialList(List<String> in) {
+    List<CatMat> out = new ArrayList<CatMat>();
+    for(String name:in) {
+      CatMat item = CatMat.parseMaterial(name);
+      if(item != null)
+        out.add(item);        
     }
-    return true;
+    return out;
   }
-  
-  // TODO: Move this into CatMat
-  public CatMat getBlockMaterial(String name) {
-    CatMat m = null;
-    byte code = -1;
-    if(name.contains(":")) {
-      String tmp[] = name.split(":");
-      name = tmp[0];
-      try {
-        code = Byte.parseByte(tmp[1]);
-      } catch(Exception e) {
-      }
-    }
-    Material mat = Material.matchMaterial(name);
-    if(mat == null || !mat.isBlock())
-      return null;
-    if(code>=0)
-      return new CatMat(mat,code);
-    return new CatMat(mat);
-  }
-  
-  // TODO: Need to use a CatMat list here like isBreakable
+
   public Boolean isNatural(Block blk) {
-    String mname = blk.getType().toString().toLowerCase();
-    for(String n: NaturalBlocks()) {
-      if(n.equalsIgnoreCase(mname))
+    CatMat mat = new CatMat(blk);
+    for(CatMat i: NaturalList) {
+      if(mat.equals(i))
         return true;
     }
     return false;
   }
   
-  // TODO: Cache the list in CatMat form to save time
-  //    need to refresh list when the style is changed
   public Boolean isBreakable(Block blk) {
-    CatMat b = new CatMat(blk);
-    for(String n: BreakList()) {
-      CatMat i = getBlockMaterial(n);
-      if(b.equals(i))
+    CatMat mat = new CatMat(blk);
+    for(CatMat i: BreakList) {
+      if(mat.equals(i))
         return true;
     }
     return false;
-  }  
+  } 
+  
   private void setDefaults() {
     for(ECatConfig att : ECatConfig.values()) {
       String path = att.getStr();

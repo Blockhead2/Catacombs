@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import org.bukkit.block.Block;
 
 public class WorldProtect {
-  public final ArrayList<CatCuboid> protect;
+  private final ArrayList<CatCuboid> protect;
 
   public WorldProtect() {
     protect  = new ArrayList<CatCuboid>();

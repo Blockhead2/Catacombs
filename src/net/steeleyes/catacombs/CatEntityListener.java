@@ -32,11 +32,9 @@ import java.util.List;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.Location;
-import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.entity.CreatureType;
-import org.bukkit.Material;
 import org.bukkit.entity.Wolf;
 import org.bukkit.entity.PigZombie;
 
@@ -72,22 +70,16 @@ public class CatEntityListener extends EntityListener {
              if(meth != null) {
                meth.getAccount(player.getName()).add(gold);
                double bal = meth.getAccount(player.getName()).balance();
-    //         plugin.cash.addMajor(player.getName(),gold);
                player.sendMessage("You loot "+gold+" coins, "+meth.format(bal));
              }
-             //System.out.println("gold="+gold);
-
-             //  KILL SHOT : "+eTarget+" DMG:"+edEvent.getDamage()+"  HPs:"+leTarget.getHealth());
-
-             // PigZombies drop too much meat for balance
-             List<ItemStack> list = dEvent.getDrops();
-             for(ItemStack i: list) {
-               if(i.getType() == Material.GRILLED_PORK &&
-                  plugin.cnf.Chance(50)) {  // Turn half the meat to torches
-                 i.setType(Material.TORCH);
-               }
-             }
-             //list.add(new ItemStack(Material.TORCH,1));
+             // PigZombies used to drop too much meat for balance
+             //List<ItemStack> list = dEvent.getDrops();
+             //for(ItemStack i: list) {
+             //  if(i.getType() == Material.GRILLED_PORK &&
+             //     plugin.cnf.Chance(50)) {  // Turn half the meat to torches
+             //    i.setType(Material.TORCH);
+             //  }
+             //}
           }
         }
       }

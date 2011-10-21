@@ -23,7 +23,7 @@ import java.util.HashMap;
 import org.bukkit.block.Block;
 
 public class MultiWorldProtect {
-  public HashMap<String,WorldProtect> protect;
+  private HashMap<String,WorldProtect> protect;
 
   public MultiWorldProtect() {
     protect  = new HashMap<String,WorldProtect>();

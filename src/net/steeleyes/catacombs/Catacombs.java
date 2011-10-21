@@ -49,7 +49,16 @@ import org.bukkit.block.BlockFace;
 /**
  * 
 Release v0.8
-* 
+* Added arrow traps in random locations. Contents of the dispensers is configurable
+* Added configuration to totally fill the area above the ceiling with dungeon blocks
+* Added configuration to allow a dungeon reset button at the end of the dungeon
+* Updates to allow most commands to be sent from the console (plan, scatter and gold
+  commands need to be done in game at present).
+* Added configuration to allow control over which blocks are breakable (these settings
+  are server wide - not per dungeon). The default list contains torch,web and mushrooms.
+ 
+* Added code to ensure chunks are loaded/fresh to solve teleport problems.
+* Stopped Endermen placing blocks (only picking up blocks was blocked previously)
 * 
 
  * 
@@ -221,16 +230,16 @@ Release v0.3
  */
 
 public class Catacombs extends JavaPlugin {
-  public MultiWorldProtect  prot;
-  public CatConfig          cnf;
-  public CatPermissions     permissions;
-  public Dungeons           dungeons;
-  public MyDatabase         database = null;
-  public BlockChangeHandler handler;
+  public  MultiWorldProtect     prot;
+  public  CatConfig             cnf;
+  private CatPermissions        permissions;
+  private Dungeons              dungeons;
+  private MyDatabase            database = null;
+  private BlockChangeHandler    handler;
       
-  public PluginDescriptionFile info;
-  public Boolean           debug=false;
-  public Boolean           enabled= false;
+  public  PluginDescriptionFile info;
+  public  Boolean               debug=false;
+  private Boolean               enabled= false;
   
   private final CatBlockListener   blockListener   = new CatBlockListener(this);
   private final CatEntityListener  entityListener  = new CatEntityListener(this);
@@ -240,7 +249,6 @@ public class Catacombs extends JavaPlugin {
   @Override
   public void onLoad() {
     cnf = new CatConfig(getConfiguration());
-    cnf.checkConfig();
     info = this.getDescription();
     System.out.print("[" + info.getName() + "] version " + info.getVersion()+ " is loaded");
   }
@@ -297,7 +305,7 @@ public class Catacombs extends JavaPlugin {
       pm.registerEvent(Event.Type.PLUGIN_ENABLE, serverListener, Event.Priority.Low, this);
       pm.registerEvent(Event.Type.PLUGIN_DISABLE, serverListener, Event.Priority.Low, this);
 
-      handler = new BlockChangeHandler();
+      handler = new BlockChangeHandler(this);
       this.getServer().getScheduler().scheduleSyncRepeatingTask(this,handler,40,20);
       
       enabled = true;
@@ -382,21 +390,16 @@ public class Catacombs extends JavaPlugin {
     if(sender instanceof Player) {
       Player player = (Player) sender;
       return Commands(player,args);
-    } else {
-      if(args[0].equals("resetall")) {
-        for(String name : dungeons.getNames()) {
-          System.out.println("Reseting dungeon '"+name+"'");
-          resetDungeon(null,name);
-        }
-      }
     }
-    return false;
+    return Commands(null,args);
   }
 
   public Boolean Commands(Player p,String [] args) {
     try {
       if(args.length <1) {
         help(p);
+        
+      // PLAN ********************************************************  
       } else if(cmd(p,args,"plan","dn")) {
         int depth = Integer.parseInt(args[2]);
         planDungeon(p,args[1],depth);
@@ -404,85 +407,112 @@ public class Catacombs extends JavaPlugin {
         int depth = Integer.parseInt(args[2]);
         int radius = Integer.parseInt(args[3]);
         planDungeon(p,args[1],depth,radius);
+        
+      // SCATTER ********************************************************  
       } else if(cmd(p,args,"scatter","dnnn")) {
         int depth = Integer.parseInt(args[2]);
         int radius = Integer.parseInt(args[3]);
         int dist = Integer.parseInt(args[4]);
         scatterDungeon(p,args[1],depth,radius,dist);
+        
+      // BUILD ********************************************************  
       } else if(cmd(p,args,"build","p")) {
         buildDungeon(p,args[1]);
+        
+      // LIST ********************************************************  
       } else if(cmd(p,args,"list")) {
-        p.sendMessage("Catacombs: "+dungeons.getNames());
+        inform(p,"Catacombs: "+dungeons.getNames());
+        
+      // GOLD ********************************************************  
       } else if(cmd(p,args,"gold")) {
-        String pname = p.getName();
-        Method meth = Methods.getMethod();
-        if(meth != null) {
-          double bal = meth.getAccount(pname).balance();
-          p.sendMessage("You have "+meth.format(bal)); 
+        if(p!=null) {
+          String pname = p.getName();
+          Method meth = Methods.getMethod();
+          if(meth != null) {
+            double bal = meth.getAccount(pname).balance();
+            inform(p,"You have "+meth.format(bal)); 
+          }
         }
+        
+      // DELETE  ********************************************************
       } else if(cmd(p,args,"delete","D")) {
         deleteDungeon(p,args[1]);
+        
+      // RESET  ********************************************************
       } else if(cmd(p,args,"reset")) {
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
-        if(dung!=null)
+        Dungeon dung = getDungeon(p);
+        if(dung!=null) {
           resetDungeon(p,dung.getName());
-        else 
-          p.sendMessage("Not in a dungeon"); 
+          inform(p,"Reset "+dung.getName()); 
+        }  
       } else if(cmd(p,args,"reset","D")) {
         resetDungeon(p,args[1]);
+        inform(p,"Reset "+args[1]); 
+      
+      // SUSPEND  ********************************************************
       } else if(cmd(p,args,"suspend")) {
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        Dungeon dung = getDungeon(p);
         if(dung!=null) {
           suspendDungeon(p,dung.getName());
-          p.sendMessage("Suspend "+dung.getName()); 
-        } else 
-          p.sendMessage("Not in a dungeon"); 
+          inform(p,"Suspend "+dung.getName()); 
+        } 
       } else if(cmd(p,args,"suspend","D")) {
         suspendDungeon(p,args[1]);
-        p.sendMessage("Suspend "+args[1]); 
+        inform(p,"Suspend "+args[1]); 
+        
+      // ENABLE  ********************************************************
       } else if(cmd(p,args,"enable")) {
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        Dungeon dung = getDungeon(p);
         if(dung!=null) {
           enableDungeon(p,dung.getName());
-          p.sendMessage("Enable "+dung.getName()); 
-        }else 
-          p.sendMessage("Not in a dungeon"); 
+          inform(p,"Enable "+dung.getName()); 
+        }
       } else if(cmd(p,args,"enable","D")) {
         enableDungeon(p,args[1]);
-        p.sendMessage("Enable "+args[1]); 
+        inform(p,"Enable "+args[1]); 
+        
+      // STYLE  ********************************************************
       } else if(cmd(p,args,"style")) {
-        p.sendMessage("Dungeon style="+cnf.getStyle()); 
+        inform(p,"Dungeon style="+cnf.getStyle()); 
       } else if(cmd(p,args,"style","s")) {
         cnf.setStyle(args[1]);
+        
+      // RESETALL ******************************************************** 
       } else if(cmd(p,args,"resetall")) {
         for(String name : dungeons.getNames()) {
-          System.out.println("Reseting dungeon '"+name+"'");
+          inform(p,"Reseting dungeon '"+name+"'");
           resetDungeon(p,name);
         }
+        
+      // UNPROT  ********************************************************
       } else if(cmd(p,args,"unprot","D")) {
         unprotDungeon(p,args[1]);
+        
+      // GOTO  ********************************************************
       } else if(cmd(p,args,"goto")) {
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        Dungeon dung = getDungeon(p);
         if(dung!=null) {
           gotoDungeon(p,dung.getName());
-          p.sendMessage("Goto "+dung.getName()); 
-        }else 
-          p.sendMessage("Not in a dungeon"); 
+          inform(p,"Goto "+dung.getName()); 
+        } 
       } else if(cmd(p,args,"goto","D")) {
         gotoDungeon(p,args[1]);
-        p.sendMessage("Goto "+args[1]); 
+        inform(p,"Goto "+args[1]); 
+        
+      // END  ********************************************************
       } else if(cmd(p,args,"end")) {
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        Dungeon dung = getDungeon(p);
         if(dung!=null) {
           gotoDungeonEnd(p,dung.getName());
-          p.sendMessage("Goto end "+dung.getName()); 
-        }else 
-          p.sendMessage("Not in a dungeon");         
+          inform(p,"Goto end "+dung.getName()); 
+        } 
       } else if(cmd(p,args,"end","D")) {
         gotoDungeonEnd(p,args[1]);
-        p.sendMessage("Goto end "+args[1]); 
+        inform(p,"Goto end "+args[1]); 
+        
+      // RECALL ********************************************************  
       } else if(cmd(p,args,"recall")) {
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        Dungeon dung = getDungeon(p);
         if(dung != null) {
           Location ploc = p.getLocation();
           Location eloc = dung.getBotLocation();
@@ -490,53 +520,66 @@ public class Catacombs extends JavaPlugin {
           if(dist <= 4) {
             gotoDungeon(p,dung.getName());
           } else {
-            p.sendMessage("'"+dung.getName()+"' too far from the final chest"); 
+            inform(p,"'"+dung.getName()+"' too far from the final chest"); 
           }
-        } else {
-          p.sendMessage("Not in a dungeon"); 
         }
+        
+      // WHICH  
       } else if(cmd(p,args,"which") || cmd(p,args,"?")) {
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
-        if(dung == null) {
-          p.sendMessage("Not in a dungeon"); 
-        } else {
-          p.sendMessage("Dungeon '"+dung.getName()+"'");           
-        }
+        Dungeon dung = getDungeon(p);
+        if(dung!=null)
+          inform(p,"Dungeon '"+dung.getName()+"'");
+        
+      // TEST  
       } else if(cmd(p,args,"test")) {
         debug = !debug;
         Dungeon dung = dungeons.which(p.getLocation().getBlock());
         //dung.guessMajor();
         //testDatabase();
-        p.sendMessage("[catacombs] Direction "+getCardinalDirection(p));
+        inform(p,"[catacombs] Direction "+getCardinalDirection(p));
+
+      // DEBUG
+      } else if(cmd(p,args,"debug")) {
+
       } else {
         help(p);
       }
     } catch (IllegalAccessException e) {
-      p.sendMessage(e.getMessage());
+      inform(p,e);
     } catch (Exception e) {
-      String msg = e.getMessage();
-      if(msg != null)
-        p.sendMessage(msg);
+      inform(p,e);
     }
     return true;
   }
+  
+  public Dungeon getDungeon(Player p) {
+    if(p==null) {
+      inform(p,"Need to specify the dungeon by name in the console");
+    } else {
+      Dungeon dung = dungeons.which(p.getLocation().getBlock());
+      if(dung!=null)
+        return dung;
+      inform(p,"Not in a dungeon");    
+    }
+    return null;
+  }
 
   public void help(Player p) {
-    p.sendMessage("/cat plan    <name> <#levels> [<radius>]");
-    p.sendMessage("/cat scatter <name> <#levels> <radius> <distance>");
-    p.sendMessage("/cat build   <name>");
-    p.sendMessage("/cat delete  <name>");
-    p.sendMessage("/cat unprot  <name>");
-    p.sendMessage("/cat suspend [<name>]");
-    p.sendMessage("/cat enable  [<name>]");
-    p.sendMessage("/cat goto    [<name>]");
-    p.sendMessage("/cat end     [<name>]");
-    p.sendMessage("/cat reset   [<name>]");
-    p.sendMessage("/cat resetall");
-    p.sendMessage("/cat recall");
-    p.sendMessage("/cat style [<style_name>]");
-    p.sendMessage("/cat list");
-    p.sendMessage("/cat gold");
+    inform(p,"/cat plan    <name> <#levels> [<radius>]");
+    inform(p,"/cat scatter <name> <#levels> <radius> <distance>");
+    inform(p,"/cat build   <name>");
+    inform(p,"/cat delete  <name>");
+    inform(p,"/cat unprot  <name>");
+    inform(p,"/cat suspend [<name>]");
+    inform(p,"/cat enable  [<name>]");
+    inform(p,"/cat goto    [<name>]");
+    inform(p,"/cat end     [<name>]");
+    inform(p,"/cat reset   [<name>]");
+    inform(p,"/cat resetall");
+    inform(p,"/cat recall");
+    inform(p,"/cat style [<style_name>]");
+    inform(p,"/cat list");
+    inform(p,"/cat gold");
   }
 
   private Boolean cmd(Player player,String [] args,String s) throws IllegalAccessException,Exception {
@@ -582,8 +625,6 @@ public class Catacombs extends JavaPlugin {
           }
         }
       }
-      if(debug)
-        System.out.println("Player:"+player.getName()+" Command:"+args[0]);
       return true;
     }
     return false;
@@ -597,40 +638,52 @@ public class Catacombs extends JavaPlugin {
   }
 
   public void planDungeon(Player p,String dname, int depth) {
+    if(p==null) {
+      inform(p,"You can't plan from the console");
+      return;
+    }
     Location loc = p.getLocation();
     Block blk = loc.getBlock();
     Dungeon dung = new Dungeon(dname,cnf,p.getWorld());
     dung.prospect(p,blk.getX(),blk.getY(),blk.getZ(),getCardinalDirection(p),depth);
     dung.show();
     dungeons.add(dname,dung);
-    for(String msg : dung.summary())
-      p.sendMessage(msg);
+    inform(p,dung.summary());
     if(dung.isOk())
-      p.sendMessage("'"+dname+"' is good and ready to be built");
+      inform(p,"'"+dname+"' is good and ready to be built");
     else
-      p.sendMessage("'"+dname+"' is incomplete (usually too small for final room/stair)");
+      inform(p,"'"+dname+"' is incomplete (usually too small for final room/stair)");
   }
   
   public void scatterDungeon(Player p, String dname,int depth, int radius, int distance) {
-    Block start_blk = p.getLocation().getBlock();
-    World world = start_blk.getWorld();
+    if(p==null) {
+      inform(p,"Can't scatter from console at the moment (will need to supply world name)");
+      return;
+    }
+    Block from = p.getLocation().getBlock();
+    scatterDungeon(from,p,dname,depth,radius,distance);
+  }
+  
+  private void scatterDungeon(Block from,Player p, String dname,int depth, int radius, int distance) {
+    World world = from.getWorld();
     
     int x,z;
     Block safe_blk = null;
     Dungeon dung = new Dungeon(dname,cnf,world);
-    int att1=0;
+    int att1=0;  // Outer loop attempts
     do {
-      int att2 = 0;
+      int att2 = 0;  // Inner loop attempts
       do {  // Attempts to find a natural surface block to start from
-        x = start_blk.getX()+cnf.nextInt(distance<<1)-distance;
-        z = start_blk.getZ()+cnf.nextInt(distance<<1)-distance;
-        Location loc = world.getBlockAt(x,start_blk.getY(),z).getLocation();
+        x = from.getX()+cnf.nextInt(distance*2)-distance;
+        z = from.getZ()+cnf.nextInt(distance*2)-distance;
+        Location loc = world.getBlockAt(x,from.getY(),z).getLocation();
         safe_blk = world.getHighestBlockAt(loc).getLocation().getBlock();
         safe_blk = safe_blk.getRelative(BlockFace.DOWN);
         if(!cnf.isNatural(safe_blk))
           safe_blk = null;
         att2++;
       } while (safe_blk == null && att2 < 20);
+      
       if(safe_blk!=null) { // Now see if it's a good dungeon location
         Direction dir = Direction.any(cnf.rnd);
         int mx = safe_blk.getX()+dir.dx(3);
@@ -641,44 +694,42 @@ public class Catacombs extends JavaPlugin {
         cnf.setRadiusMax(radius);
         dung.prospect(p,mx,my,mz,dir,depth);
         cnf.setRadiusMax(tmp_radius);
-        if(dung.isOk()) {  // TODO: Need to call buildDungeon in here
+        if(dung.isOk()) {
           dung.show();
           dungeons.add(dname,dung);
-          dung.saveDB(getDatabase());
-          dung.registerCubes(/*sql,*/prot);
-          dung.render(handler);
-          for(String msg : dung.summary())
-            p.sendMessage(msg);
-          p.sendMessage("'"+dname+"' has been built");
+          buildDungeon(p,dname);
+          inform(p,dung.summary());
+          inform(p,"'"+dname+"' has been built");
         }
       }
       att1++;
 
-    } while(!dung.isOk() && att1 < 30);
+    } while(!dung.isOk() && att1 < 30);  // Try another location if it's no good
+    
+    
     if(!dung.isOk()) {
-      p.sendMessage("Failed to find a good location for dungeon '"+dname+"'");
+      inform(p,"Failed to find a good location for dungeon '"+dname+"'");
     }
-  
   }
   
   public void buildDungeon(Player p,String dname) {
     if(dungeons.exists(dname)) {
       Dungeon dung = dungeons.get(dname);
       if(dung.isBuilt()) {
-        System.out.println("[catacombs] Dungeon "+dname+" has already been built");
+        inform(p,"Dungeon "+dname+" has already been built");
       } else if(!dung.isNatural()) {
-        p.sendMessage("Loaction of '"+dname+"' is no longer solid-natural (replan)");
+        inform(p,"Loaction of '"+dname+"' is no longer solid-natural (replan)");
       } else if(prot.overlaps(dung)) {
-        p.sendMessage("'"+dname+"' overlaps another completed dungeon (replan or remove it)");
+        inform(p,"'"+dname+"' overlaps another completed dungeon (replan or remove it)");
       } else {
-        p.sendMessage("Building "+dname);
+        inform(p,"Building "+dname);
         dung.saveDB(getDatabase());
-        dung.registerCubes(/*sql,*/prot);
+        dung.registerCubes(prot);
         dung.render(handler);
         handler.add(p);
       }
     } else {
-      p.sendMessage("Dungeon "+dname+" doesn't exist");
+      inform(p,"Dungeon "+dname+" doesn't exist");
     }
   }
 
@@ -688,12 +739,15 @@ public class Catacombs extends JavaPlugin {
   
   public void gotoDungeon(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
-    dung.teleportToTop(p); 
+    if(!dung.teleportToTop(p))
+      inform(p,"Can't teleport to start of this dungeon");
+
   }
   
   public void gotoDungeonEnd(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
-    dung.teleportToBot(p); 
+    if(!dung.teleportToBot(p))
+      inform(p,"Can't teleport to end of legacy dungeon");
   }  
   
   public void enableDungeon(Player p,String dname) {
@@ -715,7 +769,31 @@ public class Catacombs extends JavaPlugin {
   public void unprotDungeon(Player p,String dname) {
     dungeons.remove(dname,prot,getDatabase());
   }
-
+  
+  public void inform(Player p,Exception e) {
+    String msg = e.getMessage();
+    if(msg==null)
+      inform(p,"Exception trapped "+e);
+    else
+      inform(p,msg);    
+  }
+  
+  public void inform(Player p,String msg) {
+    if(msg==null) {
+      msg = "";
+    }
+    if(p==null)
+      System.out.println("[" + info.getName() + "] "+msg);
+    else
+      p.sendMessage(msg);
+  }
+  
+  public void inform(Player p,List<String> msgs) {
+    for(String msg: msgs) {
+      inform(p,msg);
+    }
+  }  
+  
   public static Direction getCardinalDirection(Player p) {
       float y = p.getLocation().getYaw();
       if( y < 0 ){y += 360;}

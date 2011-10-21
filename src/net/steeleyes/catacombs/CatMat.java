@@ -46,7 +46,30 @@ public class CatMat {
     this.code = code;
     has_code = true;
   } 
-  
+
+  static public CatMat parseMaterial(String orig) {
+    CatMat m = null;
+    String name = orig;
+    byte code = -1;
+    if(name.contains(":")) {
+      String tmp[] = name.split(":");
+      name = tmp[0];
+      try {
+        code = Byte.parseByte(tmp[1]);
+      } catch(Exception e) {
+        System.err.println("[Catacombs] Unknown material '"+orig+"' invalid data byte, expecting a number");
+        return null;
+      }
+    }
+    Material mat = Material.matchMaterial(name);
+    if(mat == null || !mat.isBlock()) {
+      System.err.println("[Catacombs] Invalid block material '"+orig+"'");
+      return null;
+    }
+    if(code>=0)
+      return new CatMat(mat,code);
+    return new CatMat(mat);
+  }   
   //public CatMat dup() {
   //  if(has_code)
   //    return new CatMat(mat,code);

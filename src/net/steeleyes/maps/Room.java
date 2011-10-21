@@ -150,12 +150,12 @@ public class Room {
   }
 
   private void placeRandom() {
-    if(grid.size.x-size_x+1<1 || grid.size.y-size_y+1<1) {
+    if(grid.getSize().x-size_x+1<1 || grid.getSize().y-size_y+1<1) {
       origin_x = 0;
       origin_y = 0;
     } else {
-      origin_x  = cnf.nextInt(grid.size.x-size_x+1);
-      origin_y  = cnf.nextInt(grid.size.y-size_y+1);
+      origin_x  = cnf.nextInt(grid.getSize().x-size_x+1);
+      origin_y  = cnf.nextInt(grid.getSize().y-size_y+1);
     }
   }
 

@@ -30,6 +30,8 @@ import org.bukkit.inventory.ItemStack;
 
 import net.steeleyes.maps.*;
 
+import com.avaje.ebean.EbeanServer;
+
 public class CatLevel {
   private int roomDepth;
   private int roofDepth;
@@ -47,11 +49,11 @@ public class CatLevel {
 
   private World world;
   private Level level=null;
-  public  CatCuboid cube=null;
-  public  Vector top=null;
-  public  Vector bot=null;
-  public  Boolean build_ok  = false;
-  public  Boolean can_go_lower = false;
+  private CatCuboid cube=null;
+  private Vector top=null;
+  private Vector bot=null;
+  private Boolean build_ok  = false;
+  private Boolean can_go_lower = false;
 
 
   public CatLevel(CatConfig cnf, Location pt) {
@@ -121,6 +123,26 @@ public class CatLevel {
     }
   }
 
+  public Boolean getBuild_ok() {
+    return build_ok;
+  }
+
+  public Boolean getCan_go_lower() {
+    return can_go_lower;
+  }
+
+  public Vector getBot() {
+    return bot;
+  }
+
+  public CatCuboid getCube() {
+    return cube;
+  }
+
+  public Vector getTop() {
+    return top;
+  }
+
   public String getMap() {
     return level.getMap();
   }
@@ -146,8 +168,8 @@ public class CatLevel {
 
     int xl = x-level.start().x;
     int yl = y-floorDepth;
-    int zl = z+level.start().y-level.grid().size.y+1;
-    int xh = x-level.start().x+level.grid().size.x-1;
+    int zl = z+level.start().y-level.grid().sy()+1;
+    int xh = x-level.start().x+level.grid().sx()-1;
     int yh = y+roomDepth+roofDepth-1;
     int zh = z+level.start().y;    
     cube = new CatCuboid(world,xl,yl,zl,xh,yh,zh,CatCuboid.Type.HUT);
@@ -307,8 +329,8 @@ public class CatLevel {
     Material over = (cnf.OverFill() && cube.isLevel())?cob:null;
 
     // First pass - Place all the Blocks
-    for(int x=0;x<g.size.x;x++) {
-      for(int y=0;y<g.size.y;y++) {
+    for(int x=0;x<g.sx();x++) {
+      for(int y=0;y<g.sy();y++) {
         // 3D-2D
         Square s = g.get(x,y);
         int xx = top.x+x-level.start().x;
@@ -456,8 +478,8 @@ public class CatLevel {
     }
 
     // Second pass - Place all the items (ladders, doors etc)
-    for(int x=0;x<g.size.x;x++) {
-      for(int y=0;y<g.size.y;y++) {
+    for(int x=0;x<g.sx();x++) {
+      for(int y=0;y<g.sy();y++) {
         // 3D-2D
         Square s = g.get(x,y);
         int xx = top.x+x-level.start().x;
@@ -539,6 +561,17 @@ public class CatLevel {
     }
     cube.clearMonsters();
     cube.closeDoors();
+  }
+  
+  public void suspend(CatMat major) {
+    cube.clearMonsters();
+    cube.suspend();
+    cube.addGlow(major,roofDepth);
+  }
+
+  public void enable(CatMat major) {
+    cube.enable();
+    cube.removeGlow(major,roofDepth);
   }
   
   private CatCuboid getNaturalCuboid(CatConfig cnf,World world,int ox,int oy, int oz) {
