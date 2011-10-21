@@ -271,7 +271,7 @@ public class Dungeon {
   
   public void enable(EbeanServer db) {
     for(CatLevel l : levels) {
-      l.suspend(major);
+      l.enable(major);
     }
 
     if(db != null) {
