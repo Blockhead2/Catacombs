@@ -42,8 +42,6 @@ import java.util.List;
 import java.io.File;
 import org.bukkit.block.BlockFace;
 
-//import net.steeleyes.MobArena.*;
-
 /**
  * 
  * 
@@ -62,17 +60,19 @@ Release v1.2
 * Fixed code so cash isn't give for kills outside the dungeon.
 * Added options to automatically charge players to keep their gear on them when
   they die in dungeons. This saves cluttering the dungeons and everybody having
-  to swap and sort out equipment everytime anybody dies.
+  to swap and sort out equipment every time anybody dies.
 * 85% of experience levels are now saved for player deaths in dungeons.
 * Fixed an AdvancedCombat bug there healers were able to heal dead players.
 * Added taunt and aggro reducing moves to AdvancedCombat
 * Sorted out some item durability balances for AdvancedCombat
 * Fixed threat transfer bug on player death
 * Added some more special rooms and fixed a couple of minor mapping bugs
-* Added silverfish spawners
+* Added silverfish spawners (disabled them - don't have enough bukkit hooks yet)
 * Removed legacy support for old MySQL databases (people have had plenty of
-  time to convert to the new format).
-
+  time to convert to the new format), also removed use of lennardf1989 handy
+  MyDatabase wrapper. There's nothing wrong with the wrapper itself it just
+  seems much easier to work directly with sqlite (or MySQL) than the javax
+  persistence routines.
 
 Release v1.1
 * Added option to allow Advanced Combat to be enabled.
@@ -294,7 +294,6 @@ public class Catacombs extends JavaPlugin {
   public  CatConfig             cnf;
   private CatPermissions        permissions;
   public  Dungeons              dungeons;
-  //private MyDatabase            database = null;
   private CatSQL                sql=null;
   private BlockChangeHandler    handler;
 

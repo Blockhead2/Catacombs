@@ -100,15 +100,15 @@ public class CatConfig extends Config implements ICatConfig {
 
   
   // Legacy support
-  public Boolean MySQLEnabled() {
-    return exists("MySQL.Enabled") && getSBoolean("MySQL.Enabled");
-  }
-  public String MySQLPrefix()     { return getSString("MySQL.Database.Prefix"); }
-  public String MySQLdbName()     { return getSString("MySQL.Database.Name"); }
-  public String MySQLuserName()   { return getSString("MySQL.Database.User.Name"); }
-  public String MySQLuserPass()   { return getSString("MySQL.Database.User.Password"); }
-  public String MySQLAddr()       { return getSString("MySQL.Server.Address"); }
-  public int    MySQLPort()       { return getSInt("MySQL.Server.Port"); }  
+//  public Boolean MySQLEnabled() {
+//    return exists("MySQL.Enabled") && getSBoolean("MySQL.Enabled");
+//  }
+//  public String MySQLPrefix()     { return getSString("MySQL.Database.Prefix"); }
+//  public String MySQLdbName()     { return getSString("MySQL.Database.Name"); }
+//  public String MySQLuserName()   { return getSString("MySQL.Database.User.Name"); }
+//  public String MySQLuserPass()   { return getSString("MySQL.Database.User.Password"); }
+//  public String MySQLAddr()       { return getSString("MySQL.Server.Address"); }
+//  public int    MySQLPort()       { return getSInt("MySQL.Server.Port"); }  
   
   public CatConfig(FileConfiguration config) {
     super(config);

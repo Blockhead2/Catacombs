@@ -84,13 +84,13 @@ public interface ICatConfig extends IConfig {
   public  CatMat minorMat(); 
 
   
-  public  Boolean MySQLEnabled();
-  public  String MySQLPrefix();
-  public  String MySQLdbName();
-  public  String MySQLuserName();
-  public  String MySQLuserPass();
-  public  String MySQLAddr();
-  public  int    MySQLPort();
+//  public  Boolean MySQLEnabled();
+//  public  String MySQLPrefix();
+//  public  String MySQLdbName();
+//  public  String MySQLuserName();
+//  public  String MySQLuserPass();
+//  public  String MySQLAddr();
+//  public  int    MySQLPort();
   
   public  void setRadiusMax(int r);
 }
