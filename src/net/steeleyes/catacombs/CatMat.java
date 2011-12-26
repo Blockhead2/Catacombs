@@ -79,8 +79,8 @@ public class CatMat {
   @Override
   public String toString() {
     if(has_code)
-      return "CatMat("+mat+") code("+code+")";
-    return "CatMat("+mat+")";
+      return mat.toString()+":"+code;
+    return mat.toString();
   }
   
   public Boolean equals(CatMat that) {

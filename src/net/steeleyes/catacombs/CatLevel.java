@@ -19,6 +19,7 @@
 */
 package net.steeleyes.catacombs;
 
+import java.sql.ResultSet;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -29,8 +30,6 @@ import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
 import net.steeleyes.maps.*;
-
-import com.avaje.ebean.EbeanServer;
 
 public class CatLevel {
   private int roomDepth;
@@ -54,7 +53,7 @@ public class CatLevel {
   private Vector bot=null;
   private Boolean build_ok  = false;
   private Boolean can_go_lower = false;
-
+  private String map = "";
 
   public CatLevel(CatConfig cnf, Location pt) {
     this(cnf,pt.getWorld(),pt.getBlockX(),pt.getBlockY()-1,pt.getBlockZ(),Direction.ANY);
@@ -71,86 +70,7 @@ public class CatLevel {
   public CatLevel(CatConfig cnf, World world, int x,int y,int z) {
     this(cnf,world,x,y,z,Direction.ANY);
   }
-
-  public CatLevel(CatConfig cnf, World world, int x,int y,int z,Direction dir) {
-    build_ok = false;
-    can_go_lower = false;
-    this.cnf = cnf;
-    roomDepth = cnf.roomDepth();
-    roofDepth = cnf.roofDepth();
-    floorDepth = cnf.floorDepth();
-    levelDepth = floorDepth+roomDepth+roofDepth;
-    this.world  = world;
-
-    if(y+1-levelDepth<=4) {
-      System.out.println("[Catacombs] Stopping CatLevel due to bedrock");
-      return;
-    }
-    top = new Vector(x,y,z);
-    if(spaceForStairs()) {
-      cube = getNaturalCuboid(cnf,world,top.x,top.y+1-levelDepth,top.z);
-
-      System.out.println("Natural="+cube);
-
-      if(cube.dx() < 8 || cube.dz() < 8){
-        System.out.println("[Catacombs] Stopping CatLevel < 8x8");
-        return;
-      }
-      // 3D-2D
-      int sx = top.x-cube.xl;
-      int sy = cube.dz()-1-(top.z-cube.zl);
-      System.out.println("[Catacombs] start x="+sx+" y="+sy);
-
-      level = new Level(cnf,cube.dx(),cube.dz(),sx,sy,dir);
-
-      // Check number of rooms to make sure things are ok
-      if(level.num_rooms()<1) {
-        System.out.println("[Catacombs] Stopping CatLevel 0 rooms");
-        return;
-      }
-
-      build_ok = true;
-      if(level.end_dir() != null) {
-        // 3D-2D
-        int xx = top.x-level.start().x+level.end().x;
-        int yy = top.y-levelDepth;
-        int zz = top.z+level.start().y-level.end().y;
-        bot = new Vector(xx,yy,zz);
-        can_go_lower = true;
-      }
-    } else {
-      System.out.println("[Catacombs] Stopping CatLevel no room for stairs");
-    }
-  }
-
-  public Boolean getBuild_ok() {
-    return build_ok;
-  }
-
-  public Boolean getCan_go_lower() {
-    return can_go_lower;
-  }
-
-  public Vector getBot() {
-    return bot;
-  }
-
-  public CatCuboid getCube() {
-    return cube;
-  }
-
-  public Vector getTop() {
-    return top;
-  }
-
-  public String getMap() {
-    return level.getMap();
-  }
   
-  public String summary() {
-    return "Area ("+cube.dx()+" x "+cube.dz()+" dy"+cube.dy()+") Rooms="+level.num_rooms();
-  }
-
   // ToDo: Need to change map over to the PrePlanned class (and in Level too etc)
   public CatLevel(CatConfig cnf, World world, int x, int y, int z, PrePlanned map,Direction dir) {
     build_ok = true;
@@ -174,21 +94,23 @@ public class CatLevel {
     int zh = z+level.start().y;    
     cube = new CatCuboid(world,xl,yl,zl,xh,yh,zh,CatCuboid.Type.HUT);
   }
-  
-  public CatLevel(Catacombs plugin, dbLevel lvl, World world) {
+
+  public CatLevel(Catacombs plugin, ResultSet lvl, World world) throws Exception {
     build_ok = true;
     can_go_lower = true;
     this.cnf = plugin.cnf;
     this.world  = world;
+    
+    top = new Vector(lvl.getInt("sx"),lvl.getInt("sy"),lvl.getInt("sz"));
+    bot = new Vector(lvl.getInt("ex"),lvl.getInt("ey"),lvl.getInt("ez"));
 
-    top = new Vector(lvl.getSx(),lvl.getSy(),lvl.getSz());
-    bot = new Vector(lvl.getEx(),lvl.getEy(),lvl.getEz());
-    level = new Level(cnf);
+    cube = new CatCuboid(world,lvl.getInt("xl"),lvl.getInt("yl"),lvl.getInt("zl"),
+            lvl.getInt("xh"),lvl.getInt("yh"),lvl.getInt("zh"),
+            (lvl.getInt("hut")==1)?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL);
 
-    cube = new CatCuboid(world,lvl.getXl(),lvl.getYl(),lvl.getZl(),
-            lvl.getXh(),lvl.getYh(),lvl.getZh(),
-            (lvl.getHut())?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL);
-    if(lvl.getEnable())
+    level = new Level(cnf);    
+    
+    if(lvl.getInt("enable")!=0)
       cube.enable();
     else
       cube.suspend();
@@ -197,6 +119,112 @@ public class CatLevel {
     floorDepth = 0;
     levelDepth = 0;
   }
+  
+  public CatLevel(CatConfig cnf, World world, int x,int y,int z,Direction dir) {
+    build_ok = false;
+    can_go_lower = false;
+    this.cnf = cnf;
+    roomDepth = cnf.roomDepth();
+    roofDepth = cnf.roofDepth();
+    floorDepth = cnf.floorDepth();
+    levelDepth = floorDepth+roomDepth+roofDepth;
+    this.world  = world;
+
+    if(y+1-levelDepth<=4) {
+      System.out.println("[Catacombs] Stopping CatLevel due to bedrock");
+      return;
+    }
+    top = new Vector(x,y,z);
+    if(spaceForStairs()) {
+      cube = getNaturalCuboid(cnf,world,top.x,top.y+1-levelDepth,top.z);
+
+      //System.out.println("Natural="+cube);
+
+      if(cube.dx() < 8 || cube.dz() < 8){
+        System.out.println("[Catacombs] Stopping CatLevel < 8x8");
+        return;
+      }
+      // 3D-2D
+      int sx = top.x-cube.xl;
+      int sy = cube.dz()-1-(top.z-cube.zl);
+      //System.out.println("[Catacombs] start x="+sx+" y="+sy);
+
+      level = new Level(cnf,cube.dx(),cube.dz(),sx,sy,dir);
+
+      // Check number of rooms to make sure things are ok
+      if(level.num_rooms()<1) {
+        System.out.println("[Catacombs] Stopping CatLevel 0 rooms");
+        return;
+      }
+
+      build_ok = true;
+      if(level.end_dir() != null) {
+        // 3D-2D
+        int xx = top.x-level.start().x+level.end().x;
+        int yy = top.y-levelDepth;
+        int zz = top.z+level.start().y-level.end().y;
+        bot = new Vector(xx,yy,zz);
+        can_go_lower = true;
+      }
+    } else {
+      System.out.println("[Catacombs] Stopping CatLevel no room for stairs");
+    }
+  }
+
+  public List<String> dump(Vector top) {
+    return cube.dump(top);
+  }
+  public List<String> map() {
+    return cube.map();
+  }  
+  public Boolean getBuild_ok() {
+    return build_ok;
+  }
+
+  public Boolean getCan_go_lower() {
+    return can_go_lower;
+  }
+
+  public Vector getBot() {
+    return bot;
+  }
+
+  public CatCuboid getCube() {
+    return cube;
+  }
+
+  public Vector getTop() {
+    return top;
+  }
+
+  public String getMapString() {
+    return level.getMapString();
+  }
+  
+  public List<String> getMap() {
+    List<String> list = new ArrayList<String>();
+    // ToDo: Add Worldname,xl,yl,zl,xh,yh,zh Here to the map
+    list.addAll(level.getMap());
+    return list;
+  }  
+  
+  public String summary() {
+    return "Area ("+cube.dx()+" x "+cube.dz()+" dy"+cube.dy()+") Rooms="+level.num_rooms();
+  }
+  public List<String> getinfo() {
+    List<String> info = new ArrayList<String>();
+    info.add("cube:"+cube);
+    info.add("top:"+top);
+    info.add("bot:"+bot);
+    info.add("build_ok:"+build_ok);
+    info.add("can_go_lower:"+can_go_lower);
+    info.add("dx:"+cube.dx());
+    info.add("dz:"+cube.dz());
+    info.add("map:"+map);
+    
+    return info;
+  }
+
 
   public int getRoofDepth() {
     return roofDepth;
@@ -324,6 +352,7 @@ public class CatLevel {
     // Short hand names to help a bit with code formatting
     Material cob = major.getMat();
     Material air = Material.AIR;
+    Material bar = Material.IRON_FENCE;
     
     Boolean SquareHuts = false;
     
@@ -350,7 +379,7 @@ public class CatLevel {
           case WATER:
           case LAVA:           Material liq = (s==Square.LAVA)?Material.STATIONARY_LAVA:Material.STATIONARY_WATER;
                                renderTile(handler,xx,top.y,zz,cob ,liq ,air ,air ,cob ,over);  break;
-          case BARS:
+          case BARS:           renderTile(handler,xx,top.y,zz,undr,cob ,air ,bar ,cob ,over);  break;
           case FLOOR:
           case FIXEDFLOOR:     renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);  break;
           case FIXEDFLOORUP:   renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,cob );  break;
@@ -359,6 +388,9 @@ public class CatLevel {
           case WEB:
           case ARCH:           renderTile(handler,xx,top.y,zz,undr,cob ,air ,cob ,ecob,over); break;
           case HIDDEN:         renderTile(handler,xx,top.y,zz,cob ,cob ,air ,cob ,ecob,over); break;
+          case ENCHANT:
+          case BOOKCASE:
+          case BOOKCASE2:
           case WORKBENCH:
           case SHROOM:
           case FURNACE:
@@ -432,7 +464,7 @@ public class CatLevel {
             CatLoot.bigChest(cnf,chest);
             handler.addHigh(world,xx,floor_h,zz,Material.GRASS);
             if(cnf.ResetButton())
-              handler.addLow(world,xx,room_l+1,zz,Material.STONE_BUTTON,getLadderCode(x,y));
+              handler.addLow(world,xx,room_l+1,zz,Material.STONE_BUTTON,getButtonCode(x,y));
           } else if (s == Square.MIDCHEST) {
             CatLoot.midChest(cnf,chest);
 
@@ -474,6 +506,16 @@ public class CatLevel {
         }
         if(s==Square.WORKBENCH) {
           handler.addHigh(world,xx,room_l,zz,Material.WORKBENCH);
+          handler.addHigh(world,xx,room_l+1,zz,Material.BREWING_STAND);
+        }
+        if(s==Square.BOOKCASE || s==Square.BOOKCASE2) {
+          handler.addHigh(world,xx,room_l,zz,Material.BOOKSHELF);
+        }
+        if(s==Square.BOOKCASE2) {
+          handler.addHigh(world,xx,room_l+1,zz,Material.BOOKSHELF);
+        }
+        if(s==Square.ENCHANT) {
+          handler.addHigh(world,xx,room_l,zz,Material.ENCHANTMENT_TABLE);
         }
         if(s==Square.ANVIL) {
           handler.addHigh(world,xx,room_l,zz,Material.IRON_BLOCK);
@@ -553,22 +595,26 @@ public class CatLevel {
     }
   }
   
-  public void delete(BlockChangeHandler handler) {
-    cube.clearMonsters();
+  public void delete(Catacombs plugin,BlockChangeHandler handler) {
+    cube.clearMonsters(plugin);
     cube.unrender(handler, cnf.emptyChest(),roofDepth+roomDepth);
   }
   
-  public void reset() {
+  public void reset(Catacombs plugin) {
     if(!cube.isHut()) {
       cube.clearBlock(Material.TORCH);
       cube.refillChests(cnf);
     }
-    cube.clearMonsters();
-    cube.closeDoors();
+    cube.clearMonsters(plugin);
+    cube.closeDoors(plugin);
   }
   
-  public void suspend(CatMat major) {
-    cube.clearMonsters();
+  public void clearMonsters(Catacombs plugin) {
+    cube.clearMonsters(plugin);
+  }
+  
+  public void suspend(Catacombs plugin, CatMat major) {
+    cube.clearMonsters(plugin);
     cube.suspend();
     cube.addGlow(major,roofDepth);
   }
@@ -657,7 +703,9 @@ public class CatLevel {
       return 0;
     return getLadderCode(level.grid().getBackWallDir(x, y));
   }
-
+  public byte getButtonCode(int x, int y) {
+    return getLadderCode(level.grid().getBackWallDir(x, y));
+  }
   public byte getLadderCode(Direction dir) {
     switch(dir) {
       case NORTH: return 3;

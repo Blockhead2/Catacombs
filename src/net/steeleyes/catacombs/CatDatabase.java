@@ -21,7 +21,6 @@ package net.steeleyes.catacombs;
 
 import java.sql.*;
 import java.util.ArrayList;
-//import org.bukkit.Material;
 
 public class CatDatabase {
   private final String driver = "com.mysql.jdbc.Driver";

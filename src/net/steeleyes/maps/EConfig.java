@@ -40,6 +40,7 @@ public enum EConfig {
   LavaPct        (".Room.Clutter.Pool.LavaPct",     30),
   ShroomPct      (".Room.Clutter.ShroomPct",        10),
   BenchPct       (".Room.Clutter.BenchPct",          3),
+  EnchantPct     (".Room.Clutter.EnchantPct",        3),
   OvenPct        (".Room.Clutter.OvenPct",           2),
   DoubleDoorPct  (".Archway.DoubleWidthPct",        60);
   

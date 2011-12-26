@@ -48,24 +48,30 @@ public class BlockChangeHandler implements Runnable {
   }
 
   private void setBlock(BlockChange x) {
+    Block blk = x.getBlk();
+    //Object o = blk.getState();
+    //if(o != null && o instanceof ContainerBlock) {
+    //  ContainerBlock cont = (ContainerBlock) o;
+    //  cont.getInventory().clear();
+    //}    
     if(x.getCode()>=0)
-      x.getBlk().setTypeIdAndData(x.getMat().getId(),x.getCode(),false);
+      blk.setTypeIdAndData(x.getMat().getId(),x.getCode(),false);
     else
-      x.getBlk().setType(x.getMat());
+      blk.setType(x.getMat());
     if(x.getItems() != null) {
-      if(x.getBlk().getState() instanceof ContainerBlock) {
-        ContainerBlock cont = (ContainerBlock) x.getBlk().getState();
+      if(blk.getState() instanceof ContainerBlock) {
+        ContainerBlock cont = (ContainerBlock) blk.getState();
         Inventory inv = cont.getInventory();
         for(ItemStack s: x.getItems()) {
           inv.addItem(s);
         }
         if(x.getMat() == Material.DISPENSER) {
-          delay.add(new BlockChange(x.getBlk(),null,x.getCode()));
+          delay.add(new BlockChange(blk,null,x.getCode()));
         }
       }  
     }
     if(x.getSpawner()!=null) {
-      CreatureSpawner spawner = (CreatureSpawner) x.getBlk().getState();
+      CreatureSpawner spawner = (CreatureSpawner) blk.getState();
       spawner.setCreatureTypeId(x.getSpawner());
     }
   }

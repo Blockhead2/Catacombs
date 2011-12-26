@@ -48,6 +48,18 @@ public interface ICatConfig extends IConfig {
   public  Boolean CalmSpawns();
   public  Boolean DungeonProtectOff();
   public  Boolean SaveDungeons();
+  public  Boolean AdvancedCombat();
+  public  Integer GroupRadius();
+  public  Integer GroupDepth();
+  public  Double  GroupHpFactor();
+  public  Integer SpawnRadius();
+  public  Integer SpawnDepth();
+  public  Integer MonsterRadius();
+  public  Integer MonsterMax();
+  public  Integer DeathGearCost();
+  public  Boolean DeathKeepGear();
+  public  Double  DeathExpKept();
+  //public  Boolean BossEnabled();
 
   public  String       Economy();
   public  List<String> BannedCommands();

@@ -25,12 +25,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.block.BlockRedstoneEvent;
-//import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.CreatureSpawner;
+import org.bukkit.entity.CreatureType;
 
 public class CatBlockListener extends BlockListener {
   private static Catacombs plugin;
@@ -77,14 +78,13 @@ public class CatBlockListener extends BlockListener {
     Boolean is_prot = plugin.prot.isProtected(block);
     
     if(mat == Material.MOB_SPAWNER) {
-      System.out.println("[Catacombs] break spawner");
       if(plugin.cnf.ProtectSpawners() && is_prot) {
-        System.out.println("[Catacombs] cancel event");
+        Player player = event.getPlayer();
+        player.sendMessage("Put torches around it to stop spawns");
         event.setCancelled(true);
         return;
-      }
-      //System.out.println("[Catacombs] set AIR");
-      //block.setType(Material.AIR);
+      }     
+      // Just do the natural for spawner blocks on the server
       return;        
     }
     
@@ -102,6 +102,15 @@ public class CatBlockListener extends BlockListener {
   }
   
   @Override
+  public void onBlockBurn(BlockBurnEvent event){
+    if(event.isCancelled())
+      return;
+
+    if(plugin.prot.isInRaw(event.getBlock()))
+      event.setCancelled(true);
+  }  
+  
+  @Override
   public void onBlockDamage(BlockDamageEvent event){
     if(event.isCancelled())
       return;
@@ -115,6 +124,11 @@ public class CatBlockListener extends BlockListener {
     if(plugin.debug) {
       Player player = event.getPlayer();
       player.sendMessage("DAMAGE : " + mat+"  ID:"+block.getData() +" ("+block.getX()+","+block.getY()+","+block.getZ()+")");
+      if(block.getType() == Material.MOB_SPAWNER) {
+        CreatureSpawner spawner = (CreatureSpawner) block.getState();
+        System.out.println("[Catacombs] Spawner "+spawner.getCreatureType()+" delay="+spawner.getDelay()+" light="+spawner.getLightLevel());
+        spawner.setCreatureType(CreatureType.SILVERFISH);
+      }
     }
 
     Block piston = null;

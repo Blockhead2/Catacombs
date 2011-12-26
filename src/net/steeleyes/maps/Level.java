@@ -20,6 +20,7 @@
 package net.steeleyes.maps;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Level {
   private Grid grid;
@@ -34,7 +35,7 @@ public class Level {
   
   public Level(Config cnf) {
     this.cnf = cnf;
-    grid = new Grid(1,1);
+    grid = new Grid(1,1);    
     num_rooms = 1;
     this.start.x = 0;
     this.start.y = 0;
@@ -108,7 +109,7 @@ public class Level {
       // Find a location for the end room
       clearRoomAttempts();
       from = getRoomGen();
-      for(int t=0;t<10000 && from != null;t++) {
+      for(int t=0;t<1000 && from != null;t++) {
         if(from.bored()) {
           from = getRoomGen();
         }
@@ -120,19 +121,19 @@ public class Level {
           n = new Room(cnf,grid);
         }
       }
-
-      // Fill the rest of the map
-      //from = null;
-      from = getRoomNearEnd();
-      for(int t=0;t<1000 && from != null;t++) {
-        if(from.bored()) {
-          from = getRoomNearEnd();
-        }
-        if(from != null && n.nextRoom(from)) {
-          rooms.add(n);
-          from = n;
-          n = new Room(cnf,grid);
-        }
+      if(from == null) {
+        // Fill the rest of the map
+        from = getRoomNearEnd();
+        for(int t=0;t<1000 && from != null;t++) {
+          if(from.bored()) {
+            from = getRoomNearEnd();
+          }
+          if(from != null && n.nextRoom(from)) {
+            rooms.add(n);
+            from = n;
+            n = new Room(cnf,grid);
+          }
+        }        
       }
       if(end_dir == null) {
         System.out.println("[Catacombs] Stopping level no endroom");
@@ -140,17 +141,15 @@ public class Level {
     } else {
       System.out.println("[Catacombs] Stopping level no startroom");
     }
-    if(rooms != null && false) {
-      for(Room x : rooms) {
-        System.out.println(x);
-      }
-      System.out.println("Stair gen="+end_gen);
-    }
     num_rooms = rooms.size();
     rooms = null;  // Tidy up to save space
   }
 
-  public String getMap() {
+  public String getMapString() {
+    return grid.getMapString();
+  }
+  
+  public List<String> getMap() {
     return grid.getMap();
   }
   

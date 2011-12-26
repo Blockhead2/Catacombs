@@ -22,15 +22,14 @@ package net.steeleyes.catacombs;
 import net.steeleyes.maps.Config;
 import java.util.List;
 import java.util.ArrayList;
-import org.bukkit.util.config.Configuration;
-//import org.bukkit.configuration.Configuration;
 import org.bukkit.block.Block;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 
 public class CatConfig extends Config implements ICatConfig {
   
-  private transient List<CatMat> NaturalList = null;
-  private transient List<CatMat> BreakList = null;
+  private List<CatMat> NaturalList = null;
+  private List<CatMat> BreakList = null;
 
   public  Integer RadiusMax()              { return getSInt(ECatConfig.RadiusMax.getStr());  }
   public  String  HutType()                { return getSString(ECatConfig.HutType.getStr());  }
@@ -50,6 +49,8 @@ public class CatConfig extends Config implements ICatConfig {
   private Integer WolfPct()                { return getSInt(ECatConfig.WolfPct.getStr());  }
   private Integer PigmanPct()              { return getSInt(ECatConfig.PigmanPct.getStr());  }
   private Integer CaveSpiderPct()          { return getSInt(ECatConfig.CaveSpiderPct.getStr());  }
+  private Integer BlazePct()               { return getSInt(ECatConfig.BlazePct.getStr());  }
+  //private Integer SilverFishPct()          { return getSInt(ECatConfig.SilverFishPct.getStr());  }
   private Integer GoldMin()                { return getSInt(ECatConfig.GoldMin.getStr());  }
   private Integer GoldMax()                { return getSInt(ECatConfig.GoldMax.getStr());  }
   private Integer SmallEquipPct()          { return getSInt(ECatConfig.SmallEquipPct.getStr());  }
@@ -70,6 +71,18 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean CalmSpawns()             { return getSBoolean(ECatConfig.CalmSpawns.getStr());  }
   public  Boolean DungeonProtectOff()      { return getSBoolean(ECatConfig.DungeonProtectOff.getStr());  }
   public  Boolean SaveDungeons()           { return getSBoolean(ECatConfig.SaveDungeons.getStr());  }
+  //public  Boolean BossEnabled()            { return getSBoolean(ECatConfig.BossEnabled.getStr());  }
+  public  Boolean AdvancedCombat()         { return getSBoolean(ECatConfig.AdvancedCombat.getStr());  }
+  public  Integer GroupRadius()            { return getSInt(ECatConfig.GroupRadius.getStr());  }
+  public  Integer GroupDepth()             { return getSInt(ECatConfig.GroupDepth.getStr());  }
+  public  Double  GroupHpFactor()          { return getSDouble(ECatConfig.GroupHpFactor.getStr());  }
+  public  Integer SpawnRadius()            { return getSInt(ECatConfig.SpawnRadius.getStr());  }
+  public  Integer SpawnDepth()             { return getSInt(ECatConfig.SpawnDepth.getStr());  }
+  public  Integer MonsterRadius()          { return getSInt(ECatConfig.MonsterRadius.getStr());  }
+  public  Integer MonsterMax()             { return getSInt(ECatConfig.MonsterMax.getStr());  }
+  public  Integer DeathGearCost()          { return getSInt(ECatConfig.DeathGearCost.getStr());  }
+  public  Boolean DeathKeepGear()          { return getSBoolean(ECatConfig.DeathKeepGear.getStr());  }
+  public  Double  DeathExpKept()           { return getSDouble(ECatConfig.DeathExpKept.getStr());  }
   public  String  Economy()                { return getSString(ECatConfig.Economy.getStr());  }
   public  List<String> BannedCommands()    { return getSStringList(ECatConfig.BannedCommands.getStr());  }
   private List<String> NaturalBlocks()     { return getSStringList(ECatConfig.NaturalBlocks.getStr());  }
@@ -97,11 +110,66 @@ public class CatConfig extends Config implements ICatConfig {
   public String MySQLAddr()       { return getSString("MySQL.Server.Address"); }
   public int    MySQLPort()       { return getSInt("MySQL.Server.Port"); }  
   
-  public CatConfig(Configuration config) {
+  public CatConfig(FileConfiguration config) {
     super(config);
-    setDefaults();
-    cnf.save();
-    checkConfig();
+    try {
+      setDefaults();
+      if(!fcnf.contains("grand")) {
+        fcnf.set("grand.Archway.DoubleWidthPct",100);
+        fcnf.set("grand.Depth.room",4);
+        fcnf.set("grand.Corridor.Width3Pct",20);
+        fcnf.set("grand.Corridor.Width2Pct",80);
+        fcnf.set("grand.Corridor.Max",14);
+        fcnf.set("grand.Corridor.Min",3);
+        fcnf.set("grand.Room.Max",14);
+        fcnf.set("grand.Room.Min",3);
+        fcnf.set("grand.Room.Clutter.ChestPct",55);
+        fcnf.set("grand.Room.Clutter.SpawnerPct",70);
+        fcnf.set("grand.CorridorPct",20);
+        fcnf.set("grand.RadiusMax",20);       
+        fcnf.set("grand.SpecialPct",20);       
+        fcnf.set("grand.Hut.Type","medium");       
+      }
+      if(false && !fcnf.contains("arenas")) {
+        fcnf.set("arenas.default.waves.single.swarm1.type","default");
+        fcnf.set("arenas.default.waves.single.swarm1.wave",1);
+        fcnf.set("arenas.default.waves.single.swarm1.monsters.zombies",10);
+        fcnf.set("arenas.default.waves.single.swarm1.monsters.skeletons",10);
+        fcnf.set("arenas.default.waves.single.swarm1.monsters.spiders",10);
+        fcnf.set("arenas.default.waves.single.swarm1.monsters.creepers",10);
+        fcnf.set("arenas.default.waves.single.swarm1.monsters.wolves",10);
+        
+        String abilities = "fireballs, flood, root-target, arrows, fetch-distant, fire-aura, living-bomb, "+
+           "chain-lightning, disorient-target, root-target, warp-to-player, shuffle-positions, "+
+           "throw-target, throw-nearby, throw-distant, fetch-target, fetch-nearby, fetch-distant";
+        fcnf.set("arenas.default.waves.single.zombie_of_death.type","boss");
+        fcnf.set("arenas.default.waves.single.zombie_of_death.wave",2);
+        fcnf.set("arenas.default.waves.single.zombie_of_death.monster","zombie");
+        fcnf.set("arenas.default.waves.single.zombie_of_death.health","low");
+        fcnf.set("arenas.default.waves.single.zombie_of_death.abilities",abilities);
+        fcnf.set("arenas.default.waves.single.zombie_of_death.ability-interval",3);
+        fcnf.set("arenas.default.waves.single.zombie_of_death.ability-announce",true);
+
+      }
+      //System.out.println("[Catacombs] save to "+filename);
+      fcnf.save(filename);
+      checkConfig();
+    } catch (Exception e) {
+      System.err.println("[Catacombs] "+e.getMessage());
+    }
+  }
+  
+  private void setDefaults() {
+    for(ECatConfig att : ECatConfig.values()) {
+      String path = att.getStr();
+      if(path.substring(0,1).equals("."))
+        path = def_style+path;
+      if(fcnf.get(path)==null) {
+        Object val = att.getDef();
+        //System.out.println("[Catacombs] Setting "+path+" = "+val);
+        fcnf.set(path,val);
+      }
+    }  
   }
   
   private void checkConfig() {
@@ -144,24 +212,12 @@ public class CatConfig extends Config implements ICatConfig {
   public Boolean isBreakable(Block blk) {
     CatMat mat = new CatMat(blk);
     for(CatMat i: BreakList) {
-      if(mat.equals(i))
+      if(mat.getMat() == i.getMat())
         return true;
     }
     return false;
   } 
   
-  private void setDefaults() {
-    for(ECatConfig att : ECatConfig.values()) {
-      String path = att.getStr();
-      if(path.substring(0,1).equals("."))
-        path = def_style+path;
-      
-      if(cnf.getProperty(path)==null) {
-        Object val = att.getDef();
-        cnf.setProperty(path,val);
-      }
-    }  
-  }  
   
   public String SpawnerType() {
     int r = rnd.nextInt(100)+1;
@@ -180,6 +236,15 @@ public class CatConfig extends Config implements ICatConfig {
             WolfPct()+PigmanPct()+
             CaveSpiderPct())
       return "CaveSpider";
+    if(r<=SpiderPct()+SkeletonPct()+
+            WolfPct()+PigmanPct()+
+            CaveSpiderPct()+BlazePct())
+      return "Blaze";
+//    if(r<=SpiderPct()+SkeletonPct()+
+//            WolfPct()+PigmanPct()+
+//            CaveSpiderPct()+BlazePct()+
+//            SilverFishPct())
+//      return "Silverfish";
     return "Zombie";
   }
   public Integer Gold() {

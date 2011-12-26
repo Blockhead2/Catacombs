@@ -19,16 +19,19 @@
 */
 package net.steeleyes.maps;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Grid {
   private final Vector2D size = new Vector2D();
   private Square[][] area;
   private int used=0;
   
-  public Grid(int sx,int sy) {
+  public Grid(int sx, int sy) {
     size.set(sx, sy);
     area = new Square[size.x][size.y];
-    for(int x=0;x<size.x;x++) {
-      for(int y=0;y<size.y;y++) {
+    for (int x = 0; x < size.x; x++) {
+      for (int y = 0; y < size.y; y++) {
         area[x][y] = Square.UNDEF;
       }
     }
@@ -101,7 +104,7 @@ public class Grid {
     return null;
   }
   
-  public String getMap() {
+  public String getMapString() {
     String str = "";
     for(int x=0;x<size.x;x++) {
       for(int y=0;y<size.y;y++) {
@@ -335,19 +338,27 @@ public class Grid {
         if(isUndef(x,y) && s != Square.UNDEF) {
           set(x,y,s);
           used++;
+        } if(get(x,y) == Square.WALL && s==Square.FIXEDWALL) {
+          set(x,y,s);
         }
       }
     }
   }
   
   public void show() {
-    //System.out.println(this);
-
+    for(String s: getMap()) {
+      System.out.println(s);
+    }
+  }
+  
+  public List<String> getMap() {
+    List<String> list = new ArrayList<String>();
+    list.add("SIZE,"+size.x+","+size.y);
     String line = "";
     for(int x=0;x<size.x+2;x++) {
       line += Square.NONE.symb();
     }
-    System.out.println(line);
+    list.add(line);
     for(int y=size.y-1;y>=0;y--) {
       line = "";
       line += Square.NONE.symb();
@@ -356,15 +367,17 @@ public class Grid {
         line += b.symb();
       }
       line += Square.NONE.symb();
-      System.out.println(line);
+      list.add(line);
+
     }
     line = "";
     for(int x=0;x<size.x+2;x++) {
       line += Square.NONE.symb();
     }
-    System.out.println(line);
+    list.add(line);
+    return list;
   }
-
+  
   @Override
   public String toString() {
     return "Size"+size;

@@ -19,6 +19,8 @@
 */
 package net.steeleyes.catacombs;
 
+import java.io.*;
+
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.entity.Player;
@@ -35,16 +37,80 @@ import com.nijikokun.catacombsregister.payment.Method;
 import com.nijikokun.catacombsregister.payment.Methods;
 import org.bukkit.plugin.PluginDescriptionFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.lennardf1989.catacombsbukkitex.MyDatabase;
-import com.avaje.ebean.EbeanServer;
 import java.io.File;
 import org.bukkit.block.BlockFace;
 
+//import net.steeleyes.MobArena.*;
+
 /**
  * 
+ * 
+ * 
+ *
+Release v1.2
+* Added chance of finding enchanting tables (with book cases)
+* Added potion making stands on the top of work benches.
+* Worked around bug with tough AdvancedCombat creatures getting killed in one shot
+  by enchanted weapons.
+* Added a '/cat unplan <name>' command to discard a planned dungeon that hasn't
+  been built.
+* Removed reliance on java persistence, EbeanServer and 'MyDatabase' because it
+  proved too hard to expand and control sqlite databases when they are heavily
+  wrapped in other layers.
+* Fixed code so cash isn't give for kills outside the dungeon.
+* Added options to automatically charge players to keep their gear on them when
+  they die in dungeons. This saves cluttering the dungeons and everybody having
+  to swap and sort out equipment everytime anybody dies.
+* 85% of experience levels are now saved for player deaths in dungeons.
+* Fixed an AdvancedCombat bug there healers were able to heal dead players.
+* Added taunt and aggro reducing moves to AdvancedCombat
+* Sorted out some item durability balances for AdvancedCombat
+* Fixed threat transfer bug on player death
+* Added some more special rooms and fixed a couple of minor mapping bugs
+* Added silverfish spawners
+
+
+Release v1.1
+* Added option to allow Advanced Combat to be enabled.
+
+Release v1.0
+* Added an option for blaze spawners
+* Changed the default options so that secret doors will only work in dungeons by default
+* Fixed the code so that dungeon resets don't reset secret doors when they
+  are disabled in the config file.
+* Added a style called 'grand' to the default config file that builds dungeons with
+  wider corridors and larger rooms (more suitable for groups).
+  Use '/cat style grand' to select this, then plan and build as normal.
+* Added a new syntax to allow items with byte codes (like dyes and potions) to
+  be given as loot. Put a '/' after the item name followed by the byte code
+  e.g 'potion/1:10:1' would give one regen potion in 10% of the chests
+* Added a '/cat reload' command to reload the config file in game (or from the console).
+* Fixed the code so that arrow kills get rewarded too.
+* Turned off a rather verbose console message that occurred when new options were being
+  added to the config file.
+
+Release v0.9
+* Fixed an in-game Null pointer exception during planning caused by special end rooms
+* Fixed bug which caused lava to be able to ignite things in dungeons
+* Fixed problem getting stuck in walls when teleporting to the dungeon end
+* Fixed problem with blocks getting messed up (byte code was lost) when reseting secret doors
+* Fixed serious bug in the dungeon overlap checking code (now also reports offending dungeon)
+* Confirmed spawner protection config option works. Set this to 'true' to force players to
+  place torches around spawners to disable them rather than removing them.
+* Converted code to use bukkit's new configuration code to avoid deprecated warnings during compile
+* Dungeon maps now get saved as text files when dungeons are built
+* Added a series of debug commands to help identify user problems (list <name>, dump, map)
+* '/cat which' or '/cat ?' will now report the name of the dungeon in the crosshairs
+  if you aren't in a dungeon (and it's close enough).
+* Integrated lots of code related to boss mobs that will guard the final chest
+  currently disabled while I run some more tests on it (due in v1.0)
+
+ * 
+ **/
+
+/**
 Release v0.8
 * Added arrow traps in random locations. Contents of the dispensers is configurable
 * Added configuration to totally fill the area above the ceiling with dungeon blocks
@@ -56,12 +122,7 @@ Release v0.8
  
 * Added code to ensure chunks are loaded/fresh to solve teleport problems.
 * Stopped Endermen placing blocks (only picking up blocks was blocked previously)
-* 
 
- * 
- */
-
-/**
 Release v0.7
   - Added a couple of beds to the hut.
   - Fixed bug, removed extra loot on double chest refills.
@@ -230,16 +291,20 @@ public class Catacombs extends JavaPlugin {
   public  MultiWorldProtect     prot;
   public  CatConfig             cnf;
   private CatPermissions        permissions;
-  private Dungeons              dungeons;
-  private MyDatabase            database = null;
+  public  Dungeons              dungeons;
+  //private MyDatabase            database = null;
+  private CatSQL                sql=null;
   private BlockChangeHandler    handler;
-      
+
+  public  Monsters              monsters = new Monsters();
+  public  Players               players = new Players();
+
   public  PluginDescriptionFile info;
   public  Boolean               debug=false;
   private Boolean               enabled= false;
   
-  //public CatEncounter           test_encounter;
-  
+  private File mapdir;
+    
   private final CatBlockListener   blockListener   = new CatBlockListener(this);
   private final CatEntityListener  entityListener  = new CatEntityListener(this);
   private final CatPlayerListener  playerListener  = new CatPlayerListener(this);
@@ -247,8 +312,13 @@ public class Catacombs extends JavaPlugin {
 
   @Override
   public void onLoad() {
-    cnf = new CatConfig(getConfiguration());
+    cnf = new CatConfig(getConfig());
     info = this.getDescription();
+    
+    mapdir = new File("plugins" + File.separator + info.getName() + File.separator + "maps");
+    if(!mapdir.exists()){
+      mapdir.mkdir();
+    }
     System.out.print("[" + info.getName() + "] version " + info.getVersion()+ " is loaded");
   }
   
@@ -261,51 +331,76 @@ public class Catacombs extends JavaPlugin {
         if(cnf.SaveDungeons())
           setupDatabase();  
         System.out.print("[" + info.getName() + "] found legacy MySQL database (attempting to convert)");
-         CatDatabase sql = new CatDatabase(cnf);
-         if(cnf.SaveDungeons()) {
-           ConvertMySQL(sql,getDatabase());
-           dungeons = new Dungeons(this,getDatabase());  
-         } else {
-           System.out.print("[" + info.getName() + "] Can't convert database (SaveDungeons is false)");
-           dungeons = new Dungeons(this,null);  
-         }
+        CatDatabase mysql = new CatDatabase(cnf);
+        if(cnf.SaveDungeons()) {
+          //ConvertMySQL(mysql,getDatabase());
+          ConvertMySQL(mysql,sql);
+          dungeons = new Dungeons(this,sql);  
+        } else {
+          System.out.print("[" + info.getName() + "] Can't convert database (SaveDungeons is false)");
+          dungeons = new Dungeons(this,null);  
+        }
       } else {
         if(cnf.SaveDungeons())
           setupDatabase();  
-        dungeons = new Dungeons(this,getDatabase());  
+        //dungeons = new Dungeons(this,getDatabase());  
+        dungeons = new Dungeons(this,sql);  
       }
 
       PluginManager pm = this.getServer().getPluginManager();
+      
+      // TODO: create a new way to configure all the listeners individually
+      
       if(!cnf.DungeonProtectOff()) {
-        pm.registerEvent(Event.Type.BLOCK_PLACE,      blockListener,  Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.BLOCK_BREAK,      blockListener,  Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.BLOCK_PLACE,       blockListener,  Event.Priority.Highest, this);
+        pm.registerEvent(Event.Type.BLOCK_BREAK,       blockListener,  Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.BLOCK_BURN,        blockListener,  Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.BLOCK_IGNITE,      blockListener,  Event.Priority.Low, this);
       }
       if(!cnf.SecretDoorOff())
-        pm.registerEvent(Event.Type.BLOCK_DAMAGE,     blockListener,  Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.BLOCK_DAMAGE,      blockListener,  Event.Priority.Low, this);
       if(!cnf.GoldOff()) {
-        pm.registerEvent(Event.Type.ENTITY_DEATH,     entityListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.ENTITY_DEATH,      entityListener, Event.Priority.Low, this);
       }
-      pm.registerEvent(Event.Type.PLAYER_INTERACT,    playerListener, Event.Priority.Low, this);
-      pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL, playerListener, Event.Priority.Low, this);
-      pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY,playerListener, Event.Priority.Low, this);
+      if(cnf.AdvancedCombat()) {
+        pm.registerEvent(Event.Type.PLAYER_KICK,         playerListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.PLAYER_QUIT,         playerListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.PLAYER_TELEPORT,     playerListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.PLAYER_BED_ENTER,    playerListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.PLAYER_CHANGED_WORLD,playerListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.PLAYER_PORTAL,       playerListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.PLAYER_FISH,         playerListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.PLAYER_RESPAWN,      playerListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.ENTITY_TARGET,       entityListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.ENTITY_DAMAGE,       entityListener, Event.Priority.Low, this);
+      }
+
+      
+      pm.registerEvent(Event.Type.PLAYER_INTERACT,     playerListener, Event.Priority.Low, this);
+      pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL,  playerListener, Event.Priority.Low, this);
+      pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Event.Priority.Low, this);
 
       pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
 
       if(!cnf.CalmSpawns())
-        pm.registerEvent(Event.Type.CREATURE_SPAWN, entityListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.CREATURE_SPAWN,    entityListener, Event.Priority.Low, this);
+      
       if(!cnf.MessyCreepers())
-        pm.registerEvent(Event.Type.ENTITY_EXPLODE, entityListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.ENTITY_EXPLODE,    entityListener, Event.Priority.Low, this);
 
       if(!cnf.MessyEndermen()) {
-        pm.registerEvent(Event.Type.ENDERMAN_PICKUP, entityListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.ENDERMAN_PLACE, entityListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.ENDERMAN_PICKUP,   entityListener, Event.Priority.Low, this);
+        pm.registerEvent(Event.Type.ENDERMAN_PLACE,    entityListener, Event.Priority.Low, this);
       }
 
-      pm.registerEvent(Event.Type.PLUGIN_ENABLE, serverListener, Event.Priority.Low, this);
-      pm.registerEvent(Event.Type.PLUGIN_DISABLE, serverListener, Event.Priority.Low, this);
+      pm.registerEvent(Event.Type.PLUGIN_ENABLE,       serverListener, Event.Priority.Low, this);
+      pm.registerEvent(Event.Type.PLUGIN_DISABLE,      serverListener, Event.Priority.Low, this);
 
       handler = new BlockChangeHandler(this);
       this.getServer().getScheduler().scheduleSyncRepeatingTask(this,handler,40,20);
+      
+      // Clear the dungeons of mobs so we can manage those that spawn
+      dungeons.clearMonsters(this);
       
       enabled = true;
     }
@@ -319,27 +414,60 @@ public class Catacombs extends JavaPlugin {
     return !there && cnf.MySQLEnabled();
   }
   
-  public void ConvertMySQL(CatDatabase sql,EbeanServer db) { 
-    if(sql!=null) {
+  public void ConvertMySQL(CatDatabase mysql, CatSQL sql) { 
+    if(mysql!=null) {
 
-      for (String wname : sql.getWorlds()) {
+      for (String wname : mysql.getWorlds()) {
         System.out.println("[" + info.getName() + "] convert world:"+wname);
         World world = getServer().getWorld(wname);
         if(world == null) {
           System.err.println("[" + info.getName() + "] Can't find the world '"+wname+"' referred to by the MySQL database");
           return;
         }
-        for (String dname : sql.getDungeons(wname)) {
+        for (String dname : mysql.getDungeons(wname)) {
           System.out.println("[" + info.getName() + "]           dungeon:"+dname);
-          for (CatCuboid cube: sql.getDungeonCubes(dname)) {
-            dbLevel lvl = new dbLevel();
-            lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.isHut());
-            db.save(lvl);
+          int i = 0;
+          for (CatCuboid cube: mysql.getDungeonCubes(dname)) {
+            int hut = (cube.isHut())?1:0;
+            sql.command("INSERT INTO levels"+
+              "(dname,wname,pname,hut,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,dx,dy,num) VALUES"+
+              "('"+dname+"','"+wname+"','???',"+hut+
+                ","+cube.xl+","+cube.yl+","+cube.zl+
+                ","+cube.xh+","+cube.yh+","+cube.zh+
+                ","+((cube.xh+cube.xl)>>1)+","+cube.yh+","+((cube.zh+cube.zl)>>1)+
+                ",0,0,0,0,0,"+i+
+              ");");
+            //dbLevel lvl = new dbLevel();
+            //lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.isHut());
+            //db.save(lvl);
+            i++;
           }
         }
       }       
     }
   }
+  
+//  public void ConvertMySQL(CatDatabase sql,EbeanServer db) { 
+//    if(sql!=null) {
+//
+//      for (String wname : sql.getWorlds()) {
+//        System.out.println("[" + info.getName() + "] convert world:"+wname);
+//        World world = getServer().getWorld(wname);
+//        if(world == null) {
+//          System.err.println("[" + info.getName() + "] Can't find the world '"+wname+"' referred to by the MySQL database");
+//          return;
+//        }
+//        for (String dname : sql.getDungeons(wname)) {
+//          System.out.println("[" + info.getName() + "]           dungeon:"+dname);
+//          for (CatCuboid cube: sql.getDungeonCubes(dname)) {
+//            dbLevel lvl = new dbLevel();
+//            lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.isHut());
+//            db.save(lvl);
+//          }
+//        }
+//      }       
+//    }
+//  }
   
   public void onDisable(){
     Methods.reset();
@@ -347,42 +475,117 @@ public class Catacombs extends JavaPlugin {
     enabled = false;
   }
   
-  private void testDatabase() {
-    List<dbLevel> list = getDatabase().find(dbLevel.class).where().findList();
-    if (list == null || list.isEmpty()) {
-      System.out.println("No entries match that pattern");
-    } else {
-      for(dbLevel cube: list)
-        System.out.println("---->"+cube);
-    }    
-  }
+//  private void testDatabase() {
+//    List<dbLevel> list = getDatabase().find(dbLevel.class).where().findList();
+//    if (list == null || list.isEmpty()) {
+//      System.out.println("No entries match that pattern");
+//    } else {
+//      for(dbLevel cube: list)
+//        System.out.println("---->"+cube);
+//    }    
+//  }
   
   private void setupDatabase() {
-    database = new MyDatabase(this) {
-      @Override
-      protected java.util.List<Class<?>> getDatabaseClasses() {
-        List<Class<?>> list = new ArrayList<Class<?>>();
-        list.add(dbLevel.class);        
-        return list;
-      };
-    };
-    database.initializeDatabase(
-      "org.sqlite.JDBC",
-      "jdbc:sqlite:{DIR}{NAME}.db",
-      "bukkit",
-      "walrus",
-      "SERIALIZABLE",
-      false,
-      false
-    );    
-  }
+    sql = new CatSQL("plugins"+File.separator+"Catacombs"+File.separator+"Catacombs.db");
+    
+    Boolean hasLevels = sql.tableExists("levels");
+    Boolean hasDungeons = sql.tableExists("dungeons");
+    
+    if(false) {
+      //sql.dropTables();
+    }
+    
+    sql.createTables();
+    
+    if(hasLevels && !hasDungeons) {
+      System.out.println("[Catacombs] Converting old dungeon data to new format");
+      sql.Convert2(this);
+    }
+    
+
+  }  
+    //Boolean hasDungeons = mysql.tableExists("dungeons");
+    //Boolean hasLevels = mysql.tableExists("levels");
+
+    //if(hasLevels && !hasDungeons) {
+      
+    //}
+//    try {
+//      CatSQL s = new CatSQL();
+//      //System.out.println("levels exists "+s.tableExists("levels"));
+//      //System.out.println("dungeons exists "+s.tableExists("dungeons"));
+//      String dt = "dungeons";
+//      if(!s.tableExists(dt)) {
+//        s.command("CREATE TABLE `"+dt+"` (" +
+//          "did INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+//          "version TEXT," +
+//          "dname TEXT," +
+//          "wname TEXT," +
+//          "pname TEXT," +
+//          "major TEXT," +
+//          "minor TEXT," +
+//          "enable INTEGER" +
+//          ");");
+//      }
+//      
+//      String lt = "levels2";
+//      if(!s.tableExists(lt)) {
+//        s.command("CREATE TABLE `"+lt+"` (" +
+//          "lid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+//          "did INTEGER," +
+//          "num INTEGER," +
+//          "type TEXT," +
+//          "room INTEGER," +
+//          "roof INTEGER," +
+//          "floor INTEGER," +
+//          "xl INTEGER," +
+//          "yl INTEGER," +
+//          "zl INTEGER," +
+//          "xh INTEGER," +
+//          "yh INTEGER," +
+//          "zh INTEGER," +
+//          "sx INTEGER," +
+//          "sy INTEGER," +
+//          "sz INTEGER," +
+//          "ex INTEGER," +
+//          "ey INTEGER," +
+//          "ez INTEGER" +
+//        ");");
+//
+//      }
+//    } catch(Exception e) {
+//      System.err.println(e.getMessage());
+//    }
+//    
+//    
+//    
+    
+//    database = new MyDatabase(this) {
+//      @Override
+//      protected java.util.List<Class<?>> getDatabaseClasses() {
+//        List<Class<?>> list = new ArrayList<Class<?>>();
+//        list.add(dbLevel.class);        
+//        return list;
+//      };
+//    };
+//    database.initializeDatabase(
+//      "org.sqlite.JDBC",
+//      "jdbc:sqlite:{DIR}{NAME}.db",
+//      "bukkit",
+//      "walrus",
+//      "SERIALIZABLE",
+//      false,
+//      false
+//    );  
+//  }
   
-  @Override
-  public EbeanServer getDatabase() {
-    if(database == null)
-      return null;
-    return database.getDatabase();
-  }
+  //@Override
+  //public EbeanServer getDatabase() {
+  //  if(database == null)
+  //    return null;
+  //  return database.getDatabase();
+  //}
+  
 
   @Override
   public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
@@ -414,6 +617,11 @@ public class Catacombs extends JavaPlugin {
         int dist = Integer.parseInt(args[4]);
         scatterDungeon(p,args[1],depth,radius,dist);
         
+      // UNPLAN ********************************************************  
+      } else if(cmd(p,args,"unplan","p")) {
+        if(dungeons.exists(args[1]))
+          dungeons.remove(args[1]);
+                
       // BUILD ********************************************************  
       } else if(cmd(p,args,"build","p")) {
         buildDungeon(p,args[1]);
@@ -421,7 +629,35 @@ public class Catacombs extends JavaPlugin {
       // LIST ********************************************************  
       } else if(cmd(p,args,"list")) {
         inform(p,"Catacombs: "+dungeons.getNames());
+      } else if(cmd(p,args,"list","D")) {
+        List<String> i = dungeons.getinfo(args[1]);
+        for(String s: i) {
+          System.out.println(s);
+        }
+        //inform(p,"Catacombs: "+dungeons.getNames());
         
+      } else if(cmd(p,args,"dump","D")) {
+        File f = new File("plugins" + File.separator + "Catacombs","dmp_"+args[1]+".txt");
+        FileWriter fstream = new FileWriter(f);
+        BufferedWriter out = new BufferedWriter(fstream);
+        for(String s: dungeons.dump(args[1])) {
+          out.write(s+"\r\n");
+        }
+        out.close();
+        
+      // MAP ********************************************************
+      } else if(cmd(p,args,"map")) {
+        Dungeon dung = getDungeon(p);
+        if(dung!=null) {
+          for(String s: dung.map()) {
+            System.out.println(s);
+          }
+        } 
+      } else if(cmd(p,args,"map","D")) {
+        for(String s: dungeons.map(args[1])) {
+          System.out.println(s);
+        }
+
       // GOLD ********************************************************  
       } else if(cmd(p,args,"gold")) {
         if(p!=null) {
@@ -475,6 +711,7 @@ public class Catacombs extends JavaPlugin {
         inform(p,"Dungeon style="+cnf.getStyle()); 
       } else if(cmd(p,args,"style","s")) {
         cnf.setStyle(args[1]);
+        inform(p,"Dungeon style="+cnf.getStyle()); 
         
       // RESETALL ******************************************************** 
       } else if(cmd(p,args,"resetall")) {
@@ -527,20 +764,26 @@ public class Catacombs extends JavaPlugin {
       } else if(cmd(p,args,"which") || cmd(p,args,"?")) {
         Dungeon dung = getDungeon(p);
         if(dung!=null)
-          inform(p,"Dungeon '"+dung.getName()+"'");
+          inform(p,"Dungeon '"+dung.getName()+"'"); 
+        
+      // RELOAD  
+      } else if(cmd(p,args,"reload")) {
+        cnf = new CatConfig(getConfig());
+        inform(p,"config reloaded");
         
       // TEST  
       } else if(cmd(p,args,"test")) {
-        dungeons.debugMajor();
-        //debug = !debug;
+        debug = !debug;
         //Dungeon dung = dungeons.which(p.getLocation().getBlock());
         //dung.guessMajor();
         //testDatabase();
         //p.sendMessage("[catacombs] Direction "+getCardinalDirection(p));
-        inform(p,"[catacombs] Direction "+getCardinalDirection(p));
+        //inform(p,"[catacombs] Direction "+getCardinalDirection(p));
+        
 
       // DEBUG
       } else if(cmd(p,args,"debug")) {
+        dungeons.debugMajor();
 
       } else {
         help(p);
@@ -560,7 +803,10 @@ public class Catacombs extends JavaPlugin {
       Dungeon dung = dungeons.which(p.getLocation().getBlock());
       if(dung!=null)
         return dung;
-      inform(p,"Not in a dungeon");    
+      dung = dungeons.which(p.getTargetBlock(null, 1000));
+      if(dung!=null)
+        return dung;
+      inform(p,"Not in a dungeon (or not looking at one)");    
     }
     return null;
   }
@@ -578,6 +824,7 @@ public class Catacombs extends JavaPlugin {
     inform(p,"/cat reset   [<name>]");
     inform(p,"/cat resetall");
     inform(p,"/cat recall");
+    inform(p,"/cat ?");
     inform(p,"/cat style [<style_name>]");
     inform(p,"/cat list");
     inform(p,"/cat gold");
@@ -650,9 +897,15 @@ public class Catacombs extends JavaPlugin {
     dung.show();
     dungeons.add(dname,dung);
     inform(p,dung.summary());
-    if(dung.isOk())
-      inform(p,"'"+dname+"' is good and ready to be built");
-    else
+    if(dung.isOk()) {
+      Dungeon overlap = dungeons.getOverlap(dung);
+      if(overlap != null) {
+        inform(p,"'"+dname+"' overlaps dungeon '"+overlap.getName()+"' (replan or remove it)");
+      } else {
+        inform(p,"'"+dname+"' is good and ready to be built");
+        //dung.saveMap(mapdir + File.separator + dname + ".map");
+      }
+    } else
       inform(p,"'"+dname+"' is incomplete (usually too small for final room/stair)");
   }
   
@@ -718,24 +971,32 @@ public class Catacombs extends JavaPlugin {
       Dungeon dung = dungeons.get(dname);
       if(dung.isBuilt()) {
         inform(p,"Dungeon "+dname+" has already been built");
-      } else if(!dung.isNatural()) {
-        inform(p,"Loaction of '"+dname+"' is no longer solid-natural (replan)");
-      } else if(prot.overlaps(dung)) {
-        inform(p,"'"+dname+"' overlaps another completed dungeon (replan or remove it)");
-      } else {
-        inform(p,"Building "+dname);
-        dung.saveDB(getDatabase());
-        dung.registerCubes(prot);
-        dung.render(handler);
-        handler.add(p);
+        return;
       }
+      if(!dung.isNatural()) {
+        inform(p,"Loaction of '"+dname+"' is no longer solid-natural (replan)");
+        return;
+      }
+      Dungeon overlap = dungeons.getOverlap(dung);
+      if(overlap!=null) {
+        inform(p,"'"+dname+"' overlaps dungeon '"+overlap.getName()+"'(replan or remove it)");
+        return;
+      }
+      inform(p,"Building "+dname);
+      //dung.saveDB(getDatabase());
+      dung.saveDB(this,sql);
+      dung.registerCubes(prot);
+      dung.render(handler);
+      dung.saveMap(mapdir + File.separator + dname + ".map");
+      handler.add(p);
     } else {
       inform(p,"Dungeon "+dname+" doesn't exist");
     }
   }
 
   public void suspendDungeon(Player p,String dname) {
-    dungeons.suspend(dname,getDatabase());
+    //dungeons.suspend(this,dname,getDatabase());
+    dungeons.suspend(this,dname,sql);
   }
   
   public void gotoDungeon(Player p,String dname) {
@@ -752,23 +1013,26 @@ public class Catacombs extends JavaPlugin {
   }  
   
   public void enableDungeon(Player p,String dname) {
-    dungeons.enable(dname,getDatabase());
+    //dungeons.enable(dname,getDatabase());
+    dungeons.enable(dname,sql);
   }  
   
   public void deleteDungeon(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
-    dung.delete(handler);
+    dung.delete(this,handler);
     handler.add(p);
-    dungeons.remove(dname,prot,getDatabase());
+    //dungeons.remove(dname,prot,getDatabase());
+    dungeons.remove(dname,prot,sql);
   }
   
   public void resetDungeon(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
-    dung.reset();
+    dung.reset(this);
   }
   
   public void unprotDungeon(Player p,String dname) {
-    dungeons.remove(dname,prot,getDatabase());
+    //dungeons.remove(dname,prot,getDatabase());
+    dungeons.remove(dname,prot,sql);
   }
   
   public void inform(Player p,Exception e) {

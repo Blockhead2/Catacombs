@@ -20,14 +20,12 @@
 package net.steeleyes.catacombs;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
-
-import com.avaje.ebean.EbeanServer;
+import java.sql.ResultSet;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -35,19 +33,14 @@ import org.bukkit.block.Block;
 public class Dungeons {
   private final HashMap<String,Dungeon> dungeons = new HashMap<String,Dungeon>();
 
-  public Dungeons(Catacombs plugin,EbeanServer db) {
-    if(db!=null) {
-      List<dbLevel> list=null;
+  public Dungeons(Catacombs plugin,CatSQL sql) {
+    if(sql!=null) {
+      ResultSet rs = sql.query("SELECT dname,wname,pname,hut,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,enable,num FROM levels");
       try {
-        list = db.find(dbLevel.class).where().findList();
-      } catch(Exception e) {
-        System.err.println("[Catacombs] Problem loading catacombs database");
-      }
-      if (list != null && !list.isEmpty()) {
-        for(dbLevel info: list) {
-          String dname = info.getDname();
-          String wname = info.getWname();
-          String pname = info.getPname();
+        while(rs.next()) {
+          String dname = rs.getString("dname");
+          String wname = rs.getString("wname");
+          String pname = rs.getString("pname");
           World world = plugin.getServer().getWorld(wname);
 
           Dungeon dung;
@@ -61,7 +54,7 @@ public class Dungeons {
           } else {                          // Existing dungeon
             dung = dungeons.get(dname);
           }
-          CatLevel clevel = new CatLevel(plugin,info,world);
+          CatLevel clevel = new CatLevel(plugin,rs,world);
           dung.add(clevel);
         }
         for (Entry<String,Dungeon> entry : dungeons.entrySet()) {
@@ -69,6 +62,8 @@ public class Dungeons {
           d.registerCubes(plugin.prot);
           d.guessMajor();
         }
+      } catch(Exception e) {
+        System.err.println("[Catacombs] ERROR: "+e.getMessage());
       }
     }
   }
@@ -124,13 +119,25 @@ public class Dungeons {
       if(dung.isBuilt()) {
         System.out.println("[catacombs] Already a built dungeon '"+dname+"'");
       } else {
-        System.out.println("[catacombs] Re-planning dungeon '"+dname+"'");
+        //System.out.println("[catacombs] Re-planning dungeon '"+dname+"'");
         dungeons.put(dname,d);
       }
     } else {
-      System.out.println("[catacombs] Planning dungeon '"+dname+"'");
+      //System.out.println("[catacombs] Planning dungeon '"+dname+"'");
       dungeons.put(dname,d);
     }
+  }
+  
+  public Dungeon getOverlap(Dungeon dung) {
+    for(String name : dungeons.keySet()) {
+      Dungeon x = dungeons.get(name);
+      if(!dung.equals(x)) {
+        if(dung.overlaps(x)) {
+          return x;
+        }
+      }
+    }   
+    return null;
   }
   
   public void unregisterCubes(String name, MultiWorldProtect prot) {
@@ -146,33 +153,39 @@ public class Dungeons {
     }
   }
 
-  public void suspend(String name,EbeanServer db) {
+  public void suspend(Catacombs plugin,String name,CatSQL sql) {
     if(dungeons.containsKey(name)) {
       Dungeon dung = dungeons.get(name);
-      dung.suspend(db);
+      dung.suspend(plugin,sql);
     }
   }  
-  public void enable(String name,EbeanServer db) {
+  public void enable(String name,CatSQL sql) {
     if(dungeons.containsKey(name)) {
       Dungeon dung = dungeons.get(name);
-      dung.enable(db);
+      dung.enable(sql);
     }
-  }  
-        
-  public void remove(String name, MultiWorldProtect prot,EbeanServer db) {
+  }   
+  
+  public void remove(String name, MultiWorldProtect prot,CatSQL sql) {
     if(dungeons.containsKey(name)) {
       Dungeon dung = dungeons.get(name);
       dung.unregisterCubes(prot);
-      dung.remove(db);
+      dung.remove(sql);
       dungeons.remove(name);
     }
-  }  
+  }
   
   public void remove(String name) {
     if(dungeons.containsKey(name)) {
       dungeons.remove(name);
     }
   }   
+  
+  public void clearMonsters(Catacombs plugin) {
+    for(Entry<String,Dungeon> e: dungeons.entrySet()) {
+      e.getValue().clearMonsters(plugin);
+    }
+  }  
   
   public List<String> getNames() {
     List<String> list = new ArrayList<String>(dungeons.keySet());
@@ -186,5 +199,23 @@ public class Dungeons {
     }
     return null;
   }
-
+  
+  public List<String> getinfo(String dname) {
+    if(dungeons.containsKey(dname)) {
+      return dungeons.get(dname).getinfo();
+    }
+    return null;
+  }
+  public List<String> dump(String dname) {
+    if(dungeons.containsKey(dname)) {
+      return dungeons.get(dname).dump();
+    }
+    return null;
+  } 
+  public List<String> map(String dname) {
+    if(dungeons.containsKey(dname)) {
+      return dungeons.get(dname).map();
+    }
+    return null;
+  } 
 }

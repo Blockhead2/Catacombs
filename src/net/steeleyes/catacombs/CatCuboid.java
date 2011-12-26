@@ -34,10 +34,8 @@ import org.bukkit.Location;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-/**
- *
- * @author John Keay
- */
+import org.bukkit.entity.LivingEntity;
+
 public class CatCuboid extends Cuboid {
   private Type type = Type.LEVEL;
   private Boolean enable = true;
@@ -57,9 +55,75 @@ public class CatCuboid extends Cuboid {
   
   @Override
   public String toString() {
-    return super.toString()+" enable="+enable+" world="+world+" type="+type;
+    return super.toString()+" enable="+enable+" world="+world.getName()+" type="+type;
   }
-
+  
+  // Try and figure out an approximate map from the world blocks
+  public List<String> map() {
+    List<String> info = new ArrayList<String>();
+    char [][] grid = new char[xh-xl+1][zh-zl+1];
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        grid[x-xl][z-zl] = ' ';
+      }
+    }
+    for(int y=yl;y<=yh;y++) {
+      for(int x=xl;x<=xh;x++) {
+        for(int z=zl;z<=zh;z++) {
+          Block blk = world.getBlockAt(x,y,z);
+          int id = blk.getTypeId();
+          char was = grid[x-xl][z-zl];
+          if (id == 29) grid[x-xl][z-zl]='$';
+          if ((was == ' ' || was==',') && (id==4 || id==48 || id==98 || id==24)) grid[x-xl][z-zl]='#';
+          if ((was == '#' || was==' ') && (id==0)) grid[x-xl][z-zl]=',';
+          if ((was == ',') && (id==0)) grid[x-xl][z-zl]='.';
+          if (id==20 || id==102) grid[x-xl][z-zl]='G';
+          if (id==9 || id ==8) grid[x-xl][z-zl]='W';
+          if (id==11 || id == 10) grid[x-xl][z-zl]='L';
+          if (id==26) grid[x-xl][z-zl]='z';
+          if (id==30) grid[x-xl][z-zl]='w';
+          if (id==42) grid[x-xl][z-zl]='A';
+          if (id==50) grid[x-xl][z-zl]='t';
+          if (id==52) grid[x-xl][z-zl]='M';
+          if (id==54) grid[x-xl][z-zl]='c';
+          if (id==58) grid[x-xl][z-zl]='T';
+          if (id==61) grid[x-xl][z-zl]='f';
+          if (id==64) grid[x-xl][z-zl]='+';
+          if (id==65) grid[x-xl][z-zl]='^';
+          if (id==70) grid[x-xl][z-zl]='x';
+          if (id==88) grid[x-xl][z-zl]='s';
+          if (id==92) grid[x-xl][z-zl]='=';
+          if (id==96) grid[x-xl][z-zl]='v';
+        }
+      }
+    }
+    for(int z=zl;z<=zh;z++) {
+      String s = "# ";
+      for(int x=xl;x<=xh;x++) {
+        char ch = grid[x-xl][z-zl];
+        s += (ch==',')?'#':ch;
+      }
+      info.add(s);
+    }
+    info.add(" ");
+    return info;
+  }
+  
+  public List<String> dump(Vector top) {
+    List<String> info = map();
+    info.add(" ");
+    for(int y=yl;y<=yh;y++) {
+      for(int x=xl;x<=xh;x++) {
+        for(int z=zl;z<=zh;z++) {
+          Block blk = world.getBlockAt(x,y,z);
+          info.add((x-top.x)+","+(y-top.y)+","+(z-top.z)+","+blk.getTypeId()+","+blk.getData());
+          //info.add((x-top.x)+":"+(y-top.y)+":"+(z-top.z)+":"+blk.getType()+":"+blk.getData());
+        }
+      }
+    }
+    return info;
+  }
+  
   public void setType(Type t) {
     type = t;
   }
@@ -138,7 +202,7 @@ public class CatCuboid extends Cuboid {
         if(debug==1) System.out.println("[Catacombs] Block mat="+mat+" blk="+blk.getType());
 
         if(!mat.is(Material.AIR) && !mat.is(Material.TORCH)) {
-        if(debug==1) System.out.println("[Catacombs]   soid block Block mat="+mat+" blk="+blk.getType());
+          if(debug==1) System.out.println("[Catacombs]   soid block Block mat="+mat+" blk="+blk.getType());
           Boolean near_air = false;
           for(BlockFace dir : dirs) {
             Material near = blk.getRelative(dir).getType();
@@ -148,8 +212,8 @@ public class CatCuboid extends Cuboid {
             }
           }
           if(near_air) {
-           if(debug==1) System.out.println("[Catacombs]     near air Block mat="+mat+" blk="+blk.getType());
-           if(!mat.equals(last)) {
+            if(debug==1) System.out.println("[Catacombs]     near air Block mat="+mat+" blk="+blk.getType());
+            if(!mat.equals(last)) {
               if(cnt>best) {
                 best_mat.get(last);
                 best = cnt;
@@ -278,7 +342,8 @@ public class CatCuboid extends Cuboid {
     }
   }  
   
-  public void closeDoors() {
+  public void closeDoors(Catacombs plugin) {
+    Boolean secretOn = !plugin.cnf.SecretDoorOff();
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         for(int y=yl;y<=yh;y++) {
@@ -300,13 +365,14 @@ public class CatCuboid extends Cuboid {
 
           } else if(blk.getType() == Material.TRAP_DOOR) {
             blk.setData((byte)(blk.getData() & ~4));
-          } else if(blk.getType() == Material.PISTON_STICKY_BASE) {
+          } else if(secretOn && blk.getType() == Material.PISTON_STICKY_BASE) {
             Block power = blk.getRelative(BlockFace.DOWN,1);
             if(power.getType() != Material.REDSTONE_TORCH_ON) {
               Block upper_door = blk.getRelative(BlockFace.UP,3);
               Material m = power.getType();
+              byte code = power.getData();
               power.setType(Material.REDSTONE_TORCH_ON);
-              upper_door.setType(m);
+              upper_door.setTypeIdAndData(m.getId(),code,false);
             }
           }
         }
@@ -341,12 +407,14 @@ public class CatCuboid extends Cuboid {
     }
   }
 
-  public void clearMonsters() {
+  public void clearMonsters(Catacombs plugin) {
     for(Entity ent : world.getEntities()) {
       if(ent instanceof Creature) {
         Location loc = ent.getLocation();
         Block blk = loc.getBlock();
         if(isIn(blk.getX(),blk.getY(),blk.getZ())) {
+          if(plugin.monsters != null)
+            plugin.monsters.remove((LivingEntity)ent);
           ent.remove();
         }
       }
@@ -411,7 +479,6 @@ public class CatCuboid extends Cuboid {
           if(before == Material.LADDER ||
              before == Material.TORCH ||
              before == Material.TRAP_DOOR ||
-             before == Material.CHEST ||
              before == Material.WATER ||
              before == Material.LAVA ||
              before == Material.BED_BLOCK ||
@@ -421,6 +488,8 @@ public class CatCuboid extends Cuboid {
              before == Material.WOODEN_DOOR
              ) {
             handler.addHigh(blk,mat);
+          } else if(before == Material.CHEST) {
+            //handler.addHigh(blk,mat);
           } else {
             handler.addLow(blk,mat);
           }

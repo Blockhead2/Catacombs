@@ -17,21 +17,28 @@
  * @copyright Copyright (C) 2011
  * @license GNU GPL <http://www.gnu.org/licenses/>
 */
-package net.steeleyes.maps;
+package net.steeleyes.catacombs;
 
-public interface IConfig {
-  public  Boolean SandChance();
-  public  Boolean ChestChance();
-  public  Boolean SpawnerChance();
-  public  Boolean EnchantChance();
-  public  Boolean TrapChance();
-  public  Boolean PoolChance();
-  public  Boolean FullPoolChance();
-  public  Boolean SpecialChance();
-  public  Boolean CorridorChance();
-  public  Boolean ShroomChance();
-  public  Boolean BenchChance();
-  public  Boolean OvenChance();
-  public  Boolean DoubleDoorChance();
+public class CatLocation {
   
+  public enum Type {
+    END_CHEST,
+    DUNGEON_DOOR
+  }
+  
+  //store world too?
+  //store back link to dungeon?
+  
+  private Vector location;
+  private Type type;
+  
+  public CatLocation(Type type, Vector location) {
+    this.type = type;
+    this.location = location;
+  }
+  
+  public CatLocation(Type type, int x, int y, int z) {
+    this.type = type;
+    this.location = new Vector(x,y,z);
+  }  
 }

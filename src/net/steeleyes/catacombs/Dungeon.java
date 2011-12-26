@@ -35,8 +35,11 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
-import com.avaje.ebean.EbeanServer;
 import org.bukkit.block.BlockFace;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 
 public class Dungeon {
   private CatConfig cnf = null;
@@ -46,14 +49,18 @@ public class Dungeon {
   private String builder;
   private CatMat major;
   private CatMat minor;
+  private Boolean enable = true;
+  
+  private Boolean bossKilled = false;
+  //private CatArena arena = null;
 
   private static Map<String,PrePlanned> hut_list = null;
+  
+  private List<CatFlag> flags = new ArrayList<CatFlag>();
+  private List<CatLocation> locations = new ArrayList<CatLocation>();
  
   private Boolean built = false;
-
-  public void setBuilt(Boolean built) {
-    this.built = built;
-  }
+  
 
   public Dungeon(String name,CatConfig cnf,World world){
     this.name = name;
@@ -63,6 +70,7 @@ public class Dungeon {
     minor = cnf.minorMat();
     setup_huts();
   }
+  
   public Dungeon(String name,CatConfig cnf,World world,CatMat major, CatMat minor){
     this.name = name;
     this.cnf = cnf;
@@ -72,9 +80,25 @@ public class Dungeon {
     setup_huts();
   }
   
+  public void setBuilt(Boolean built) {
+    this.built = built;
+  }
+  
   public void add(CatLevel l) {
     levels.add(l);
   }
+  
+  public Boolean bossKilled() {
+    return bossKilled;
+  }
+  
+  public World getWorld() {
+    return world;
+  }
+  
+  public void setBossKilled(Boolean val) {
+    bossKilled = val;
+  }  
   
   @Override
   public String toString() {
@@ -91,7 +115,67 @@ public class Dungeon {
       l.show();
     }
   }
+  
+  public List<String> getinfo() {
+    List<String> info = new ArrayList<String>();
+    info.add("Name: "+name);
+    info.add("  World  : "+world.getName());
+    info.add("  Builder: "+builder);
+    info.add("  levels : "+levels.size());
+    info.add("  major  : "+major);
+    info.add("  minor  : "+minor);
+    info.add("  built  : "+built);
+    for(CatLevel l: levels) {
+      info.add(" ");
+      info.add("  level:"+l.summary());
+      for(String s : l.getinfo())
+        info.add("    "+s);
+    }
+    return info;
+  }
+  
+  public List<String> dump() {
+    CatLevel hut = getLowest(CatCuboid.Type.HUT);
 
+    List<String> info = new ArrayList<String>();
+    for(CatLevel l: levels) {
+      for(String s : l.dump(hut.getTop())) {
+        info.add(s);
+      }
+    }
+    return info;
+  }
+  public List<String> map() {
+    List<String> info = new ArrayList<String>();
+    for(CatLevel l: levels) {
+      for(String s : l.map()) {
+        info.add(s);
+      }
+    }
+    return info;
+  }
+  
+  public void saveMap(String filename) {
+    File f = new File(filename);
+    try {
+      FileWriter fstream = new FileWriter(f);
+      BufferedWriter out = new BufferedWriter(fstream);
+      int num = 0;
+      for(CatLevel l: levels) {
+        out.write("LEVEL,"+(num++)+"\r\n");
+        List<String> map = l.getMap();
+        for(String s:map) {
+          out.write(s+"\r\n");
+        }
+        out.write("\r\n");
+      }
+      out.close();
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+    }
+
+  }  
+  
   public CatMat getMajor() {
     return major;
   }
@@ -147,6 +231,13 @@ public class Dungeon {
     }
   }
   
+  public Boolean triggerEncounter(Catacombs plugin, Block blk) {
+    return false;
+  }
+  
+  public void stopEncounter(Boolean won) {
+  }
+  
   public ArrayList<String> summary() {
     ArrayList<String> res = new ArrayList<String>();
     for(CatLevel l: levels) {
@@ -154,6 +245,17 @@ public class Dungeon {
     }
     return res;
   }
+  
+  public Boolean overlaps(Dungeon that) {
+    for(CatLevel a : levels) {
+      for(CatLevel b : that.levels) {
+        if(a.getCube().overlaps(b.getCube())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }  
   
   public Boolean overlaps(CatCuboid that) {
     for(CatLevel l : levels) {
@@ -207,6 +309,9 @@ public class Dungeon {
     levels.add(level);
     if(level.getBuild_ok() && maxLevels >0) {
       CatLevel from = level;
+      System.out.println(" from can go lower="+from.getCan_go_lower());
+      System.out.println(" from build ok="+from.getBuild_ok());
+      System.out.println(" levels.size="+levels.size()+" maxLevels="+maxLevels);
       while(from.getCan_go_lower() && from.getBuild_ok() && levels.size() < maxLevels+1) {
         Direction tmp_dir = from.end_dir();
         if(tmp_dir != null) {
@@ -229,7 +334,7 @@ public class Dungeon {
     // Can't go down from the last level
     int last_level_num = levels.size()-1;
     levels.get(last_level_num).setEndSquare((last_level_num==0)?Square.FLOOR:Square.BIGCHEST);
-    level.show();
+    //level.show();
 
   }
 
@@ -240,68 +345,55 @@ public class Dungeon {
     built = true;
   }
   
-  public void delete(BlockChangeHandler handler) {
+  public void delete(Catacombs plugin,BlockChangeHandler handler) {
     allPlayersToTop();
     for(CatLevel l : levels) {
-      l.delete(handler);
+      l.delete(plugin,handler);
     }
   }
   
-  public void reset() {
+  public void clearMonsters(Catacombs plugin) {
+    for(CatLevel l : levels) {
+      l.clearMonsters(plugin);
+    }
+  }
+  
+  public void reset(Catacombs plugin) {
     allPlayersToTopProt();
+    bossKilled=false;
     for(CatLevel l : levels) {
-      l.reset();
-    }
-  }
-  public void suspend(EbeanServer db) {
-    for(CatLevel l : levels) {
-      l.suspend(major);
-    }
-        
-    if(db != null) {
-      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
-      if (list != null && !list.isEmpty()) {
-        for(dbLevel cube: list) {
-          cube.setEnable(false);
-          db.save(cube);
-        }
-      }
+      l.reset(plugin);
     }
   }
   
-  public void enable(EbeanServer db) {
+  public void suspend(Catacombs plugin,CatSQL sql) {
+    enable = false;
+    bossKilled=true;
+    for(CatLevel l : levels) {
+      l.suspend(plugin,major);
+    }
+    sql.suspendDungeon(name);
+  }
+  
+  public void enable(CatSQL sql) {
+    enable = true;
+    bossKilled = false;
     for(CatLevel l : levels) {
       l.enable(major);
     }
-
-    if(db != null) {
-      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
-      if (list != null && !list.isEmpty()) {
-        for(dbLevel cube: list) {
-          cube.setEnable(true);
-          db.save(cube);
-        }
-      }
-    }  
+    sql.enableDungeon(name);
   }  
   
-  public void remove(EbeanServer db) {
-    if(db != null) {
-      List<dbLevel> list = db.find(dbLevel.class).where().ieq("dname",name).findList();
-      if (list != null && !list.isEmpty()) {
-        for(dbLevel cube: list) {
-          db.delete(cube);
-        }
-      }
-    }  
-  }  
+  public void remove(CatSQL sql) {
+    sql.removeDungeon(name);
+  }
   
-  private Location getSafePlace(Block blk) {
+  public Location getSafePlace(Block blk) {
     Location loc = null;
     for(BlockFace dir : Arrays.asList(
       BlockFace.NORTH,BlockFace.EAST,
       BlockFace.SOUTH,BlockFace.WEST,BlockFace.UP)) {
-      Block tmp = blk.getRelative(BlockFace.NORTH);
+      Block tmp = blk.getRelative(dir);
       if(tmp.getType()==Material.AIR) {
         loc = tmp.getLocation();
         break;
@@ -374,36 +466,27 @@ public class Dungeon {
   }
   
   
-  public void saveDB(EbeanServer db) {
-    int num = 0;
+  public void saveDB(Catacombs plugin, CatSQL sql) {
+    System.err.print("Need to implent Dungeon.saveDB()");
     
-    // What a mess! Copy to a flat dedicated object for saving the key info
-    for(CatLevel l : levels) {
-      dbLevel n = new dbLevel();
-      n.setDname(name);
-      n.setWname(world.getName());
-      n.setPname(builder);
+    int i = 0;
+    for(CatLevel l: levels) {
       CatCuboid cube = l.getCube();
-      n.setHut(cube.isHut());
-      n.setXl(cube.xl);
-      n.setYl(cube.yl);
-      n.setZl(cube.zl);
-      n.setXh(cube.xh);
-      n.setYh(cube.yh);
-      n.setZh(cube.zh);
-      n.setSx(l.getTop().x);
-      n.setSy(l.getTop().y);
-      n.setSz(l.getTop().z);
-      n.setEx(l.getBot().x);
-      n.setEy(l.getBot().y);
-      n.setEz(l.getBot().z);
-      n.setDx(cube.dx());  // Dx and Dy strictly aren't needed, they could be computed from cube size
-      n.setDy(cube.dz());  // 3D-2D so use dz for Y size
-      n.setMap(l.getMap());
-      n.setEnable(cube.getEnable());
-      n.setNum(num++);
-      db.save(n);
-    }
+      int hut = (cube.isHut())?1:0;
+      Vector top = l.getTop();
+      Vector bot = l.getBot();
+      int en = (cube.isEnabled())?1:0;
+      sql.command("INSERT INTO levels"+
+        "(dname,wname,pname,hut,enable,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,dx,dy,num,map) VALUES"+
+        "('"+name+"','"+world.getName()+"','"+builder+"',"+hut+","+en+
+          ","+cube.xl+","+cube.yl+","+cube.zl+
+          ","+cube.xh+","+cube.yh+","+cube.zh+
+          ","+top.x+","+top.y+","+top.z+
+          ","+bot.x+","+bot.y+","+bot.z+
+          ","+cube.dx()+","+cube.dz()+","+i+",''"+
+        ");");
+      i++;
+    } 
   }
     
   public Boolean isBuilt() {
@@ -434,37 +517,46 @@ public class Dungeon {
     }
     return false;
   }
+
+  public List<Player> allPlayersInRaw() {
+    List<Player> list = new ArrayList<Player>();
+    for(Player player : world.getPlayers()) {
+      if(isInRaw(player.getLocation().getBlock())) {
+        list.add(player);
+      }
+    }
+    return list;
+  }
+  
+  public List<Player> allPlayersProtected() {
+    List<Player> list = new ArrayList<Player>();
+    for(Player player : world.getPlayers()) {
+      if(isProtected(player.getLocation().getBlock())) {
+        list.add(player);
+      }
+    }
+    return list;
+  }
+  
+  private void movePlayers(Location tloc, List<Player> list) {
+    for(Player player : list) {
+      if(tloc!=null) {
+        player.teleport(tloc);
+      } else {
+        Location ploc = player.getLocation();
+        Location safe_place = world.getHighestBlockAt(ploc).getLocation();
+        player.teleport(safe_place);
+      }      
+    }
+  }
   
   public void allPlayersToTop() {
-    for(Player player : world.getPlayers()) {
-      Location ploc = player.getLocation();
-      Block blk = player.getLocation().getBlock();
-      if(isInRaw(blk)) {
-        Location tloc = getTopLocation();
-        if(tloc!=null) {
-          player.teleport(tloc);
-        } else {
-          Location safe_place = world.getHighestBlockAt(ploc).getLocation();
-          player.teleport(safe_place);
-        }
-      }
-    }
+    movePlayers(getTopLocation(),allPlayersInRaw());
   }
+  
   public void allPlayersToTopProt() {
-    for(Player player : world.getPlayers()) {
-      Location ploc = player.getLocation();
-      Block blk = player.getLocation().getBlock();
-      if(isProtected(blk)) {
-        Location tloc = getTopLocation();
-        if(tloc!=null) {
-          player.teleport(tloc);
-        } else {
-          Location safe_place = world.getHighestBlockAt(ploc).getLocation();
-          player.teleport(safe_place);
-        }
-      }
-    }
-  }
+    movePlayers(getTopLocation(),allPlayersProtected());
+  }  
 
   public void registerCubes(MultiWorldProtect prot) {
     String wld = world.getName();
@@ -487,7 +579,7 @@ public class Dungeon {
       name = "default";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         "#######",
-        "#oATfo#",
+        "#oaTfo#",
         "#o.:.o#",
         "#t:V:t#",
         "#z.:.z#",
@@ -498,9 +590,9 @@ public class Dungeon {
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         " #D# ",
         "#:V:#",
-        "#.:.#",
-        "#t.t#",
-        "#...#",
+        "#t:t#",
+        "#o.o#",
+        "#o.o#",
         " #+# "
       }));
       name = "tiny";
@@ -517,55 +609,50 @@ public class Dungeon {
       }));
       name = "medium";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
-        "...t...t...",
-        ".##GGGGG##.",
-        "t#ZoZoZoZ#t",
-        ".Gz.z.z.zG.",
-        ".Gt.....tG.",
-        "tGA......Gt",
-        ".Gf.....:G.",
-        ".#T....:VD.",
-        ".t$.txt.Dt.",
-        "...##+##...",
-        ">21x......."
+        "```~```~```",
+        "`##GGGGG##`",
+        "~#ZoZoZoZ#~",
+        "`Gz.z.z.zG`",
+        "`Gt.....tG`",
+        "~Ga.....oG~",
+        "`Gf.....:G`",
+        "`#T....:VD`",
+        "``#otxtoD``",
+        "`~`##+##`~`",
+        "```````````"
       }));
       name = "large";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         "~```````````````~",
         "```##GGGGGGG##```",
-        "``#.Zoo.t.ooZ.#``",
-        "`#..z.......z..#`",
+        "``#oZoo.t.ooZo#``",
+        "`#o.z.......z.o#`",
         "`Gt...........tG`",
-        "`Go............G`",
-        "`Go.....t.....AG`",
-        "`GZz....#.....TG`",
-        "`Gt...........tG`",
+        "`Go...........oG`",
+        "`Go.....t.....aG`",
+        "`GZz...o#o....TG`",
+        "`Gt.....o.....tG`",
         "`Go...........fG`",
-        "`#o........GGGD#`",
-        "`#Zzt...x..Gt:VD`",
+        "`#o.......oGGGD#`",
+        "`#Zztoo.x.oGt:VD`",
         "`#######+###+#D#`",
-        "`#......x......#`",
+        "`#oo.oo.x.oo.oo#`",
         "``#t....x....t#``",
         "```#GGG#+#GGG#```",
         "~``````~`~``````~"
       }));
       name = "testboss";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
-        "#################",
-        "#..t....t....t..#",
-        "#...............#",
-        "#t......o......t#",
-        "#...............#",
-        "#...............#",
-        "#.......t.......#",
-        "#t.....t#t.....t#",
-        "#.......t.......#",
-        "#...............#",
-        "#.......:.......#",
-        "#t.....:V:.....t#",
-        "#.......:.......#",
-        "#..t....t....t..#",
-        "########+########"
+        "     D     ",
+        "####D*D####",
+        "#...t.t...#",
+        "#.........#",
+        "#.........#",
+        "#t.......t#",
+        "#....:....#",
+        "#...:V:...#",
+        "#...t:t...#",
+        "#####+#####"
       }));
     }
   }

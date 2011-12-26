@@ -20,6 +20,7 @@
 
 package net.steeleyes.catacombs;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -28,38 +29,39 @@ import org.bukkit.inventory.Inventory;
 public class CatLoot {
 
   static public void fillChest(CatConfig cnf, Inventory inv, List<String> list) {
-    for(String loot : list) {
-      String tmp[] = loot.split(":");
-      Material m = Material.matchMaterial(tmp[0]);
-      if(m!=null) {
-        //System.out.print("[Catacombs] "+m+" ("+tmp[1]+"%) ("+tmp[2]+")"); 
-        if(cnf.Chance(Integer.parseInt(tmp[1]))) {
-          String vals[] = tmp[2].split("-");
-          if(vals.length == 1) {
-            inv.addItem(new ItemStack(m,Integer.parseInt(vals[0])));
-          } else {
-            inv.addItem(new ItemStack(m,cnf.nextInt(Integer.parseInt(vals[1])-Integer.parseInt(vals[0])+1)+Integer.parseInt(vals[0])));
-          }
-        }
-      }
-    }    
+    List<ItemStack> ll = new ArrayList<ItemStack>();
+    fillChest(cnf,ll,list);
+    for(ItemStack i: ll) {
+      inv.addItem(i);
+    }  
   }
   static public void fillChest(CatConfig cnf, List<ItemStack> inv, List<String> list) {
     for(String loot : list) {
       String tmp[] = loot.split(":");
-      Material m = Material.matchMaterial(tmp[0]);
+      String matName = tmp[0];
+      byte code=0;
+      if(matName.contains("/")) {
+        String mat[] = matName.split("/");
+        matName = mat[0];
+        code = Byte.parseByte(mat[1]);
+      }
+      Material m = Material.matchMaterial(matName);
       if(m!=null) {
-        //System.out.print("[Catacombs] "+m+" ("+tmp[1]+"%) ("+tmp[2]+")"); 
         if(cnf.Chance(Integer.parseInt(tmp[1]))) {
           String vals[] = tmp[2].split("-");
+          int num = 1;
+          int lo = Integer.parseInt(vals[0]);
           if(vals.length == 1) {
-            inv.add(new ItemStack(m,Integer.parseInt(vals[0])));
+            num = lo;
           } else {
-            inv.add(new ItemStack(m,cnf.nextInt(Integer.parseInt(vals[1])-Integer.parseInt(vals[0])+1)+Integer.parseInt(vals[0])));
+            int hi = Integer.parseInt(vals[1]);
+            num = cnf.nextInt(hi-lo+1)+lo;
           }
+          ItemStack stk = (code>0)?new ItemStack(m,num,(short)0,code):new ItemStack(m,num);
+          inv.add(stk);
         }
       }
-    }    
+    }   
   }  
   static public void smallChest(CatConfig cnf,Inventory inv) {   
     if(cnf.SmallEquipChance())

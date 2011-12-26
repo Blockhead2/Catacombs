@@ -29,6 +29,17 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.block.Block;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class CatPlayerListener  extends PlayerListener{
   private static Catacombs plugin;
@@ -36,21 +47,7 @@ public class CatPlayerListener  extends PlayerListener{
   public CatPlayerListener(Catacombs instance) {
     plugin = instance;
   }
-/*
-  @Override
-  public void onPlayerLogin(PlayerLoginEvent event){
-    Player player = event.getPlayer();
 
-    //plugin.sql.playerlogin(player.getName());
-    if(plugin.debug) {
-      if(plugin.permissions.admin(player)) {
-        System.out.println("[" + plugin.info.getName() + "] Player '"+player+"' logged in (is admin)");
-      } else {
-        System.out.println("[" + plugin.info.getName() + "] Player '"+player+"' logged in (is not admin)");
-      }
-    }
-  }
- */
   @Override
   public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
     if (event.isCancelled())
@@ -76,16 +73,50 @@ public class CatPlayerListener  extends PlayerListener{
     
     Block blk = event.getClickedBlock();
     if(blk.getType()==Material.STONE_BUTTON && plugin.prot.isInRaw(blk)) {
-      plugin.Commands(event.getPlayer(),new String[] {"reset"} );
+      Dungeon dung = plugin.dungeons.which(blk);
+      plugin.Commands(null,new String[] {"reset",dung.getName()} );
     }
     
-    // Will be hand for boss mob spawn!
-    //if(blk.getType()==Material.CHEST && plugin.prot.isInRaw(blk)) {
-    //  System.out.println("[Catacombs] Chest open");
-    //  event.setCancelled(true);
-    //  plugin.test_encounter = new CatEncounter(blk);
-    //}
+    if(false && /*plugin.cnf.BossEnabled() && */ blk.getType()==Material.CHEST &&
+       plugin.prot.isInRaw(blk) && blk.getRelative(BlockFace.DOWN).getType()==Material.GRASS) {
+            
+      Dungeon dung = plugin.dungeons.which(blk);
+      if(dung.bossKilled())
+        return;
+        
+      if(!dung.triggerEncounter(plugin,blk)) {
+        plugin.inform(event.getPlayer(),"There is a battle already in progress in this dungeon");
+      }
+      event.setCancelled(true);
+    } 
   }  
+  
+  @Override
+  public void onPlayerFish(PlayerFishEvent evt) {
+    //System.out.println("[Catacombs] fish state="+evt.getState()+" caught="+evt.getCaught()+" dur="+evt.getPlayer().getItemInHand().getDurability());
+    if(evt.getState() == PlayerFishEvent.State.CAUGHT_ENTITY) {
+      if(evt.getCaught() instanceof Player) {
+        Player healer = evt.getPlayer();
+        Player healee = (Player) evt.getCaught();
+        plugin.monsters.playerHeals(healer,healee);
+      //} else {  // Fish monsters to test healing code    
+      //  Player healer = evt.getPlayer();
+      //  plugin.monsters.playerHeals(healer,healer);
+      }
+    }
+  }
+  
+  @Override
+  public void onPlayerRespawn(PlayerRespawnEvent evt) {
+    Player player = evt.getPlayer();
+    if(plugin.players.hasGear(player)) {
+      if(plugin.cnf.DeathKeepGear() && CatUtils.takeCash(player, plugin.cnf.DeathGearCost(),"to restore your equipment")) {
+        plugin.players.restoreGear(player);
+      } else {
+        plugin.players.dropGear(player);
+      }
+    }
+  }
   
   @Override
   public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
@@ -110,4 +141,53 @@ public class CatPlayerListener  extends PlayerListener{
       event.setCancelled(true);
     }
   }
+  
+  @Override
+  public void onPlayerJoin(PlayerJoinEvent evt) {
+    
+  }
+  
+  @Override
+  public void onItemHeldChange(PlayerItemHeldEvent evt) {
+    
+  }
+  
+  @Override
+  public void onPlayerPortal(PlayerPortalEvent evt) {
+    plugin.monsters.removeThreat(evt.getPlayer());
+  }
+  
+  @Override
+  public void onPlayerChangedWorld(PlayerChangedWorldEvent evt) {
+    plugin.monsters.removeThreat(evt.getPlayer());
+  }
+  
+  @Override
+  public void onPlayerBedEnter(PlayerBedEnterEvent evt) {
+    plugin.monsters.removeThreat(evt.getPlayer());
+  }
+  
+  //@Override
+  //public void onPlayerBedLeave(PlayerBedLeaveEvent evt) {
+  // 
+  //}  
+  
+  @Override
+  public void onPlayerKick(PlayerKickEvent evt) {
+    plugin.monsters.removeThreat(evt.getPlayer());
+  }
+  
+  @Override
+  public void onPlayerQuit(PlayerQuitEvent evt) {
+    plugin.monsters.removeThreat(evt.getPlayer());
+  }
+  
+  @Override
+  public void onPlayerTeleport(PlayerTeleportEvent evt) {
+    Block blk = evt.getTo().getBlock();
+    //Boolean inDungeon =   plugin.prot.isInRaw(blk);
+    //System.out.println("[Catacombs] Player teleport inDungeon="+inDungeon+" "+evt.getCause());
+    plugin.monsters.removeThreat(evt.getPlayer());
+  }
+
 }

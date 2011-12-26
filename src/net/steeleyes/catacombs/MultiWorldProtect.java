@@ -49,7 +49,7 @@ public class MultiWorldProtect {
   }
   
   public Boolean overlaps(Dungeon dung) {
-    String world = dung.getName();
+    String world = dung.getWorld().getName();
     if(protect.containsKey(world)) {
       WorldProtect p = protect.get(world);
       return p.overlaps(dung);

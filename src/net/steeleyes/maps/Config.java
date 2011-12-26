@@ -19,21 +19,21 @@
 */
 package net.steeleyes.maps;
 
-//import net.steeleyes.catacombs.CatMat;
 import java.io.File;
 import java.util.List;
 import java.util.Random;
 
-import org.bukkit.util.config.Configuration;
-//import org.bukkit.configuration.Configuration;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 
 public class Config implements IConfig {
-  protected static Configuration cnf;
+  protected static FileConfiguration fcnf;
+  //protected static Configuration cnf;
   protected static final String def_style = "catacomb";
   protected String style                  = "catacomb";
   public final Random rnd = new Random();
-  protected final String filename;
+  //protected final String filename;
+  protected File filename;
 
 
   private Integer RoomMax()          { return getSInt(EConfig.RoomMax.getStr());  }
@@ -56,6 +56,7 @@ public class Config implements IConfig {
   private Integer LavaPct()          { return getSInt(EConfig.LavaPct.getStr());  }
   private Integer ShroomPct()        { return getSInt(EConfig.ShroomPct.getStr());  }
   private Integer BenchPct()         { return getSInt(EConfig.BenchPct.getStr());  }
+  private Integer EnchantPct()       { return getSInt(EConfig.EnchantPct.getStr());  }
   private Integer OvenPct()          { return getSInt(EConfig.OvenPct.getStr());  }
   private Integer DoubleDoorPct()    { return getSInt(EConfig.DoubleDoorPct.getStr());  }
   
@@ -69,35 +70,36 @@ public class Config implements IConfig {
   public  Boolean SpecialChance()    { return Chance(SpecialPct()); }
   public  Boolean ShroomChance()     { return Chance(ShroomPct()); }
   public  Boolean BenchChance()      { return Chance(BenchPct()); }
+  public  Boolean EnchantChance()    { return Chance(EnchantPct()); }
   public  Boolean OvenChance()       { return Chance(OvenPct()); }
   public  Boolean DoubleDoorChance() { return Chance(DoubleDoorPct()); }
-  
-  public Config(String file) {
-    this.filename = file;
-    cnf = new Configuration(new File("plugins" + File.separator + "Catacombs",filename));
-    cnf.load();
-    setDefaults();
-    cnf.save();
-  }
-  
-  public Config(Configuration config) {
-    this.filename = "config.yml";        
-    cnf = config;
-    cnf.load();
-    setDefaults();
-    cnf.save();
-  }  
+
+  public Config(FileConfiguration fconfig) {
+    filename = new File("plugins" + File.separator + "Catacombs" + File.separator + "config.yml");
+    fcnf = fconfig;
+    try {
+      if(filename.exists()) {
+        fcnf.load(filename);
+      } else {
+        System.out.println("[Catacombs] config file doesn't exist");
+      }
+      setDefaults();
+      //System.out.println("[Catacombs] save to "+filename);
+      fcnf.save(filename);
+    } catch (Exception e) {
+      System.err.println("[Catacombs] "+e.getMessage());
+    }
+  }   
   
   private void setDefaults() {
     for(EConfig att : EConfig.values()) {
       String path = att.getStr();
       if(path.substring(0,1).equals("."))
         path = def_style+path;
-      
-      if(cnf.getProperty(path)==null) {
+      if(fcnf.get(path)==null) {
         Object val = att.getDef();
         //System.out.println("[Catacombs] Setting "+path+" = "+val);
-        cnf.setProperty(path,val);
+        fcnf.set(path,val);
       }
     }  
   }
@@ -121,12 +123,20 @@ public class Config implements IConfig {
     }
     return -1;
   }  
+  
   public Boolean checkLoot(List<String> list) {
     Boolean ok = true;
     for(String loot : list) {
       try {
         String tmp[] = loot.split(":");
         String matName = tmp[0];
+        byte code=0;
+
+        if(matName.contains("/")) {
+          String mat[] = matName.split("/");
+          matName = mat[0];
+          code = Byte.parseByte(mat[1]);
+        }
         Material m = Material.matchMaterial(matName);
         if(m==null)
           throw new RuntimeException("Unknown material '"+matName+"' must be a number or a valid bukkit material name");
@@ -198,13 +208,13 @@ public class Config implements IConfig {
   public Boolean exists(String path) {
     Object property = null;
     if(path.substring(0,1).equals(".")) {
-      property = cnf.getProperty(style + path);
+      property = fcnf.get(style + path);
       if (property == null) {
-        property = cnf.getProperty(def_style + path);
+        property = fcnf.get(def_style + path);
       }
     }
     if (property == null) {
-      property = cnf.getProperty(path);
+      property = fcnf.get(path);
     }
     path = path.substring(1);
     return property != null;    
@@ -213,14 +223,14 @@ public class Config implements IConfig {
   protected Object getSP(String path) {
     Object property = null;
     if(path.substring(0,1).equals(".")) {
-      property = cnf.getProperty(style + path);
+      property = fcnf.get(style + path);
       if (property == null) {
-        property = cnf.getProperty(def_style + path);
+        property = fcnf.get(def_style + path);
       }
       path = path.substring(1);
     }
     if (property == null) {
-      property = cnf.getProperty(path);
+      property = fcnf.get(path);
     }
     if(property == null) {
       System.err.println("[Catacombs] No configuration attribute called "+path+" or <style>."+path);
@@ -230,16 +240,16 @@ public class Config implements IConfig {
 
   protected void setSP(String path,Object val) {
     if(path.substring(0,1).equals(".")) {
-      if(cnf.getProperty(style + path)!=null) {
-        cnf.setProperty(style + path,(Object)val);
+      if(fcnf.get(style + path)!=null) {
+        fcnf.set(style + path,(Object)val);
       }
-      if(cnf.getProperty(def_style + path)!=null) {
-        cnf.setProperty(def_style + path,(Object)val);
+      if(fcnf.get(def_style + path)!=null) {
+        fcnf.set(def_style + path,(Object)val);
       }  
       path = path.substring(1);
     }
-    if(cnf.getProperty(path)!=null) {
-      cnf.setProperty(path,(Object)val);
+    if(fcnf.get(path)!=null) {
+      fcnf.set(path,(Object)val);
     }       
   }  
   
