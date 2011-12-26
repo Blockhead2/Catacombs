@@ -20,17 +20,13 @@ along with Catacombs.  If not, see <http://www.gnu.org/licenses/>.
 package net.steeleyes.catacombs;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 public class Players {
   public  Map<Player,CatPlayer>       players = new HashMap<Player,CatPlayer>();
   
   public  Map<Player,CatGear> gear = new HashMap<Player,CatGear>();
-  //public Players() {
-  //}
   
   public Boolean isManaged(Player p) {
     return players.containsKey(p);
@@ -40,9 +36,7 @@ public class Players {
     return gear.containsKey(player);
   }
   
-  //public void saveGear(Player player,List<ItemStack> drops) {
   public void saveGear(Player player) {
-    //CatGear stuff = new CatGear(player,drops);
     CatGear stuff = new CatGear(player);
     gear.put(player, stuff);
   }

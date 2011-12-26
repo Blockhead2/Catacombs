@@ -117,8 +117,8 @@ public class CatConfig extends Config implements ICatConfig {
       if(!fcnf.contains("grand")) {
         fcnf.set("grand.Archway.DoubleWidthPct",100);
         fcnf.set("grand.Depth.room",4);
-        fcnf.set("grand.Corridor.Width3Pct",20);
-        fcnf.set("grand.Corridor.Width2Pct",80);
+        fcnf.set("grand.Corridor.Width3Pct",30);
+        fcnf.set("grand.Corridor.Width2Pct",70);
         fcnf.set("grand.Corridor.Max",14);
         fcnf.set("grand.Corridor.Min",3);
         fcnf.set("grand.Room.Max",14);
@@ -126,32 +126,11 @@ public class CatConfig extends Config implements ICatConfig {
         fcnf.set("grand.Room.Clutter.ChestPct",55);
         fcnf.set("grand.Room.Clutter.SpawnerPct",70);
         fcnf.set("grand.CorridorPct",20);
-        fcnf.set("grand.RadiusMax",20);       
-        fcnf.set("grand.SpecialPct",20);       
+        fcnf.set("grand.RadiusMax",30);       
+        fcnf.set("grand.SpecialPct",30);       
         fcnf.set("grand.Hut.Type","medium");       
       }
-      if(false && !fcnf.contains("arenas")) {
-        fcnf.set("arenas.default.waves.single.swarm1.type","default");
-        fcnf.set("arenas.default.waves.single.swarm1.wave",1);
-        fcnf.set("arenas.default.waves.single.swarm1.monsters.zombies",10);
-        fcnf.set("arenas.default.waves.single.swarm1.monsters.skeletons",10);
-        fcnf.set("arenas.default.waves.single.swarm1.monsters.spiders",10);
-        fcnf.set("arenas.default.waves.single.swarm1.monsters.creepers",10);
-        fcnf.set("arenas.default.waves.single.swarm1.monsters.wolves",10);
-        
-        String abilities = "fireballs, flood, root-target, arrows, fetch-distant, fire-aura, living-bomb, "+
-           "chain-lightning, disorient-target, root-target, warp-to-player, shuffle-positions, "+
-           "throw-target, throw-nearby, throw-distant, fetch-target, fetch-nearby, fetch-distant";
-        fcnf.set("arenas.default.waves.single.zombie_of_death.type","boss");
-        fcnf.set("arenas.default.waves.single.zombie_of_death.wave",2);
-        fcnf.set("arenas.default.waves.single.zombie_of_death.monster","zombie");
-        fcnf.set("arenas.default.waves.single.zombie_of_death.health","low");
-        fcnf.set("arenas.default.waves.single.zombie_of_death.abilities",abilities);
-        fcnf.set("arenas.default.waves.single.zombie_of_death.ability-interval",3);
-        fcnf.set("arenas.default.waves.single.zombie_of_death.ability-announce",true);
 
-      }
-      //System.out.println("[Catacombs] save to "+filename);
       fcnf.save(filename);
       checkConfig();
     } catch (Exception e) {

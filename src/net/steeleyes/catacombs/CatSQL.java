@@ -1,4 +1,22 @@
+/*  This file is part of Catacombs.
 
+    Catacombs is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Catacombs is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Catacombs.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * @author John Keay  <>(@Steeleyes, @Blockhead2)
+ * @copyright Copyright (C) 2011
+ * @license GNU GPL <http://www.gnu.org/licenses/>
+*/
 package net.steeleyes.catacombs;
 
 import java.sql.Connection;
@@ -6,7 +24,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import org.bukkit.World;
-
 
 public class CatSQL {
   
@@ -41,8 +58,6 @@ public class CatSQL {
     try {
       Statement stat = conn.createStatement();
       int res = stat.executeUpdate(cmd);
-      //if(res != 0)
-      //  System.err.println("[Catacombs] SQL error code "+res+" command="+cmd);
       stat.close();
     } catch (Exception e) {
       System.err.println("[Catacombs] Sqlite error: "+e.getMessage());
@@ -119,7 +134,7 @@ public class CatSQL {
   }
   
   public void dropTables() {
-    // Need to figure out the locking
+    // ToDo: Need to figure out the locking
     System.out.println("[Catacombs] Dropping SQL tables");
     command("DROP TABLE IF EXISTS `dungeons`;");
     command("DROP TABLE IF EXISTS `levels2`;");
@@ -276,40 +291,4 @@ public class CatSQL {
   } 
 }  
 
-        //Statement stat = conn.createStatement();
-    
-    //ResultSet rs = stat.executeQuery("select * from levels;");
-    //while (rs.next()) {
-    //  System.out.println("id(" + rs.getString("id")+" dname("+rs.getString("dname")+")");
-   // }
-   // rs.close();
-    
-    
-//    stat.executeUpdate("drop table if exists people;");
-//    stat.executeUpdate("create table people (name, occupation);");
-//    
-//    PreparedStatement prep = conn.prepareStatement(
-//      "insert into people values (?, ?);");
-//
-//    prep.setString(1, "Gandhi");
-//    prep.setString(2, "politics");
-//    prep.addBatch();
-//    prep.setString(1, "Turing");
-//    prep.setString(2, "computers");
-//    prep.addBatch();
-//    prep.setString(1, "Wittgenstein");
-//    prep.setString(2, "smartypants");
-//    prep.addBatch();
-//
-//    conn.setAutoCommit(false);
-//    prep.executeBatch();
-//    conn.setAutoCommit(true);
-//
-//    ResultSet rs = stat.executeQuery("select * from people;");
-//    while (rs.next()) {
-//      System.out.println("name = " + rs.getString("name"));
-//      System.out.println("job = " + rs.getString("occupation"));
-//    }
-//    rs.close();
-    //conn.close();
   

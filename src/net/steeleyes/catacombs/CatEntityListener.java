@@ -75,7 +75,6 @@ public class CatEntityListener extends EntityListener {
           pevt.setDroppedExp(0);
           int expLevel = player.getLevel();
           pevt.setNewExp((int)(7.0*expLevel*plugin.cnf.DeathExpKept()));
-          //plugin.players.saveGear(player,evt.getDrops());
           plugin.players.saveGear(player);
           evt.getDrops().clear(); // We'll handle to items, don't drop them
         }

@@ -48,12 +48,7 @@ public class BlockChangeHandler implements Runnable {
   }
 
   private void setBlock(BlockChange x) {
-    Block blk = x.getBlk();
-    //Object o = blk.getState();
-    //if(o != null && o instanceof ContainerBlock) {
-    //  ContainerBlock cont = (ContainerBlock) o;
-    //  cont.getInventory().clear();
-    //}    
+    Block blk = x.getBlk();   
     if(x.getCode()>=0)
       blk.setTypeIdAndData(x.getMat().getId(),x.getCode(),false);
     else
