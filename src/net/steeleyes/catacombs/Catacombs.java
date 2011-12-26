@@ -70,6 +70,8 @@ Release v1.2
 * Fixed threat transfer bug on player death
 * Added some more special rooms and fixed a couple of minor mapping bugs
 * Added silverfish spawners
+* Removed legacy support for old MySQL databases (people have had plenty of
+  time to convert to the new format).
 
 
 Release v1.1
@@ -327,25 +329,9 @@ public class Catacombs extends JavaPlugin {
       permissions = new CatPermissions(this.getServer());
       prot = new MultiWorldProtect();
 
-      if(needToConvert()) {
-        if(cnf.SaveDungeons())
-          setupDatabase();  
-        System.out.print("[" + info.getName() + "] found legacy MySQL database (attempting to convert)");
-        CatDatabase mysql = new CatDatabase(cnf);
-        if(cnf.SaveDungeons()) {
-          //ConvertMySQL(mysql,getDatabase());
-          ConvertMySQL(mysql,sql);
-          dungeons = new Dungeons(this,sql);  
-        } else {
-          System.out.print("[" + info.getName() + "] Can't convert database (SaveDungeons is false)");
-          dungeons = new Dungeons(this,null);  
-        }
-      } else {
-        if(cnf.SaveDungeons())
-          setupDatabase();  
-        //dungeons = new Dungeons(this,getDatabase());  
-        dungeons = new Dungeons(this,sql);  
-      }
+      if(cnf.SaveDungeons())
+        setupDatabase();  
+      dungeons = new Dungeons(this,sql);  
 
       PluginManager pm = this.getServer().getPluginManager();
       
@@ -406,84 +392,11 @@ public class Catacombs extends JavaPlugin {
     }
   }
   
-  public Boolean needToConvert() {
-    String maindirectory = "plugins" + File.separator + info.getName();
-    File file = new File(maindirectory + File.separator + info.getName() + ".db");
-    Boolean there = file.exists();
-    //System.out.println("[" + info.getName() + "] file exists? "+there);
-    return !there && cnf.MySQLEnabled();
-  }
-  
-  public void ConvertMySQL(CatDatabase mysql, CatSQL sql) { 
-    if(mysql!=null) {
-
-      for (String wname : mysql.getWorlds()) {
-        System.out.println("[" + info.getName() + "] convert world:"+wname);
-        World world = getServer().getWorld(wname);
-        if(world == null) {
-          System.err.println("[" + info.getName() + "] Can't find the world '"+wname+"' referred to by the MySQL database");
-          return;
-        }
-        for (String dname : mysql.getDungeons(wname)) {
-          System.out.println("[" + info.getName() + "]           dungeon:"+dname);
-          int i = 0;
-          for (CatCuboid cube: mysql.getDungeonCubes(dname)) {
-            int hut = (cube.isHut())?1:0;
-            sql.command("INSERT INTO levels"+
-              "(dname,wname,pname,hut,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,dx,dy,num) VALUES"+
-              "('"+dname+"','"+wname+"','???',"+hut+
-                ","+cube.xl+","+cube.yl+","+cube.zl+
-                ","+cube.xh+","+cube.yh+","+cube.zh+
-                ","+((cube.xh+cube.xl)>>1)+","+cube.yh+","+((cube.zh+cube.zl)>>1)+
-                ",0,0,0,0,0,"+i+
-              ");");
-            //dbLevel lvl = new dbLevel();
-            //lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.isHut());
-            //db.save(lvl);
-            i++;
-          }
-        }
-      }       
-    }
-  }
-  
-//  public void ConvertMySQL(CatDatabase sql,EbeanServer db) { 
-//    if(sql!=null) {
-//
-//      for (String wname : sql.getWorlds()) {
-//        System.out.println("[" + info.getName() + "] convert world:"+wname);
-//        World world = getServer().getWorld(wname);
-//        if(world == null) {
-//          System.err.println("[" + info.getName() + "] Can't find the world '"+wname+"' referred to by the MySQL database");
-//          return;
-//        }
-//        for (String dname : sql.getDungeons(wname)) {
-//          System.out.println("[" + info.getName() + "]           dungeon:"+dname);
-//          for (CatCuboid cube: sql.getDungeonCubes(dname)) {
-//            dbLevel lvl = new dbLevel();
-//            lvl.setLegacy(dname, wname, cube.xl, cube.yl, cube.zl, cube.xh, cube.yh, cube.zh, cube.isHut());
-//            db.save(lvl);
-//          }
-//        }
-//      }       
-//    }
-//  }
-  
   public void onDisable(){
     Methods.reset();
     System.out.println("[catacombs] plugin has been disabled!");
     enabled = false;
   }
-  
-//  private void testDatabase() {
-//    List<dbLevel> list = getDatabase().find(dbLevel.class).where().findList();
-//    if (list == null || list.isEmpty()) {
-//      System.out.println("No entries match that pattern");
-//    } else {
-//      for(dbLevel cube: list)
-//        System.out.println("---->"+cube);
-//    }    
-//  }
   
   private void setupDatabase() {
     sql = new CatSQL("plugins"+File.separator+"Catacombs"+File.separator+"Catacombs.db");
@@ -497,95 +410,11 @@ public class Catacombs extends JavaPlugin {
     
     sql.createTables();
     
-    if(hasLevels && !hasDungeons) {
-      System.out.println("[Catacombs] Converting old dungeon data to new format");
-      sql.Convert2(this);
-    }
-    
-
-  }  
-    //Boolean hasDungeons = mysql.tableExists("dungeons");
-    //Boolean hasLevels = mysql.tableExists("levels");
-
-    //if(hasLevels && !hasDungeons) {
-      
-    //}
-//    try {
-//      CatSQL s = new CatSQL();
-//      //System.out.println("levels exists "+s.tableExists("levels"));
-//      //System.out.println("dungeons exists "+s.tableExists("dungeons"));
-//      String dt = "dungeons";
-//      if(!s.tableExists(dt)) {
-//        s.command("CREATE TABLE `"+dt+"` (" +
-//          "did INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-//          "version TEXT," +
-//          "dname TEXT," +
-//          "wname TEXT," +
-//          "pname TEXT," +
-//          "major TEXT," +
-//          "minor TEXT," +
-//          "enable INTEGER" +
-//          ");");
-//      }
-//      
-//      String lt = "levels2";
-//      if(!s.tableExists(lt)) {
-//        s.command("CREATE TABLE `"+lt+"` (" +
-//          "lid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-//          "did INTEGER," +
-//          "num INTEGER," +
-//          "type TEXT," +
-//          "room INTEGER," +
-//          "roof INTEGER," +
-//          "floor INTEGER," +
-//          "xl INTEGER," +
-//          "yl INTEGER," +
-//          "zl INTEGER," +
-//          "xh INTEGER," +
-//          "yh INTEGER," +
-//          "zh INTEGER," +
-//          "sx INTEGER," +
-//          "sy INTEGER," +
-//          "sz INTEGER," +
-//          "ex INTEGER," +
-//          "ey INTEGER," +
-//          "ez INTEGER" +
-//        ");");
-//
-//      }
-//    } catch(Exception e) {
-//      System.err.println(e.getMessage());
+//    if(hasLevels && !hasDungeons) {
+//      System.out.println("[Catacombs] Converting old dungeon data to new format");
+//      sql.Convert2(this);
 //    }
-//    
-//    
-//    
-    
-//    database = new MyDatabase(this) {
-//      @Override
-//      protected java.util.List<Class<?>> getDatabaseClasses() {
-//        List<Class<?>> list = new ArrayList<Class<?>>();
-//        list.add(dbLevel.class);        
-//        return list;
-//      };
-//    };
-//    database.initializeDatabase(
-//      "org.sqlite.JDBC",
-//      "jdbc:sqlite:{DIR}{NAME}.db",
-//      "bukkit",
-//      "walrus",
-//      "SERIALIZABLE",
-//      false,
-//      false
-//    );  
-//  }
-  
-  //@Override
-  //public EbeanServer getDatabase() {
-  //  if(database == null)
-  //    return null;
-  //  return database.getDatabase();
-  //}
-  
+  }  
 
   @Override
   public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
