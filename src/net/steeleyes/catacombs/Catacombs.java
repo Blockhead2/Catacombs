@@ -53,10 +53,7 @@ Release v1.2
 * Worked around bug with tough AdvancedCombat creatures getting killed in one shot
   by enchanted weapons.
 * Added a '/cat unplan <name>' command to discard a planned dungeon that hasn't
-  been built.
-* Removed reliance on java persistence, EbeanServer and 'MyDatabase' because it
-  proved too hard to expand and control sqlite databases when they are heavily
-  wrapped in other layers.
+  been built. This is useful when unbuilt dungeons can't be built because they overlap.
 * Fixed code so cash isn't give for kills outside the dungeon.
 * Added options to automatically charge players to keep their gear on them when
   they die in dungeons. This saves cluttering the dungeons and everybody having
@@ -72,7 +69,10 @@ Release v1.2
   time to convert to the new format), also removed use of lennardf1989 handy
   MyDatabase wrapper. There's nothing wrong with the wrapper itself it just
   seems much easier to work directly with sqlite (or MySQL) than the javax
-  persistence routines.
+  persistence routines. Now this is gone it is easier to save extra info
+  to the database (which I'll be doing in v1.3).
+* Prevented gold messages when players get 0 gold. Made the AdvancedCombat
+  rewards obey the GoldOff configuration.
 
 Release v1.1
 * Added option to allow Advanced Combat to be enabled.
@@ -400,14 +400,15 @@ public class Catacombs extends JavaPlugin {
   private void setupDatabase() {
     sql = new CatSQL("plugins"+File.separator+"Catacombs"+File.separator+"Catacombs.db");
     
-    Boolean hasLevels = sql.tableExists("levels");
-    Boolean hasDungeons = sql.tableExists("dungeons");
+    //Boolean hasLevels = sql.tableExists("levels");
+    //Boolean hasDungeons = sql.tableExists("dungeons");
     
-    if(false) {
+    //if(false) {
       //sql.dropTables();
-    }
+    //}
     
-    sql.createTables();
+    sql.createLegacyTables();
+    //sql.createTables();
     
 //    if(hasLevels && !hasDungeons) {
 //      System.out.println("[Catacombs] Converting old dungeon data to new format");

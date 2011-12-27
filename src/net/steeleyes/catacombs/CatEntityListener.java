@@ -86,8 +86,8 @@ public class CatEntityListener extends EntityListener {
         Entity damager = CatUtils.getDamager(ev);
         if(damager instanceof Player) {
           int gold = plugin.cnf.Gold();
-          String bal = CatUtils.giveCash(damager,gold);
-          if(bal!=null)
+          String bal = CatUtils.giveCash(plugin.cnf,damager,gold);
+          if(bal!=null && gold > 0)
             ((Player)damager).sendMessage(gold+" coins ("+bal+")");
         } 
       }

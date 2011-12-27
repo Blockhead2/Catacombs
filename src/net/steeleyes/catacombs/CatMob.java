@@ -32,6 +32,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 
 public class CatMob {
   private LivingEntity ent;
+  private String name;
   private HateTable hate;
   private int max_hps;
   private int hps;
@@ -65,10 +66,13 @@ public class CatMob {
   
   @Override
   public String toString() {
-    return creature+"("+level+")";
+    return name+"-"+level;
   }
   
   private void common_init() {
+    name = creature.toString();
+    name = name.substring(0,1).toUpperCase()+name.substring(1).toLowerCase();
+
     ent.setHealth(ent.getMaxHealth()); // Make sure the entity has plenty of hits for us to work with
     int num = CatUtils.countPlayerNear(ent, cnf.GroupRadius(), cnf.GroupDepth());
     level = (num<1)?1:num;
@@ -147,9 +151,9 @@ public class CatMob {
         // "Share" cash and exp (simply give the cash and exp to all
         //   attackers to encourage team work)
         for(Entity attacker : hate.attackers()) {
-          String bal = CatUtils.giveCash(attacker, cash);
+          giveExp(attacker, exp);
+          String bal = CatUtils.giveCash(cnf,attacker, cash);
           if(bal != null) {
-            giveExp(attacker, exp);
             ((Player)attacker).sendMessage(cash+" coins ("+bal+") "+this);
           }
         }

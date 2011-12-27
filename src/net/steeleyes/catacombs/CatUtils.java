@@ -47,7 +47,9 @@ public class CatUtils {
     return rnd.nextInt(100)+1 <= i;
   }
   
-  public static String giveCash(Entity ent, int gold) {
+  public static String giveCash(CatConfig cnf,Entity ent, int gold) {
+    if(cnf.GoldOff())
+      return null;
     String res = null;
     if (ent instanceof Player) {
       Player player = (Player) ent;

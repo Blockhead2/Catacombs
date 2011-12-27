@@ -159,11 +159,12 @@ public class Monsters {
     if(damager instanceof Player) {
       Player player = (Player) damager;
       WildResp resp = isWild(damager,SWING_PLAYER,mob);
-      int reduce = CatUtils.armourEffect(player);
+      int adjust = CatUtils.armourEffect(player);
       if(resp.wild) {
         if(!CatUtils.hasBow(player)) {
-          player.sendMessage(String.format(ChatColor.RED+"%.3f"+ChatColor.DARK_GRAY+" %.1f WILD %s(%3d%%) -> %s"+ChatColor.WHITE,
-            (float)resp.delta/1000.0, (float)SWING_PLAYER/1000.0,mob,mob.getHealth(),mob.getTargetName()));
+          String adjustString = (adjust==0)?"":"armour("+ChatColor.RED+adjust+ChatColor.DARK_GRAY+") ";
+          player.sendMessage(String.format(ChatColor.RED+"%.3f"+ChatColor.DARK_GRAY+" %.1f WILD %s%s(%d%%) -> %s"+ChatColor.WHITE,
+            (float)resp.delta/1000.0, (float)SWING_PLAYER/1000.0,adjustString,mob,mob.getHealth(),mob.getTargetName()));
           evt.setCancelled(true);
           return;
         }
@@ -171,25 +172,28 @@ public class Monsters {
       ItemStack stk = player.getItemInHand();
       Material mat = stk.getType();
       if(mat == Material.SPIDER_EYE || mat == Material.BONE) {
-        System.out.println("[Catacombs] Taunt "+mat+" "+dmg);
+        //System.out.println("[Catacombs] Taunt "+mat+" "+dmg);
         if(mob.taunt(player)) {
           CatUtils.useOne(player);
+          player.sendMessage("You taunt "+mob+" with a "+mat);
         }
       } else if (mat == Material.ROTTEN_FLESH) {
-        System.out.println("[Catacombs] Feign death "+mat+" "+dmg);
+        //System.out.println("[Catacombs] Feign death "+mat+" "+dmg);
         if(mob.feignDeath(player)) {
           CatUtils.useOne(player);
+          player.sendMessage("You feed "+mob+" "+mat);
         }
       }
       int threat = CatUtils.getThreatFixDurability(player,dmg);
-      dmg -= reduce;
+      dmg += adjust;
       if(dmg<1) dmg = 1;
       if(mob.hit(damager, dmg, threat)) {
         evt.setDamage(100);
       }
+      String adjustString = (adjust==0)?"":"armour("+ChatColor.RED+adjust+ChatColor.WHITE+") ";
       ChatColor col = (resp.delta-SWING_PLAYER > 500)?ChatColor.YELLOW:ChatColor.GREEN;
-      player.sendMessage(String.format(col+"%.3f"+ChatColor.WHITE+" %.1f %s(%3d%%) -> %s",
-        (float)resp.delta/1000.0, (float)SWING_PLAYER/1000.0,mob,mob.getHealth(),mob.getTargetName()));        
+      player.sendMessage(String.format(col+"%.3f"+ChatColor.WHITE+" %.1f %s%s(%d%%) -> %s",
+        (float)resp.delta/1000.0, (float)SWING_PLAYER/1000.0,adjustString,mob,mob.getHealth(),mob.getTargetName()));        
 
       // Splash threat when using axes
       if(CatUtils.hasAxe(player)) {
