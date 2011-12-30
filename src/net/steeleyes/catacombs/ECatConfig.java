@@ -97,6 +97,7 @@ public enum ECatConfig {
     PigmanPct    (".Mob.Type.PigmanPct",8),
     CaveSpiderPct(".Mob.Type.CaveSpiderPct",10),
     BlazePct     (".Mob.Type.BlazePct",0),
+    CreeperPct   (".Mob.Type.CreeperPct",5),
     //SilverFishPct(".Mob.Type.SilverFishPct",5),
     GoldMin      (".Mob.Gold.Min", 1),
     GoldMax      (".Mob.Gold.Max", 10),

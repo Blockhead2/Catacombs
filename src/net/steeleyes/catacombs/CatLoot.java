@@ -39,11 +39,11 @@ public class CatLoot {
     for(String loot : list) {
       String tmp[] = loot.split(":");
       String matName = tmp[0];
-      byte code=0;
+      short code=0;
       if(matName.contains("/")) {
         String mat[] = matName.split("/");
         matName = mat[0];
-        code = Byte.parseByte(mat[1]);
+        code = Short.parseShort(mat[1]);
       }
       Material m = Material.matchMaterial(matName);
       if(m!=null) {
@@ -57,7 +57,12 @@ public class CatLoot {
             int hi = Integer.parseInt(vals[1]);
             num = cnf.nextInt(hi-lo+1)+lo;
           }
-          ItemStack stk = (code>0)?new ItemStack(m,num,(short)0,code):new ItemStack(m,num);
+          ItemStack stk;
+          if(m == Material.POTION) {
+            stk = new ItemStack(m,num,(short)code);
+          } else {
+            stk = (code>0)?new ItemStack(m,num,(short)0,(byte)code):new ItemStack(m,num);
+          }
           inv.add(stk);
         }
       }

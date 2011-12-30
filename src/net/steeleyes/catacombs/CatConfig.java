@@ -50,6 +50,7 @@ public class CatConfig extends Config implements ICatConfig {
   private Integer PigmanPct()              { return getSInt(ECatConfig.PigmanPct.getStr());  }
   private Integer CaveSpiderPct()          { return getSInt(ECatConfig.CaveSpiderPct.getStr());  }
   private Integer BlazePct()               { return getSInt(ECatConfig.BlazePct.getStr());  }
+  private Integer CreeperPct()             { return getSInt(ECatConfig.CreeperPct.getStr());  }
   //private Integer SilverFishPct()          { return getSInt(ECatConfig.SilverFishPct.getStr());  }
   private Integer GoldMin()                { return getSInt(ECatConfig.GoldMin.getStr());  }
   private Integer GoldMax()                { return getSInt(ECatConfig.GoldMax.getStr());  }
@@ -119,15 +120,15 @@ public class CatConfig extends Config implements ICatConfig {
         fcnf.set("grand.Depth.room",4);
         fcnf.set("grand.Corridor.Width3Pct",30);
         fcnf.set("grand.Corridor.Width2Pct",70);
-        fcnf.set("grand.Corridor.Max",14);
+        fcnf.set("grand.Corridor.Max",10);
         fcnf.set("grand.Corridor.Min",3);
-        fcnf.set("grand.Room.Max",14);
+        fcnf.set("grand.Room.Max",10);
         fcnf.set("grand.Room.Min",3);
         fcnf.set("grand.Room.Clutter.ChestPct",55);
         fcnf.set("grand.Room.Clutter.SpawnerPct",70);
         fcnf.set("grand.CorridorPct",20);
         fcnf.set("grand.RadiusMax",30);       
-        fcnf.set("grand.SpecialPct",30);       
+        fcnf.set("grand.SpecialPct",35);       
         fcnf.set("grand.Hut.Type","medium");       
       }
 
@@ -197,7 +198,6 @@ public class CatConfig extends Config implements ICatConfig {
     return false;
   } 
   
-  
   public String SpawnerType() {
     int r = rnd.nextInt(100)+1;
 
@@ -219,11 +219,11 @@ public class CatConfig extends Config implements ICatConfig {
             WolfPct()+PigmanPct()+
             CaveSpiderPct()+BlazePct())
       return "Blaze";
-//    if(r<=SpiderPct()+SkeletonPct()+
-//            WolfPct()+PigmanPct()+
-//            CaveSpiderPct()+BlazePct()+
-//            SilverFishPct())
-//      return "Silverfish";
+    if(r<=SpiderPct()+SkeletonPct()+
+            WolfPct()+PigmanPct()+
+            CaveSpiderPct()+BlazePct()+
+            CreeperPct())
+      return "Creeper";
     return "Zombie";
   }
   public Integer Gold() {

@@ -30,6 +30,8 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.CreatureSpawner;
+import org.bukkit.entity.CreatureType;
 
 public class CatBlockListener extends BlockListener {
   private static Catacombs plugin;
@@ -122,11 +124,11 @@ public class CatBlockListener extends BlockListener {
     if(plugin.debug) {
       Player player = event.getPlayer();
       player.sendMessage("DAMAGE : " + mat+"  ID:"+block.getData() +" ("+block.getX()+","+block.getY()+","+block.getZ()+")");
-//      if(block.getType() == Material.MOB_SPAWNER) {
-//        CreatureSpawner spawner = (CreatureSpawner) block.getState();
-//        System.out.println("[Catacombs] Spawner "+spawner.getCreatureType()+" delay="+spawner.getDelay()+" light="+spawner.getLightLevel());
-//        spawner.setCreatureType(CreatureType.SILVERFISH);
-//      }
+      if(block.getType() == Material.MOB_SPAWNER) {
+        CreatureSpawner spawner = (CreatureSpawner) block.getState();
+        System.out.println("[Catacombs] Spawner "+spawner.getCreatureType()+" delay="+spawner.getDelay()+" light="+spawner.getLightLevel());
+        spawner.setCreatureType(CreatureType.CREEPER);
+      }
     }
 
     Block piston = null;

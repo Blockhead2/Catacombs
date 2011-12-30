@@ -47,6 +47,16 @@ import org.bukkit.block.BlockFace;
  * 
  * 
  *
+Release v1.3
+* Fixed potion loot so that splash potions can be created. The syntax is
+  like this potion/16425:10:1 (this means a 10% chance of splash potion of
+  strength II).
+* The first room of each level can now be a special room
+* Added code to allow special rooms to be placed in any of 4 orientations.
+* Changed code stairs down re-use the special room code, allowing more interesting
+  final rooms in the future.
+* Added Creeper spawners
+ 
 Release v1.2
 * Added chance of finding enchanting tables (with book cases)
 * Added potion making stands on the top of work benches.

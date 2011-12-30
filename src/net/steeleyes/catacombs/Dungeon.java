@@ -621,6 +621,24 @@ public class Dungeon {
         "`~`##+##`~`",
         "```````````"
       }));
+      name = "medium2";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
+        " #GG#####GG# ",
+        "#oo.zZ#Zz.oo#",
+        "#t....#....t#",
+        "#oo.zZ#Zz.oo#",
+        "#.....#.....#",
+        "#oo.zZ#Zz.oo#",
+        "#t....#....t#",
+        "#oo.zZ#Zz.oo#",
+        "###+#####+###",
+        "#...tfTat...#",
+        "#K..........#",
+        "#K........#+#",
+        "#K.e......G:#",
+        "#K..t...t.BVD",
+        " #GG##+##GGD "
+      }));
       name = "large";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         "~```````````````~",

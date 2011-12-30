@@ -130,12 +130,12 @@ public class Config implements IConfig {
       try {
         String tmp[] = loot.split(":");
         String matName = tmp[0];
-        byte code=0;
+        short code=0;
 
         if(matName.contains("/")) {
           String mat[] = matName.split("/");
           matName = mat[0];
-          code = Byte.parseByte(mat[1]);
+          code = Short.parseShort(mat[1]);
         }
         Material m = Material.matchMaterial(matName);
         if(m==null)
@@ -151,7 +151,8 @@ public class Config implements IConfig {
         
       } catch (ArrayIndexOutOfBoundsException e) {
         System.err.println("[Catacombs] Wrong format expecting this 'dirt:45:1' or 'dirt:45:1-6' found '"+loot+"'");
-        ok = false;      } catch (NumberFormatException e) {
+        ok = false;     
+      } catch (NumberFormatException e) {
         System.err.println("[Catacombs] Missing number expecting this 'dirt:45:1' or 'dirt:45:1-6' found '"+loot+"'");
         ok = false;
       } catch (Exception e) {

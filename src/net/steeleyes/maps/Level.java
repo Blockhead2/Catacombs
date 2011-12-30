@@ -54,7 +54,7 @@ public class Level {
   }
   public Level(Config cnf,PrePlanned map,Direction dir) {
     this.cnf = cnf;
-    Grid tmp = new Grid(map);
+    Grid tmp = new Grid(map,Direction.NORTH);
     grid = new Grid(tmp,dir);
     Vector2D stair = grid.findFirst(Square.DOWN);
     if(stair ==  null) {
@@ -98,6 +98,7 @@ public class Level {
           // area 30x30 70% clean 80%clean 90%clean
 //          if(grid.utilized()>85.0 || ((float)n.gen() < (float)max_gen*0.75 && (max_gen-n.gen()>4))) {
           if(grid.utilized()>85.0) {
+          //if(grid.utilized()>55.0) {
             from = null;
           } else {
             from = n;
@@ -121,7 +122,8 @@ public class Level {
           n = new Room(cnf,grid);
         }
       }
-      if(from == null) {
+      
+      if(true && from == null) {
         // Fill the rest of the map
         from = getRoomNearEnd();
         for(int t=0;t<1000 && from != null;t++) {

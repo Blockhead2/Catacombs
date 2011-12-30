@@ -37,12 +37,12 @@ public class Grid {
     }
   }
   
-  public Grid(PrePlanned map) {
-    size.set(map.sx(), map.sy());
+  public Grid(PrePlanned map,Direction dir) {
+    size.set(map.sx(dir), map.sy(dir));
     area = new Square[size.x][size.y];
     for(int x=0;x<size.x;x++) {
       for(int y=0;y<size.y;y++) {
-        area[x][y] = map.get(x,y);
+        area[x][y] = map.get(x,y,dir);
       }
     }
   }
@@ -327,20 +327,26 @@ public class Grid {
       }
     }
   }
-  public void renderSpecial(int origin_x,int origin_y,PrePlanned map) {
-    if(origin_x+map.sx()-1 >= size.x || origin_x < 0 ||
-       origin_y+map.sy()-1>=size.y   || origin_y < 0)
+  public void renderSpecial(int origin_x,int origin_y,PrePlanned map,Direction dir) {
+    if(origin_x+map.sx(dir)-1 >= size.x || origin_x < 0 ||
+       origin_y+map.sy(dir)-1>=size.y   || origin_y < 0)
       return;
 
-    for(int x=origin_x,mx=0;x<origin_x+map.sx();x++,mx++) {
-      for(int y=origin_y,my=0;y<origin_y+map.sy();y++,my++) {
-        Square s = map.get(mx,my);
+    for(int x=origin_x,mx=0;x<origin_x+map.sx(dir);x++,mx++) {
+      for(int y=origin_y,my=0;y<origin_y+map.sy(dir);y++,my++) {
+        Square s = map.get(mx,my,dir);
         if(isUndef(x,y) && s != Square.UNDEF) {
           set(x,y,s);
           used++;
-        } if(get(x,y) == Square.WALL && s==Square.FIXEDWALL) {
+        } else if(s==Square.DOWN || s==Square.BOTHWALL) {
           set(x,y,s);
-        }
+        } else if(s==Square.FIXEDWALL) {
+          fixWall(x,y);
+        } else if(s==Square.DOWNWALL) {
+          downWall(x,y);
+        } else if(s==Square.UPWALL) {
+          upWall(x,y);
+        } 
       }
     }
   }

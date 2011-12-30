@@ -34,14 +34,44 @@ public class Room {
   private Boolean isRoom;
   
   private Boolean special = false;
+  private Direction special_dir;
   private PrePlanned room_map = null;
 
   private static List<PrePlanned> room_list = null;
+  private static List<PrePlanned> down_list = null;
   private Config cnf=null;
-  
+
+  public static void setup_downs() {
+    // Stairs down should be against a northery wall so end_dir works ok on the level below
+    if(down_list == null) {
+      down_list = new ArrayList<PrePlanned>();
+      down_list.add(new PrePlanned("original",PrePlanned.Type.DOWN, new String[] {
+        " D ",
+        "DVD"
+      }));
+//      down_list.add(new PrePlanned("down7x9",PrePlanned.Type.DOWN, new String[] {
+//        "    D    ",
+//        "#XXDVDXX#",
+//        "X...:...X",
+//        "X.......X",
+//        "X.......X",
+//        "X.......X",
+//        "#########"
+//      }));
+    }
+  }      
   public static void setup_rooms() {
     if(room_list == null) {
       room_list = new ArrayList<PrePlanned>();
+//      room_list.add(new PrePlanned("test5x7",PrePlanned.Type.ROOM, new String[] {
+//        "#X#X#",
+//        "X...X",
+//        "X.o.X",
+//        "#...X",
+//        "X...X",
+//        "X...#",
+//        "##XX#" 
+//      }));
       room_list.add(new PrePlanned("irreg7x8",PrePlanned.Type.ROOM, new String[] {
         " ###    ",
         " #.#    ",
@@ -86,9 +116,9 @@ public class Room {
         "#########",
         "#t.....t#",
         "#.KKKKK.#",
-        "#.K...K.#",
-        "#.K.e.K.#",
-        "#.K...K.#",
+        "#.K,,,K.#",
+        "#.K,e,K.#",
+        "#.K,,,K.#",
         "#.KK.KK.#",
         "#t.....t#",
         "#########"
@@ -230,9 +260,9 @@ public class Room {
         "#############       ",
         "#Zz........t#XXXXXXX",
         "#...a..oo..Z#.KKKKKX",
-        "#Zz.T......z#tK...KX",
-        "#...f..oo...$...e.KX",
-        "#Zz.o......z#tK...KX",
+        "#Zz.T......z#tK,,,KX",
+        "#...f..oo...$..,e,KX",
+        "#Zz.o......z#tK,,,KX",
         "#...o..oo..Z#.KKKKKX",
         "#Zz........t#XXXXXXX",
         "#############       "
@@ -250,7 +280,7 @@ public class Room {
         " #..#L#..# ",
         "  ## # ##  "
       }));
-      room_list.add(new PrePlanned("column13x13",PrePlanned.Type.ROOM, new String[] {
+      room_list.add(new PrePlanned("column13x15",PrePlanned.Type.ROOM, new String[] {
         " XX #####    ",
         "Xc$X.....XX  ",
         " X.........X ",
@@ -267,7 +297,7 @@ public class Room {
         "  XX.....XX  ",
         "    #####    " 
       }));
-      room_list.add(new PrePlanned("treasure13x13",PrePlanned.Type.ROOM, new String[] {
+      room_list.add(new PrePlanned("treasure13x15",PrePlanned.Type.ROOM, new String[] {
         "    XXXXX    ",
         "  XXCctcCXX  ",
         " X..##$##..X ",
@@ -284,7 +314,7 @@ public class Room {
         "  XX.....XX  ",
         "    #####    " 
       }));
-      room_list.add(new PrePlanned("lavaSpiral13x13",PrePlanned.Type.ROOM, new String[] {
+      room_list.add(new PrePlanned("lavaSpiral13x15",PrePlanned.Type.ROOM, new String[] {
         "    #####    ",
         "  XX.....XX  ",
         " X.........X ",
@@ -313,11 +343,12 @@ public class Room {
     this.grid = grid;
     this.cnf = cnf;
     setup_rooms();
-    sizeRandom();
+    setup_downs();
+    sizeRandom(room_list);
     placeRandom();
   }
 
-  private void sizeRandom() {
+  private void sizeRandom(List<PrePlanned> list) {
     special = false;
     if(cnf.CorridorChance()) { //Corridor
       isRoom = false;
@@ -330,26 +361,29 @@ public class Room {
         size_y = cnf.CorridorSize()+2;
       }
     } else {               // Room
-      isRoom = true;
-      if(cnf.SpecialChance()) {
-        special = true;
-        room_map = chooseMap();
-        // ToDo: select a random rotation for this instance of the room
-        size_x = room_map.sx();
-        size_y = room_map.sy();
-      } else {
-        size_x = cnf.RoomSize()+2;
-        size_y = cnf.RoomSize()+2;
-      }
+      sizeRoomRandom(list);
     }
   }
   
-  private void sizeRoomRandom() {
+  private void sizeRoomRandom(List<PrePlanned> list) {
     isRoom = true;
-    size_x = cnf.RoomSize()+2;
-    size_y = cnf.RoomSize()+2;
+    if(cnf.SpecialChance()) {
+      sizeRoomSpecial(list);
+    } else {
+      size_x = cnf.RoomSize()+2;
+      size_y = cnf.RoomSize()+2;
+    }
   }
-
+  
+  private void sizeRoomSpecial(List<PrePlanned> list) {
+    isRoom = true;
+    special = true;
+    room_map = chooseMap(list);
+    special_dir = Direction.any(cnf.rnd);
+    size_x = room_map.sx(special_dir);
+    size_y = room_map.sy(special_dir);
+  }
+  
   private void placeRandom() {
     if(grid.getSize().x-size_x+1<1 || grid.getSize().y-size_y+1<1) {
       origin_x = 0;
@@ -360,11 +394,9 @@ public class Room {
     }
   }
 
-  private PrePlanned chooseMap() {
-    // ToDo: Should rotate rooms here too to a random direction
-
-    if(!room_list.isEmpty())
-      return room_list.get(cnf.nextInt(room_list.size()));
+  private PrePlanned chooseMap(List<PrePlanned> list) {
+    if(!list.isEmpty())
+      return list.get(cnf.nextInt(list.size()));
     return null;
   }
   
@@ -405,7 +437,7 @@ public class Room {
     int cnt = 0;
     Boolean ok=false;
     Direction dir;
-    sizeRoomRandom();
+    sizeRoomRandom(room_list);
     do {
       if(orig_dir == Direction.ANY)
         dir = placeFrom(x,y);
@@ -415,17 +447,21 @@ public class Room {
       ok = dir != null && grid.fits(origin_x,origin_y,size_x,size_y);
       //System.out.println(" Fits:"+ok+" orig_dir:"+orig_dir+" dir:"+dir+" from:"+v+" attempts"+extension_attempts);
       if(!ok)
-        sizeRoomRandom();
+        sizeRoomRandom(room_list);
       cnt++;
     } while (cnt<5000 && !ok);
 
     if(!ok) {
       // Stuggled to find start room so check more methodically.
-      System.out.println("[Catacombs] Struggled to find start room (really need to check more methodically)");
+      System.out.println("[Catacombs] Mapping code struggled to find valid location for starting room");
     }
 
     if(ok) {
-      grid.renderEmpty(origin_x,origin_y,size_x,size_y);
+      if(special) {
+        grid.renderSpecial(origin_x,origin_y,room_map,special_dir);
+      } else {
+        grid.renderEmpty(origin_x,origin_y,size_x,size_y);
+      }
       grid.set(x,y,Square.UP);
       grid.set(dir.forwards_x(x),dir.forwards_y(y),Square.FIXEDFLOORUP);
       grid.upWall(dir.backwards_x(x),dir.backwards_y(y));
@@ -440,25 +476,86 @@ public class Room {
   public Boolean nextRoom(Room from) {
     int cnt = 0;
     Boolean ok = false;
-    Direction dir;
+    Direction dir=null;
     do {
-      dir = placeFrom(from);
-      ok = (dir != null) && grid.fits(origin_x,origin_y,size_x,size_y) &&
-           grid.get(wayin_x,wayin_y) == Square.WALL &&
-           grid.isFloor(dir.backwards_x(wayin_x),dir.backwards_y(wayin_y));
-      //System.out.println(" Fits:"+ok+" orig_dir:"+from.room_dir+" dir:"+dir+" attempts:"+from.extension_attempts);
+      for(int s=0;s<10;s++) { // Have a few attempts to place each room
+        dir = placeFrom(from);
+        ok = (dir != null) && grid.fits(origin_x,origin_y,size_x,size_y) &&
+             grid.get(wayin_x,wayin_y) == Square.WALL &&
+             grid.isFloor(dir.backwards_x(wayin_x),dir.backwards_y(wayin_y));
+        //System.out.println(" Fits:"+ok+" orig_dir:"+from.room_dir+" dir:"+dir+" attempts:"+from.extension_attempts);
+        if(ok) {
+          break;
+        }
+      }
       if(!ok)
-        sizeRandom();
+        sizeRandom(room_list);
       from.extension_attempts++;
       cnt++;
-    } while (cnt<500 && !ok);
+    } while (cnt<500 && !ok); // Try different sizes and shapes
 
     if(ok) {
       if(special) {
-        grid.renderSpecial(origin_x,origin_y,room_map);
+        grid.renderSpecial(origin_x,origin_y,room_map,special_dir);
       } else {
         grid.renderEmpty(origin_x,origin_y,size_x,size_y);
       }
+      build_door(dir);  
+      gen = from.gen+1;
+      dressRoom();
+    }
+    return ok;
+  }
+  
+  public Boolean endRoom(Room from) {
+    int cnt = 0;
+    Boolean ok = false;
+    Direction dir=null;
+    do {
+      sizeRoomSpecial(down_list);
+      for(int s=0;s<30;s++) { // Have a few attempts to place each room
+        dir = placeFrom(from);
+        ok = (dir != null) && grid.fits(origin_x,origin_y,size_x,size_y) &&
+             grid.get(wayin_x,wayin_y) == Square.WALL &&
+             grid.isFloor(dir.backwards_x(wayin_x),dir.backwards_y(wayin_y));
+        //System.out.println(" Fits:"+ok+" orig_dir:"+from.room_dir+" dir:"+dir+" attempts:"+from.extension_attempts);
+        if(ok) {
+          break;
+        }
+      }
+      if(!ok)
+        sizeRoomSpecial(down_list);
+      from.extension_attempts++;
+      cnt++;      
+    } while (cnt<2000 && !ok); // Try different sizes and shapes
+
+    if(ok) {
+      extension_attempts=100000;
+      if(special) {
+        grid.renderSpecial(origin_x,origin_y,room_map,special_dir);
+      } else {
+        grid.renderEmpty(origin_x,origin_y,size_x,size_y);
+      }      
+      gen = from.gen+1;
+      if(grid.get(wayin_x,wayin_y) == Square.DOWN) {
+        grid.set(dir.backwards_x(wayin_x),dir.backwards_y(wayin_y),Square.FIXEDFLOORDOWN);
+        from.chestDoubleRandom();
+        if(cnf.Chance(40))
+          from.objectRandom(Square.CAKE);
+      } else {
+        build_door(dir);
+        // Find steps down as new location of end
+  //wayin_x =0;
+  //wayin_y =0;
+        chestDoubleRandom();
+        if(cnf.Chance(40))
+          objectRandom(Square.CAKE);        
+      }
+    }
+    return ok;
+  }
+  
+  public void build_door(Direction dir) {
       Square door = cnf.DoorType();
       if(door != Square.HIDDEN && cnf.DoubleDoorChance()) {
         int left_x  = dir.left_x(wayin_x);
@@ -479,48 +576,8 @@ public class Room {
           }
         }
       }
-      grid.fixDoor(wayin_x,wayin_y, dir, door);
-      
-      gen = from.gen+1;
-      dressRoom();
-    }
-    return ok;
-  }
-
-  public Boolean endRoom(Room from) {
-    int cnt = 0;
-    Boolean ok = false;
-    Direction dir;
-    do {
-      size_x = size_y = 3;
-      dir = placeFrom(from);
-      if(dir == null) {
-        ok = false;
-      } else {
-        size_x = (dir.horizontal())?2:3;
-        size_y = (dir.vertical())?2:3;
-        ok = (dir != null) && grid.fits(origin_x,origin_y,size_x,size_y) &&
-           grid.get(wayin_x,wayin_y) == Square.WALL &&
-           grid.get(dir.backwards_x(wayin_x),dir.backwards_y(wayin_y)).isFloor();
-      }
-      from.extension_attempts++;
-      cnt++;
-    } while (cnt<2000 && !ok);
-
-    if(ok) {
-      extension_attempts=100000;
-      grid.set(wayin_x,wayin_y,Square.DOWN);
-      grid.set(dir.backwards_x(wayin_x),dir.backwards_y(wayin_y),Square.FIXEDFLOORDOWN);
-      grid.downWall(dir.forwards_x(wayin_x),dir.forwards_y(wayin_y));
-      grid.downWall(dir.left_x(wayin_x),dir.left_y(wayin_y));
-      grid.downWall(dir.right_x(wayin_x),dir.right_y(wayin_y));
-      gen = from.gen+1;
-      from.chestDoubleRandom();
-      if(cnf.Chance(40))
-        from.objectRandom(Square.CAKE);
-    }
-    return ok;
-  }
+      grid.fixDoor(wayin_x,wayin_y, dir, door);    
+  }  
 
   private void dressRoom() {
     if(cnf.EnchantChance())
@@ -740,25 +797,24 @@ public class Room {
     Direction dir = Direction.any(cnf.rnd);
 
     if(dir.horizontal()) {
-      int offset = (from.special)?from.room_map.getAccess(cnf.rnd,dir):cnf.nextInt(from.size_y-2)+1;
+      int offset = (from.special)?from.room_map.getAccess(cnf.rnd,dir,from.special_dir):cnf.nextInt(from.size_y-2)+1;
       if(offset<0) return null;
       wayin_x = (dir==Direction.EAST)?from.origin_x+from.size_x-1:from.origin_x;
       wayin_y = from.origin_y+offset;
     } else {
-      int offset = (from.special)?from.room_map.getAccess(cnf.rnd,dir):cnf.nextInt(from.size_x-2)+1;
+      int offset = (from.special)?from.room_map.getAccess(cnf.rnd,dir,from.special_dir):cnf.nextInt(from.size_x-2)+1;
       if(offset<0) return null;
       wayin_x = from.origin_x+offset;
       wayin_y = (dir==Direction.NORTH)?from.origin_y+from.size_y-1:from.origin_y;
     }
     return new wallLoc(wayin_x,wayin_y,dir);
-    //return this.placeFrom(wayin_x,wayin_y,dir);
   }
   
   private Direction placeFrom(Room from) {
     wallLoc w = wallLocation(from);
     if(w==null)
       return null;
-    return this.placeFrom(w.x,w.y,w.dir); //wayin_x,wayin_y,dir);
+    return this.placeFrom(w.x,w.y,w.dir);
   }
 
   private Direction placeFrom(int x, int y) {
@@ -771,24 +827,23 @@ public class Room {
     if(dir==Direction.ANY)
       dir = Direction.any(cnf.rnd);
 
-    if(size_x<3 || size_y<3)
-      sizeRandom();
+    //if(size_x<3 || size_y<3) {
+    //  System.err.println("[Catacombs] Room too small "+size_x+" x "+size_y);
+    //}
+    //  sizeRandom();
 
     room_dir = dir;
     if(dir.horizontal()) {
-      int offset = (special)?room_map.getAccess(cnf.rnd,dir.turn180()):cnf.nextInt(size_y-2)+1;
+      int offset = (special)?room_map.getAccess(cnf.rnd,dir.turn180(),special_dir):cnf.nextInt(size_y-2)+1;
       if(offset<0) return null;
       origin_x = (dir == Direction.EAST)?x:x-size_x+1;
-      // Need to check special room too 
       origin_y = y-offset;
     } else {
-      int offset = (special)?room_map.getAccess(cnf.rnd,dir.turn180()):cnf.nextInt(size_x-2)+1;
+      int offset = (special)?room_map.getAccess(cnf.rnd,dir.turn180(),special_dir):cnf.nextInt(size_x-2)+1;
       if(offset<0) return null;
       origin_y = (dir == Direction.NORTH)?y:y-size_y+1;
       origin_x = x-offset;
     }
-    //System.out.println(" Dir:"+dir+" from:"+v+" origin"+origin+" size:"+size);
-
     return dir;
   }
 
