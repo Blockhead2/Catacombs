@@ -105,7 +105,7 @@ public class Monsters {
     return new WildResp(wild,delta);
   }
   
-  public void playerHeals(Player healer, Player healee) {
+  public void playerHeals(CatConfig cnf,Player healer, Player healee) {
     if(!healee.isDead()){
       WildResp resp = isWild(healer,HEAL_PLAYER,null);
       if(!resp.wild) {
@@ -131,25 +131,41 @@ public class Monsters {
     }
   }
   
-  public void monsterHits(EntityDamageEvent evt) {
+  public void monsterHits(CatConfig cnf, EntityDamageEvent evt) {
     LivingEntity damagee = (LivingEntity) evt.getEntity();
     LivingEntity damager = (LivingEntity) CatUtils.getDamager(evt);
+    assert(damagee instanceof Player);
     DamageCause cause = evt.getCause();
     if(cause == DamageCause.PROJECTILE)
       return;
     
     CatMob mob = monsters.get(damager);
     if(mob != null)
-      mob.didHit();
+      mob.canHit();
     
     WildResp resp = isWild(damager,SWING_MONSTER,null);
     if(resp.wild) {
       evt.setCancelled(true);
       return;
     }
+    int num = CatUtils.armourEffect(((Player)damagee));
+    if(num<0) {
+      int dmg = evt.getDamage();
+      if(cnf.Chance(66)) {
+        if(cnf.Chance(50)) {
+          System.out.println("[Catacombs] Special armour damage : CANCEL ");
+          evt.setCancelled(true);
+        } else {
+          System.out.println("[Catacombs] Special armour damage : DOUBLE "+dmg*2);
+          evt.setDamage(dmg*2);
+        }
+      } else {
+        System.out.println("[Catacombs] Special armour damage : NORMAL "+dmg);
+      }
+    }
   }
   
-  public void playerHits(EntityDamageEvent evt) {
+  public void playerHits(CatConfig cnf,EntityDamageEvent evt) {
     LivingEntity damagee = (LivingEntity) evt.getEntity();
     CatMob mob = monsters.get(damagee);
     LivingEntity damager = (LivingEntity) CatUtils.getDamager(evt);

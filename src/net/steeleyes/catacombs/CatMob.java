@@ -92,7 +92,7 @@ public class CatMob {
     return hit(dmg);
   }
   
-  public void didHit() {
+  public void canHit() {
     didHit = Calendar.getInstance().getTimeInMillis();
   }
   

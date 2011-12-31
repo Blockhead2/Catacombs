@@ -127,7 +127,7 @@ public class CatBlockListener extends BlockListener {
       if(block.getType() == Material.MOB_SPAWNER) {
         CreatureSpawner spawner = (CreatureSpawner) block.getState();
         System.out.println("[Catacombs] Spawner "+spawner.getCreatureType()+" delay="+spawner.getDelay()+" light="+spawner.getLightLevel());
-        spawner.setCreatureType(CreatureType.CREEPER);
+        spawner.setCreatureType(CreatureType.ZOMBIE);
       }
     }
 

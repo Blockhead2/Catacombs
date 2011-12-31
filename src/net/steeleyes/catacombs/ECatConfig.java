@@ -34,6 +34,7 @@ public enum ECatConfig {
     ProtectSpawners         ("Admin.ProtectSpawners", true),
     DungeonProtectOff       ("Admin.DungeonProtectOff", false),
     SaveDungeons            ("Admin.SaveDungeons", true),
+    NoPvPInDungeon          ("Admin.NoPvPInDungeon", true),
     //BossEnabled             ("Admin.BossEnabled", false),
     Economy                 ("Admin.Economy", "any"),
     AdvancedCombat          ("Admin.AdvancedCombat", false),

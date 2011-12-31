@@ -56,6 +56,7 @@ Release v1.3
 * Changed code stairs down re-use the special room code, allowing more interesting
   final rooms in the future.
 * Added Creeper spawners
+* Added option to control PvP damage inside dungeons (by default it is off).
  
 Release v1.2
 * Added chance of finding enchanting tables (with book cases)
@@ -367,8 +368,8 @@ public class Catacombs extends JavaPlugin {
         pm.registerEvent(Event.Type.PLAYER_FISH,         playerListener, Event.Priority.Low, this);
         pm.registerEvent(Event.Type.PLAYER_RESPAWN,      playerListener, Event.Priority.Low, this);
         pm.registerEvent(Event.Type.ENTITY_TARGET,       entityListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGE,       entityListener, Event.Priority.Low, this);
       }
+      pm.registerEvent(Event.Type.ENTITY_DAMAGE,       entityListener, Event.Priority.Low, this);
 
       
       pm.registerEvent(Event.Type.PLAYER_INTERACT,     playerListener, Event.Priority.Low, this);

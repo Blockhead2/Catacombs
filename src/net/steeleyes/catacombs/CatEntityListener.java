@@ -99,20 +99,33 @@ public class CatEntityListener extends EntityListener {
     if(evt.isCancelled())
       return;
 
+    Block blk = evt.getEntity().getLocation().getBlock();
+    Boolean inDungeon = plugin.prot.isInRaw(blk);
+    
+    if(!inDungeon) {
+      return;
+    }
+    
     if(!(evt.getEntity() instanceof LivingEntity))
       return;
     
     LivingEntity damagee = (LivingEntity) evt.getEntity();
+    LivingEntity damager = (LivingEntity) CatUtils.getDamager(evt);
+
+    if(plugin.cnf.NoPvPInDungeon() && damagee instanceof Player && damager instanceof Player) {
+      evt.setCancelled(true);
+      return;      
+    }
     
     //Is the target a managed monster?
     if(plugin.monsters.isManaged(damagee)) {
       // Projectiles cause 2 events at the moment.
       if(evt.getCause() == DamageCause.PROJECTILE && evt.getDamage() == 0)
         return;
-      plugin.monsters.playerHits(evt);
+      plugin.monsters.playerHits(plugin.cnf,evt);
     } else {  
       if(damagee instanceof Player) {
-        plugin.monsters.monsterHits(evt);
+        plugin.monsters.monsterHits(plugin.cnf,evt);
       }
     }
   }

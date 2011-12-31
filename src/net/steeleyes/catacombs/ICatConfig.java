@@ -48,6 +48,7 @@ public interface ICatConfig extends IConfig {
   public  Boolean CalmSpawns();
   public  Boolean DungeonProtectOff();
   public  Boolean SaveDungeons();
+  public  Boolean NoPvPInDungeon();
   public  Boolean AdvancedCombat();
   public  Integer GroupRadius();
   public  Integer GroupDepth();

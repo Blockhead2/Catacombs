@@ -98,7 +98,7 @@ public class CatPlayerListener  extends PlayerListener{
       if(evt.getCaught() instanceof Player) {
         Player healer = evt.getPlayer();
         Player healee = (Player) evt.getCaught();
-        plugin.monsters.playerHeals(healer,healee);
+        plugin.monsters.playerHeals(plugin.cnf,healer,healee);
       //} else {  // Fish monsters to test healing code    
       //  Player healer = evt.getPlayer();
       //  plugin.monsters.playerHeals(healer,healer);
