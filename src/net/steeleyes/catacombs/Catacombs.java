@@ -19,8 +19,6 @@
 */
 package net.steeleyes.catacombs;
 
-import java.io.*;
-
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.entity.Player;
@@ -40,6 +38,8 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import java.util.List;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
 import org.bukkit.block.BlockFace;
 
 /**
@@ -55,8 +55,14 @@ Release v1.3
 * Added code to allow special rooms to be placed in any of 4 orientations.
 * Changed code stairs down re-use the special room code, allowing more interesting
   final rooms in the future.
-* Added Creeper spawners
+* Added config percentage for Creeper spawners
 * Added option to control PvP damage inside dungeons (by default it is off).
+* Fixed Advanced combat bug when TNT explodes near a player.
+* Fixed bugs caused by dungeons in worlds that no longer exist.
+* Added config option to cancel most monsters spawning on the surface
+  (monsters will still spawn under trees, overhangs and in caves or dungeons).
+* Added config option to prevent any ore displaced by the dungeon level
+  from being collected in the/a medium chest on the same level.
  
 Release v1.2
 * Added chance of finding enchanting tables (with book cases)
@@ -307,8 +313,9 @@ public class Catacombs extends JavaPlugin {
   public  Dungeons              dungeons;
   private CatSQL                sql=null;
   private BlockChangeHandler    handler;
+  private DungeonHandler        dhandler;
 
-  public  Monsters              monsters = new Monsters();
+  public  Monsters              monsters;
   public  Players               players = new Players();
 
   public  PluginDescriptionFile info;
@@ -326,6 +333,7 @@ public class Catacombs extends JavaPlugin {
   public void onLoad() {
     cnf = new CatConfig(getConfig());
     info = this.getDescription();
+    monsters = new Monsters(this);
     
     mapdir = new File("plugins" + File.separator + info.getName() + File.separator + "maps");
     if(!mapdir.exists()){
@@ -394,7 +402,10 @@ public class Catacombs extends JavaPlugin {
 
       handler = new BlockChangeHandler(this);
       this.getServer().getScheduler().scheduleSyncRepeatingTask(this,handler,40,20);
-      
+
+      dhandler = new DungeonHandler(this);
+      this.getServer().getScheduler().scheduleSyncRepeatingTask(this,dhandler,40,20);
+     
       // Clear the dungeons of mobs so we can manage those that spawn
       dungeons.clearMonsters(this);
       
@@ -411,20 +422,21 @@ public class Catacombs extends JavaPlugin {
   private void setupDatabase() {
     sql = new CatSQL("plugins"+File.separator+"Catacombs"+File.separator+"Catacombs.db");
     
-    //Boolean hasLevels = sql.tableExists("levels");
-    //Boolean hasDungeons = sql.tableExists("dungeons");
-    
     //if(false) {
       //sql.dropTables();
     //}
-    
-    sql.createLegacyTables();
-    //sql.createTables();
-    
-//    if(hasLevels && !hasDungeons) {
-//      System.out.println("[Catacombs] Converting old dungeon data to new format");
-//      sql.Convert2(this);
-//    }
+    if(false) {
+      sql.createLegacyTables();
+    } else {
+      Boolean hasLevels = sql.tableExists("levels");
+      Boolean hasDungeons = sql.tableExists("dungeons");
+      sql.createTables();
+      if(hasLevels && !hasDungeons) {
+        System.out.println("[Catacombs] Converting old dungeon data to new format");
+        sql.Convert2(this);
+      }
+    }
+
   }  
 
   @Override
@@ -849,7 +861,7 @@ public class Catacombs extends JavaPlugin {
   public void gotoDungeonEnd(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
     if(!dung.teleportToBot(p))
-      inform(p,"Can't teleport to end of legacy dungeon");
+      inform(p,"Can't teleport to end of a dungeon without any levels");
   }  
   
   public void enableDungeon(Player p,String dname) {

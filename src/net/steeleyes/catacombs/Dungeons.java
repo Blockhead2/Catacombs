@@ -35,14 +35,56 @@ public class Dungeons {
 
   public Dungeons(Catacombs plugin,CatSQL sql) {
     if(sql!=null) {
-      ResultSet rs = sql.query("SELECT dname,wname,pname,hut,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,enable,num FROM levels");
-      try {
-        while(rs.next()) {
-          String dname = rs.getString("dname");
-          String wname = rs.getString("wname");
-          String pname = rs.getString("pname");
-          World world = plugin.getServer().getWorld(wname);
+      if(sql.tableExists("levels2")) {
+        try {
+          ResultSet rs = sql.query("SELECT did,version,dname,wname,pname,major,minor,enable FROM dungeons");
+          while(rs.next()) {
+            int did = rs.getInt("did");
+            String dname = rs.getString("dname");
+            String wname = rs.getString("wname");
+            String pname = rs.getString("pname");
+            World world = plugin.getServer().getWorld(wname);
+            if(world==null) {
+              System.err.println("[Catacombs] World '"+wname+"' required for dungeon '"+dname+"' can't be found");
+            } else {
+              CatMat maj = CatMat.parseMaterial(rs.getString("major"));
+              CatMat min = CatMat.parseMaterial(rs.getString("minor"));
+              Boolean enable = (rs.getInt("enable")!=0);
+              Dungeon dung = new Dungeon(dname,plugin.cnf,world,maj,min);
+              dung.setBuilder(pname);
+              dung.setBuilt(true);
+              dung.setDid(did);
+              dung.setEnable(enable);
 
+              ResultSet rs2 = sql.query("SELECT lid,type,room,roof,floor,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez FROM levels2 WHERE did="+did+" ORDER BY yh DESC;");
+              while(rs2.next()) {
+                CatLevel clevel = new CatLevel(plugin,rs2,world,enable);
+                dung.add(clevel);
+              }
+              dungeons.put(dname,dung);
+              dung.registerCubes(plugin.prot);
+            }
+          }
+        } catch(Exception e) {
+          System.err.println("[Catacombs] ERROR: "+e.getMessage());
+        }
+      } else {
+        loadLegacySql(plugin,sql);
+      }
+    }
+  }
+
+  private void loadLegacySql(Catacombs plugin,CatSQL sql) {
+    ResultSet rs = sql.query("SELECT dname,wname,pname,hut,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,enable,num FROM levels");
+    try {
+      while(rs.next()) {
+        String dname = rs.getString("dname");
+        String wname = rs.getString("wname");
+        String pname = rs.getString("pname");
+        World world = plugin.getServer().getWorld(wname);
+        if(world==null) {
+          System.err.println("[Catacombs] World '"+wname+"' required for dungeon '"+dname+"' can't be found");
+        } else {
           Dungeon dung;
           if(!dungeons.containsKey(dname)) { // New dungeon
             CatMat maj = new CatMat(Material.COBBLESTONE);
@@ -57,14 +99,14 @@ public class Dungeons {
           CatLevel clevel = new CatLevel(plugin,rs,world);
           dung.add(clevel);
         }
-        for (Entry<String,Dungeon> entry : dungeons.entrySet()) {
-          Dungeon d = entry.getValue();
-          d.registerCubes(plugin.prot);
-          d.guessMajor();
-        }
-      } catch(Exception e) {
-        System.err.println("[Catacombs] ERROR: "+e.getMessage());
       }
+      for (Entry<String,Dungeon> entry : dungeons.entrySet()) {
+        Dungeon d = entry.getValue();
+        d.registerCubes(plugin.prot);
+        d.guessMajor();
+      }
+    } catch(Exception e) {
+      System.err.println("[Catacombs] ERROR: "+e.getMessage());
     }
   }
   
@@ -111,6 +153,10 @@ public class Dungeons {
       Dungeon dung = e.getValue();
       dung.debugMajor();
     }
+  }
+  
+  public List<Dungeon> all() {
+    return new ArrayList<Dungeon>(dungeons.values());
   }
 
   public void add(String dname, Dungeon d) {

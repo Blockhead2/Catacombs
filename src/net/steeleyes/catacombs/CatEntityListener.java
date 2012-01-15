@@ -35,6 +35,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.CreatureType;
 import org.bukkit.entity.LivingEntity;
 
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
@@ -158,9 +159,19 @@ public class CatEntityListener extends EntityListener {
     if(evt.isCancelled())
       return;
     
+    SpawnReason reason = evt.getSpawnReason();
     Block blk = evt.getLocation().getBlock();
-    CatCuboid cube = plugin.prot.getCube(blk);
+      
+    if(plugin.cnf.MobsSpawnUnderCover() &&
+       evt.getEntity() instanceof Monster &&
+       reason == SpawnReason.NATURAL &&
+       CatUtils.onSurface(blk)) {
+      evt.setCancelled(true);
+      return;
+    }
     
+    CatCuboid cube = plugin.prot.getCube(blk);
+
     if(cube == null) // Not in dungeon
       return;
     
@@ -171,7 +182,7 @@ public class CatEntityListener extends EntityListener {
 
     // In enabled dungeon
     // Prevent creatures spawning from spawners in good light (WOLVES, PIGMEN, BLAZE mostly)
-    if(evt.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER &&
+    if(reason == SpawnReason.SPAWNER &&
        blk.getLightLevel()>10) {
       evt.setCancelled(true);
       return;         
@@ -193,8 +204,6 @@ public class CatEntityListener extends EntityListener {
     
     CatConfig cnf = plugin.cnf;
     if(cnf.AdvancedCombat()) {
-      SpawnReason reason = evt.getSpawnReason();
-
       if(reason == SpawnReason.CUSTOM || plugin.monsters.isManaged(ent)) { // The mob is already on the list
         return;
       }

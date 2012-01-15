@@ -28,12 +28,16 @@ import com.nijikokun.catacombsregister.payment.Methods;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Creature;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -48,7 +52,7 @@ public class CatUtils {
   }
   
   public static String giveCash(CatConfig cnf,Entity ent, int gold) {
-    if(cnf.GoldOff())
+    if(cnf == null || cnf.GoldOff())
       return null;
     String res = null;
     if (ent instanceof Player) {
@@ -83,6 +87,15 @@ public class CatUtils {
     }
     return res;
   }   
+  
+  // Just a simple on surface check for the moment
+  // ToDo: count under trees and shallow overhangs as surface too
+  public static Boolean onSurface(Block blk) {
+    Location loc = blk.getLocation();
+    Block surface = blk.getWorld().getHighestBlockAt(loc);
+    return loc.equals(surface);
+  }
+  
   public static Boolean nobodyNear(Entity ent,double h, double v) {
     if(ent!=null) {
       for(Entity e:ent.getNearbyEntities(h,v,h)) {
@@ -92,6 +105,34 @@ public class CatUtils {
     }
     return true;
   }
+  
+  public static List<Player> getPlayerNear(Entity ent, double r) {
+    List<Player> list = new LinkedList<Player>();
+    if(ent!=null) {
+      for(Entity e:ent.getNearbyEntities(r,r,r)) {
+        if(e instanceof Player)
+          list.add((Player)e);
+      }
+    }
+    return list;
+  }
+  
+  public static List<Player> getPlayerFar(Entity ent, double r1,double r2) {
+    assert(r2>r1);
+    double r1_sqr = r1*r1;
+    List<Player> list = new LinkedList<Player>();
+    Location loc = ent.getLocation();
+    if(ent!=null) {
+      for(Entity e:ent.getNearbyEntities(r2,r2,r2)) {
+        if(e instanceof Player) {
+          if(loc.distanceSquared(ent.getLocation()) > r1_sqr) {
+            list.add((Player)e);
+          }
+        }
+      }
+    }
+    return list;
+  }  
   
   public static int countPlayerNear(Entity ent,double h, double v) {
     int cnt = 0;
@@ -115,18 +156,7 @@ public class CatUtils {
     return cnt;
   }  
   
-//  public static <T> int countCreatureNear(Entity ent,double h, double v) {
-//    int cnt = 0;
-//    if(ent!=null) {
-//      for(Entity e:ent.getNearbyEntities(h,v,h)) {
-//        if(e instanceof T)
-//          cnt++;
-//      }
-//    }
-//    return cnt;
-//  }  
-  
-  public static Entity getDamager(EntityDamageEvent evt) {
+  public static LivingEntity getDamager(EntityDamageEvent evt) {
     Entity damager = null;
     
     if(evt instanceof EntityDamageByEntityEvent) {
@@ -136,7 +166,10 @@ public class CatUtils {
         damager = ((Projectile) damager).getShooter();
       }
     }
-    return (Entity)damager;
+    if(damager instanceof LivingEntity) {
+      return (LivingEntity)damager;
+    }
+    return null;
   }
 
   public static Boolean hasAxe(Player player) {
@@ -259,7 +292,32 @@ public class CatUtils {
     }
     return 0;
   }
+  
+  public static int armourPoints(Player player) {
+    int total = 0;
     
+    for(ItemStack stk : player.getInventory().getArmorContents()) {
+      Material mat = stk.getType();
+      if(mat==Material.DIAMOND_BOOTS) total+=3;
+      else if(mat==Material.DIAMOND_LEGGINGS) total+=6;
+      else if(mat==Material.DIAMOND_CHESTPLATE) total+=8;
+      else if(mat==Material.DIAMOND_HELMET) total+=3;
+      else if(mat==Material.IRON_BOOTS) total+=2;
+      else if(mat==Material.IRON_LEGGINGS) total+=5;
+      else if(mat==Material.IRON_CHESTPLATE) total+=6;
+      else if(mat==Material.IRON_HELMET) total+=2;
+      else if(mat==Material.GOLD_BOOTS) total+=1;
+      else if(mat==Material.GOLD_LEGGINGS) total+=3;
+      else if(mat==Material.GOLD_CHESTPLATE) total+=5;
+      else if(mat==Material.GOLD_HELMET) total+=2;
+      else if(mat==Material.LEATHER_BOOTS) total+=1;
+      else if(mat==Material.LEATHER_LEGGINGS) total+=2;
+      else if(mat==Material.LEATHER_CHESTPLATE) total+=3;
+      else if(mat==Material.LEATHER_HELMET) total+=1;
+    }
+    return total;
+  }
+  
   public static <T extends Enum<T>> T getEnumFromString(Class<T> c, String string) {
     if (c != null && string != null) {
       try {

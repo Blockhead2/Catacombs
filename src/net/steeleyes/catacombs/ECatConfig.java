@@ -35,6 +35,7 @@ public enum ECatConfig {
     DungeonProtectOff       ("Admin.DungeonProtectOff", false),
     SaveDungeons            ("Admin.SaveDungeons", true),
     NoPvPInDungeon          ("Admin.NoPvPInDungeon", true),
+    MobsSpawnUnderCover     ("Admin.MobsSpawnUnderCover", false),
     //BossEnabled             ("Admin.BossEnabled", false),
     Economy                 ("Admin.Economy", "any"),
     AdvancedCombat          ("Admin.AdvancedCombat", false),
@@ -104,6 +105,7 @@ public enum ECatConfig {
     GoldMax      (".Mob.Gold.Max", 10),
     
     SmallEquipPct(".Loot.Small.LeatherEquipPct", 10),
+    MedSweepOre  (".Loot.Medium.SweepOre", true),
     MedEquipPct  (".Loot.Medium.EquipPct", 100),
     BigEquipPct  (".Loot.Big.EquipPct", 100),
     

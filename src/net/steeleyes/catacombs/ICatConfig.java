@@ -49,6 +49,7 @@ public interface ICatConfig extends IConfig {
   public  Boolean DungeonProtectOff();
   public  Boolean SaveDungeons();
   public  Boolean NoPvPInDungeon();
+  public  Boolean MobsSpawnUnderCover();
   public  Boolean AdvancedCombat();
   public  Integer GroupRadius();
   public  Integer GroupDepth();
@@ -78,6 +79,7 @@ public interface ICatConfig extends IConfig {
 
   public  Boolean SmallEquipChance();
   public  Boolean MedEquipChance();
+  public  Boolean MedSweepOre();
   public  Boolean BigEquipChance();
   public  Boolean MinorChance();
 

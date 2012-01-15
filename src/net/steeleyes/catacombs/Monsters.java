@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -37,11 +38,14 @@ public class Monsters {
   private static final long SWING_PLAYER = 1900;
   private static final long SWING_MONSTER = 1900*2;
   
+  private Catacombs plugin;
+  
   private Map<LivingEntity,CatMob> monsters = new HashMap<LivingEntity,CatMob>();
   private Map<LivingEntity,Long> last_strike = new HashMap<LivingEntity,Long>();
   
-  //public Monsters() {  
-  //}
+  public Monsters(Catacombs plugin) {
+    this.plugin = plugin;
+  }
   
   public Boolean isManaged(LivingEntity ent) {
     return monsters.containsKey(ent);
@@ -133,12 +137,16 @@ public class Monsters {
   
   public void monsterHits(CatConfig cnf, EntityDamageEvent evt) {
     LivingEntity damagee = (LivingEntity) evt.getEntity();
-    LivingEntity damager = (LivingEntity) CatUtils.getDamager(evt);
+    LivingEntity damager = CatUtils.getDamager(evt);
+    
+    if(damager == null)
+      return;
+    
     assert(damagee instanceof Player);
     DamageCause cause = evt.getCause();
     if(cause == DamageCause.PROJECTILE)
       return;
-    
+   
     CatMob mob = monsters.get(damager);
     if(mob != null)
       mob.canHit();
@@ -148,20 +156,20 @@ public class Monsters {
       evt.setCancelled(true);
       return;
     }
-    int num = CatUtils.armourEffect(((Player)damagee));
-    if(num<0) {
-      int dmg = evt.getDamage();
-      if(cnf.Chance(66)) {
-        if(cnf.Chance(50)) {
-          System.out.println("[Catacombs] Special armour damage : CANCEL ");
-          evt.setCancelled(true);
-        } else {
-          System.out.println("[Catacombs] Special armour damage : DOUBLE "+dmg*2);
-          evt.setDamage(dmg*2);
+    
+    if(false) {
+      final int num = CatUtils.armourPoints(((Player)damagee));
+      final Player pp = (Player) damagee;
+      final int dmg = 10; //evt.getDamage();
+      evt.setDamage(dmg);
+      pp.setHealth(pp.getMaxHealth());
+      final int before = pp.getHealth();
+      Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin,new Runnable() {
+        public void run() {
+          int actual_dmg = before-pp.getHealth();
+          System.out.println("[Catacombs] delayed ac="+num+" dmg="+dmg+" actual="+actual_dmg);
         }
-      } else {
-        System.out.println("[Catacombs] Special armour damage : NORMAL "+dmg);
-      }
+      }, 1);
     }
   }
   

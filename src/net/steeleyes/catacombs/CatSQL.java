@@ -188,7 +188,7 @@ public class CatSQL {
     } 
     if(!tableExists("locations")) {
       System.out.println("[Catacombs] Creating SQL table 'locations'");
-      command("CREATE TABLE `location` (" +
+      command("CREATE TABLE `locations` (" +
         "xid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
         "did INTEGER," +
         "type STRING," +
@@ -233,13 +233,24 @@ public class CatSQL {
           int ez = rs2.getInt("ez");
           int hut = rs2.getInt("hut");
           
-          if(ey==0) version = "mysql";
+          if(ex==0 && ey==0 && ez==0) version = "mysql";
           World world = plugin.getServer().getWorld(wname);
           if(world == null) {
             System.err.println("[Catacombs] Can't find a world called '"+wname+"'");
           } else {
             CatCuboid.Type t = (hut==1)?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL;
             CatCuboid cube = new CatCuboid(world,xl,yl,zl,xh,yh,zh,t);
+            if(ex==0 && ey==0 && ez==0) {
+              Vector v = cube.guessEndLocation();
+              if(v!=null) {
+                ex = v.x;
+                ey = v.y;
+                ez = v.z;
+                System.out.println("[Catacombs]     end location for legacy level = "+v);
+              } else {
+                System.err.println("[Catacombs] Can't find end location for level in '"+dname+"'");
+              }
+            }
             if(roof == 0) {
               roof = cube.guessRoofSize();
             }

@@ -58,6 +58,10 @@ public class CatFlag {
     type = CatUtils.getEnumFromString(Type.class, stype);
     if(type.isClass(Boolean.class)) {
       val = (v.equalsIgnoreCase("true"))?true:false;
+    } else if(type.isClass(Double.class)) {
+      val = Double.parseDouble(v);
+    } else if(type.isClass(Long.class)) {
+      val = Long.parseLong(v);
     } else if(type.isClass(Integer.class)) {
       val = Integer.parseInt(v);
     } else {
@@ -92,12 +96,41 @@ public class CatFlag {
     } 
   }
   
+  public CatFlag(Type type, Long val) {
+    this.type = type;
+    if(type.wrongClass(Long.class)) {
+      this.val = null;
+    } else {
+      this.val = val;
+    } 
+  }
+  
+  public CatFlag(Type type, Double val) {
+    this.type = type;
+    if(type.wrongClass(Double.class)) {
+      this.val = null;
+    } else {
+      this.val = val;
+    } 
+  }  
   public Boolean matches(Type t) {
     return type == t;
   }
   
   public String getRaw() {
     return val.toString();
+  }
+  
+  public Double getDouble() {
+    if(type.wrongClass(Double.class))
+      return null;
+    return (Double)val;
+  }
+    
+  public Long getLong() {
+    if(type.wrongClass(Long.class))
+      return null;
+    return (Long)val;
   }
   
   public Integer getInteger() {

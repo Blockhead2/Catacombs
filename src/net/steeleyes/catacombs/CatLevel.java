@@ -54,6 +54,8 @@ public class CatLevel {
   private Boolean build_ok  = false;
   private Boolean can_go_lower = false;
   private String map = "";
+  
+  private int lid=0;
 
   public CatLevel(CatConfig cnf, Location pt) {
     this(cnf,pt.getWorld(),pt.getBlockX(),pt.getBlockY()-1,pt.getBlockZ(),Direction.ANY);
@@ -95,12 +97,35 @@ public class CatLevel {
     cube = new CatCuboid(world,xl,yl,zl,xh,yh,zh,CatCuboid.Type.HUT);
   }
 
+  public CatLevel(Catacombs plugin, ResultSet lvl, World world, Boolean enable) throws Exception {
+    build_ok = true;
+    can_go_lower = true;
+    this.cnf = plugin.cnf;
+    this.world  = world;
+    lid = lvl.getInt("lid");
+
+    top = new Vector(lvl.getInt("sx"),lvl.getInt("sy"),lvl.getInt("sz"));
+    bot = new Vector(lvl.getInt("ex"),lvl.getInt("ey"),lvl.getInt("ez"));
+
+    cube = new CatCuboid(world,lvl.getInt("xl"),lvl.getInt("yl"),lvl.getInt("zl"),
+            lvl.getInt("xh"),lvl.getInt("yh"),lvl.getInt("zh"),
+            CatUtils.getEnumFromString(CatCuboid.Type.class, lvl.getString("type")));
+
+    level = new Level(cnf);   
+
+    cube.setEnable(enable);
+    roofDepth = lvl.getInt("roof");
+    roomDepth = lvl.getInt("room");
+    floorDepth = lvl.getInt("floor");
+    levelDepth = floorDepth+roomDepth+roofDepth;  
+  }
+  
   public CatLevel(Catacombs plugin, ResultSet lvl, World world) throws Exception {
     build_ok = true;
     can_go_lower = true;
     this.cnf = plugin.cnf;
     this.world  = world;
-    
+
     top = new Vector(lvl.getInt("sx"),lvl.getInt("sy"),lvl.getInt("sz"));
     bot = new Vector(lvl.getInt("ex"),lvl.getInt("ey"),lvl.getInt("ez"));
 
@@ -109,7 +134,7 @@ public class CatLevel {
             (lvl.getInt("hut")==1)?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL);
 
     level = new Level(cnf);    
-    
+
     if(lvl.getInt("enable")!=0)
       cube.enable();
     else
@@ -220,7 +245,10 @@ public class CatLevel {
     info.add("can_go_lower:"+can_go_lower);
     info.add("dx:"+cube.dx());
     info.add("dz:"+cube.dz());
-    info.add("map:"+map);
+    info.add("roomDepth:"+roomDepth);
+    info.add("roofDepth:"+roofDepth);
+    info.add("floorDepth:"+floorDepth);
+    //info.add("map:"+map);
     
     return info;
   }
@@ -469,12 +497,15 @@ public class CatLevel {
             CatLoot.midChest(cnf,chest);
 
             // Swept ore goes into chest on first time around (not after a reset)
-            if(coal>0)     chest.add(new ItemStack(Material.COAL,coal));
-            if(iron>0)     chest.add(new ItemStack(Material.IRON_ORE,iron));
-            if(lapis>0)    chest.add(new ItemStack(Material.INK_SACK,lapis*6,(short)0,(byte)4));
-            if(redstone>0) chest.add(new ItemStack(Material.REDSTONE,redstone*4));
-            if(diamond>0)  chest.add(new ItemStack(Material.DIAMOND,diamond));
-            if(gold>0)     chest.add(new ItemStack(Material.GOLD_ORE,gold));
+            if(cnf.MedSweepOre()) {
+              if(coal>0)     chest.add(new ItemStack(Material.COAL,coal));
+              if(iron>0)     chest.add(new ItemStack(Material.IRON_ORE,iron));
+              if(lapis>0)    chest.add(new ItemStack(Material.INK_SACK,lapis*6,(short)0,(byte)4));
+              if(redstone>0) chest.add(new ItemStack(Material.REDSTONE,redstone*4));
+              if(diamond>0)  chest.add(new ItemStack(Material.DIAMOND,diamond));
+              if(gold>0)     chest.add(new ItemStack(Material.GOLD_ORE,gold));
+              coal = iron = lapis = redstone = diamond = gold = 0;
+            }
           }  else if (s == Square.CHEST) {
             CatLoot.smallChest(cnf,chest);
           }
@@ -614,14 +645,17 @@ public class CatLevel {
   }
   
   public void suspend(Catacombs plugin, CatMat major) {
-    cube.clearMonsters(plugin);
+    if(plugin != null)
+      cube.clearMonsters(plugin);
     cube.suspend();
-    cube.addGlow(major,roofDepth);
+    if(major != null)
+      cube.addGlow(major,roofDepth);
   }
 
   public void enable(CatMat major) {
     cube.enable();
-    cube.removeGlow(major,roofDepth);
+    if(major != null)
+      cube.removeGlow(major,roofDepth);
   }
   
   private CatCuboid getNaturalCuboid(CatConfig cnf,World world,int ox,int oy, int oz) {

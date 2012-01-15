@@ -81,7 +81,7 @@ public class CatPlayerListener  extends PlayerListener{
        plugin.prot.isInRaw(blk) && blk.getRelative(BlockFace.DOWN).getType()==Material.GRASS) {
             
       Dungeon dung = plugin.dungeons.which(blk);
-      if(dung.bossKilled())
+      if(dung.isSuspended() || dung.bossKilled())
         return;
         
       if(!dung.triggerEncounter(plugin,blk)) {

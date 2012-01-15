@@ -51,7 +51,11 @@ public class Dungeon {
   private CatMat minor;
   private Boolean enable = true;
   
+  private Boolean running = false;
+  private long    resetTime = 0;
+  private int     resetWarnings = 0;
   private Boolean bossKilled = false;
+  private int     did=0;
   //private CatArena arena = null;
 
   private static Map<String,PrePlanned> hut_list = null;
@@ -68,6 +72,8 @@ public class Dungeon {
     this.world = world;
     major = cnf.majorMat();
     minor = cnf.minorMat();
+    //if(name.equals("a"))
+    //  this.resetTime = System.currentTimeMillis() + 1000*60;
     setup_huts();
   }
   
@@ -77,9 +83,21 @@ public class Dungeon {
     this.world = world;
     this.major = major;
     this.minor = minor;
+    //if(name.equals("a"))
+    //  this.resetTime = System.currentTimeMillis() + 1000*60;
     setup_huts();
   }
   
+  public Boolean isSuspended() {
+    return !enable;
+  }
+  
+  public void setDid(int did) {
+    this.did = did;
+  }
+  public int getDid() {
+    return did;
+  }  
   public void setBuilt(Boolean built) {
     this.built = built;
   }
@@ -132,6 +150,59 @@ public class Dungeon {
         info.add("    "+s);
     }
     return info;
+  }
+  
+  public void maintain() {
+    //System.out.println("[Catacombs] Calling regular process on "+name);
+    
+    List<Player> players = allPlayersInRaw();
+    
+    // Timed reset
+    if(resetTime > 0) {
+      long now = System.currentTimeMillis();
+      if(now > resetTime) {
+        System.out.println("[Catacombs] Time to reset Dungeon("+name+") "+players);
+        for(Player player: players) {
+          player.sendMessage("Dungeon("+name+") timed reset");
+        }
+        resetTime = now + 1000*60;
+        resetWarnings = 0;
+      } else {
+        long delta = (resetTime - now + 500)/1000;
+
+        int cnt = 1;
+        int newWarn = 0;
+        for(long warn: new long[] {60*5,60*4,60*3,60*2,60,30,15,10,5}) {
+          if(delta<=warn) {
+            newWarn = cnt;
+          }
+          cnt++;
+        }  
+        if(newWarn > resetWarnings) {
+          String when = (delta>60)?(delta/60)+" min(s)":delta+" sec(s)";
+          //System.out.println("[Catacombs] Timed reset Dungeon("+name+") "+players+" in "+when);
+          for(Player player: players) {
+            player.sendMessage("Dungeon("+name+") will reset in "+when);
+          }
+          resetWarnings = newWarn;
+        }
+      }
+    }
+
+    // Are any players in the dungeon
+    Boolean old_running = running;
+    running = players.size() > 0;
+    if(old_running!=running) {
+      if(running)
+        System.out.println("[Catacombs] Activating Dungeon("+name+") "+players);
+      else
+        System.out.println("[Catacombs] De-activating Dungeon("+name+")");
+    }
+    
+    // Check Spawners
+    
+    // Dungeon ownership
+        
   }
   
   public List<String> dump() {
@@ -275,7 +346,7 @@ public class Dungeon {
     return false;
   }
   
-  public Boolean isSuspened(Block blk) {
+  public Boolean isSuspended(Block blk) {
     for(CatLevel l : levels) {
       if(l.getCube().isSuspended(blk)) {
         return true;
@@ -366,22 +437,26 @@ public class Dungeon {
     }
   }
   
+  public void setEnable(Boolean enable) {
+    this.enable = enable;
+  }
+  
   public void suspend(Catacombs plugin,CatSQL sql) {
     enable = false;
-    bossKilled=true;
     for(CatLevel l : levels) {
       l.suspend(plugin,major);
     }
-    sql.suspendDungeon(name);
+    if(sql != null)
+      sql.suspendDungeon(name);
   }
   
   public void enable(CatSQL sql) {
     enable = true;
-    bossKilled = false;
     for(CatLevel l : levels) {
       l.enable(major);
     }
-    sql.enableDungeon(name);
+    if(sql != null)
+      sql.enableDungeon(name);
   }  
   
   public void remove(CatSQL sql) {
@@ -433,7 +508,7 @@ public class Dungeon {
     if(l==null || l.getBot().y==0)
       return null;
     int depth = l.getFloorDepth(); 
-    return getSafePlace(world.getBlockAt(l.getBot().x,l.getBot().y+depth,l.getBot().z));
+    return getSafePlace(world.getBlockAt(l.getBot().x,l.getBot().y+depth+1,l.getBot().z));
   }  
   
   public Boolean teleportToTop(Player player) {

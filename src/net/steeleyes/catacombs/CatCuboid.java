@@ -176,6 +176,31 @@ public class CatCuboid extends Cuboid {
     return max_depth;
   } 
   
+  public Vector guessEndLocation() {
+    // Look for a ladder down first
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        int y = yl;
+        Block blk = world.getBlockAt(x,y,z);
+        if(blk.getType()==Material.LADDER) {
+          return new Vector(x,y-1,z);
+        }
+      }
+    }
+    // If no ladder down then look for the end chest
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        for(int y=yl;y<=yh;y++) {
+          Block blk = world.getBlockAt(x,y,z);
+          if(isBigChest(blk)) {
+            return new Vector(x,yl-1,z);
+          }
+        }
+      }
+    }
+    return null;
+  }
+  
   static int debug = 0;
 
   // TODO: Badly need to make the major/minor block names persist!!
@@ -251,7 +276,7 @@ public class CatCuboid extends Cuboid {
   public void enable() {
     enable = true;
   }
-  
+ 
   public Boolean isEnabled() {
     return enable;
   }
@@ -422,30 +447,25 @@ public class CatCuboid extends Cuboid {
   }
 
   public Boolean isBigChest(Block blk) {
+    if(blk.getType() != Material.CHEST)
+      return false;
+    
     int cnt = 0;
     Material major = Material.COBBLESTONE;
     Material minor = Material.MOSSY_COBBLESTONE;
 
     Material below = blk.getRelative(BlockFace.DOWN,1).getType();
     
-    Block b;
-    b = blk.getRelative(BlockFace.EAST,1);
-    if(b.getType() == major || b.getType() == minor) {
-      cnt++;
+    for(BlockFace dir : Arrays.asList(
+      BlockFace.NORTH,BlockFace.EAST,
+      BlockFace.SOUTH,BlockFace.WEST)) {
+      Block b = blk.getRelative(dir,1);
+      if(b.getType() == major || b.getType() == minor) {
+        cnt++;
+      }
     }
-    b = blk.getRelative(BlockFace.WEST,1);
-    if(b.getType() == major || b.getType() == minor) {
-      cnt++;
-    }
-    b = blk.getRelative(BlockFace.NORTH,1);
-    if(b.getType() == major || b.getType() == minor) {
-      cnt++;
-    }
-    b = blk.getRelative(BlockFace.SOUTH,1);
-    if(b.getType() == major || b.getType() == minor) {
-      cnt++;
-    }
-    return cnt==3 || below == Material.GRASS;
+
+    return below == Material.GRASS || cnt == 3;
   }
 
   public Boolean isMidChest(Block blk) {
