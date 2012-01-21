@@ -40,7 +40,9 @@ import java.util.List;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
+import java.util.ArrayList;
 import org.bukkit.block.BlockFace;
+import org.bukkit.configuration.file.FileConfiguration;
 
 /**
  * 
@@ -61,8 +63,22 @@ Release v1.3
 * Fixed bugs caused by dungeons in worlds that no longer exist.
 * Added config option to cancel most monsters spawning on the surface
   (monsters will still spawn under trees, overhangs and in caves or dungeons).
+* Added config option to cancel all monsters spawns except those in dungeons.
 * Added config option to prevent any ore displaced by the dungeon level
   from being collected in the/a medium chest on the same level.
+* Fix plugin clash with WorldGuard that stopped secret doors working
+  in dungeons that are worldguard protected.
+* Changed the code so empty and filling buckets is only prevented in protected dungeons
+* Big tidy up on the dungeon protection code, made suspend/enable an attribute of
+  the dungeon rather than the level. In theory this shouldn't have changed the
+  functionality but it's possible I might have broken something.
+* Added timed reset feature for dungeons. '/cat time <name> <time>' The command
+  changes the reset timer for the named dungeon (or the dungeon you are in).
+  The times are specified as sequence of numbers followed by letters (s=second,
+  m=minute,h=hour,d=day). For example '/cat time dungeon1 5h30m' means dungeon1
+  will be reset every 5 and a half hours (starting from now). The time can also
+  be a range, so 5h30m-6h30m would set the dungeon up to reset every 5.5 to 6.5 hours.
+  The automatic reset is disabled by setting the reset time to zero (0s or 0m or 0h or 0d)
  
 Release v1.2
 * Added chance of finding enchanting tables (with book cases)
@@ -307,16 +323,16 @@ Release v0.3
  */
 
 public class Catacombs extends JavaPlugin {
-  public  MultiWorldProtect     prot;
   public  CatConfig             cnf;
   private CatPermissions        permissions;
   public  Dungeons              dungeons;
-  private CatSQL                sql=null;
+  public  CatSQL                sql=null;
   private BlockChangeHandler    handler;
   private DungeonHandler        dhandler;
 
   public  Monsters              monsters;
   public  Players               players = new Players();
+  public  MobTypes              mobtypes;
 
   public  PluginDescriptionFile info;
   public  Boolean               debug=false;
@@ -334,18 +350,18 @@ public class Catacombs extends JavaPlugin {
     cnf = new CatConfig(getConfig());
     info = this.getDescription();
     monsters = new Monsters(this);
+    mobtypes = new MobTypes(getConfig());
     
     mapdir = new File("plugins" + File.separator + info.getName() + File.separator + "maps");
     if(!mapdir.exists()){
       mapdir.mkdir();
     }
-    System.out.print("[" + info.getName() + "] version " + info.getVersion()+ " is loaded");
+    System.out.println("[" + info.getName() + "] version " + info.getVersion()+ " is loaded");
   }
   
   public void onEnable(){
     if(!enabled) {
       permissions = new CatPermissions(this.getServer());
-      prot = new MultiWorldProtect();
 
       if(cnf.SaveDungeons())
         setupDatabase();  
@@ -422,21 +438,13 @@ public class Catacombs extends JavaPlugin {
   private void setupDatabase() {
     sql = new CatSQL("plugins"+File.separator+"Catacombs"+File.separator+"Catacombs.db");
     
-    //if(false) {
-      //sql.dropTables();
-    //}
-    if(false) {
-      sql.createLegacyTables();
-    } else {
-      Boolean hasLevels = sql.tableExists("levels");
-      Boolean hasDungeons = sql.tableExists("dungeons");
-      sql.createTables();
-      if(hasLevels && !hasDungeons) {
-        System.out.println("[Catacombs] Converting old dungeon data to new format");
-        sql.Convert2(this);
-      }
+    Boolean hasLevels = sql.tableExists("levels");
+    Boolean hasDungeons = sql.tableExists("dungeons");
+    sql.createTables();
+    if(hasLevels && !hasDungeons) {
+      System.out.println("[Catacombs] Converting old dungeon data to new format (slow)");
+      sql.Convert2(this);
     }
-
   }  
 
   @Override
@@ -558,6 +566,17 @@ public class Catacombs extends JavaPlugin {
         enableDungeon(p,args[1]);
         inform(p,"Enable "+args[1]); 
         
+      // TIME  ********************************************************
+      } else if(cmd(p,args,"time","t")) {
+        Dungeon dung = getDungeon(p);
+        if(dung!=null) {
+          setResetMinMax(p,dung.getName(),args[1]);
+          inform(p,dung.getName()+" reset in "+args[1]); 
+        }
+      } else if(cmd(p,args,"time","Dt")) {
+        setResetMinMax(p,args[1],args[2]);
+        inform(p,args[1]+" reset in "+args[2]); 
+              
       // STYLE  ********************************************************
       } else if(cmd(p,args,"style")) {
         inform(p,"Dungeon style="+cnf.getStyle()); 
@@ -626,6 +645,9 @@ public class Catacombs extends JavaPlugin {
       // TEST  
       } else if(cmd(p,args,"test")) {
         debug = !debug;
+        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        dung.saveDB();
+
         //Dungeon dung = dungeons.which(p.getLocation().getBlock());
         //dung.guessMajor();
         //testDatabase();
@@ -635,7 +657,6 @@ public class Catacombs extends JavaPlugin {
 
       // DEBUG
       } else if(cmd(p,args,"debug")) {
-        dungeons.debugMajor();
 
       } else {
         help(p);
@@ -664,14 +685,14 @@ public class Catacombs extends JavaPlugin {
   }
 
   public void help(Player p) {
-    inform(p,"/cat plan    <name> <#levels> [<radius>]");
     inform(p,"/cat scatter <name> <#levels> <radius> <distance>");
-    inform(p,"/cat build   <name>");
+    inform(p,"/cat unplan  <name>");
     inform(p,"/cat delete  <name>");
     inform(p,"/cat unprot  <name>");
     inform(p,"/cat suspend [<name>]");
     inform(p,"/cat enable  [<name>]");
     inform(p,"/cat goto    [<name>]");
+    inform(p,"/cat time    [<name>] <time>");
     inform(p,"/cat end     [<name>]");
     inform(p,"/cat reset   [<name>]");
     inform(p,"/cat resetall");
@@ -680,6 +701,8 @@ public class Catacombs extends JavaPlugin {
     inform(p,"/cat style [<style_name>]");
     inform(p,"/cat list");
     inform(p,"/cat gold");
+    inform(p,"/cat plan    <name> <#levels> [<radius>]");
+    inform(p,"/cat build   <name>");
   }
 
   private Boolean cmd(Player player,String [] args,String s) throws IllegalAccessException,Exception {
@@ -716,7 +739,11 @@ public class Catacombs extends JavaPlugin {
             throw new Exception("'"+arg+"' is already built");
           } 
         } else if(t == 's') {    // A string
-
+          
+        } else if(t == 't') {    // A time
+          if(!arg.matches("^(\\d+[smhd])+$")&& !arg.matches("^(\\d+[smhd])+-(\\d+[smhd])+$")) {
+            throw new Exception("Expecting arg#"+(c+1)+" to be days/hours/mins/secs (e.g 10m5s) (found '"+arg+"')");
+          }
         } else if(t=='n') {     // A number
           try {
             Integer.parseInt(arg);
@@ -744,7 +771,7 @@ public class Catacombs extends JavaPlugin {
     }
     Location loc = p.getLocation();
     Block blk = loc.getBlock();
-    Dungeon dung = new Dungeon(dname,cnf,p.getWorld());
+    Dungeon dung = new Dungeon(this,dname,p.getWorld());
     dung.prospect(p,blk.getX(),blk.getY(),blk.getZ(),getCardinalDirection(p),depth);
     dung.show();
     dungeons.add(dname,dung);
@@ -775,7 +802,7 @@ public class Catacombs extends JavaPlugin {
     
     int x,z;
     Block safe_blk = null;
-    Dungeon dung = new Dungeon(dname,cnf,world);
+    Dungeon dung = new Dungeon(this,dname,world);
     int att1=0;  // Outer loop attempts
     do {
       int att2 = 0;  // Inner loop attempts
@@ -835,9 +862,8 @@ public class Catacombs extends JavaPlugin {
         return;
       }
       inform(p,"Building "+dname);
-      //dung.saveDB(getDatabase());
-      dung.saveDB(this,sql);
-      dung.registerCubes(prot);
+      dung.setupFlagsLocations();
+      dung.saveDB();
       dung.render(handler);
       dung.saveMap(mapdir + File.separator + dname + ".map");
       handler.add(p);
@@ -847,8 +873,7 @@ public class Catacombs extends JavaPlugin {
   }
 
   public void suspendDungeon(Player p,String dname) {
-    //dungeons.suspend(this,dname,getDatabase());
-    dungeons.suspend(this,dname,sql);
+    dungeons.suspend(dname);
   }
   
   public void gotoDungeon(Player p,String dname) {
@@ -864,17 +889,22 @@ public class Catacombs extends JavaPlugin {
       inform(p,"Can't teleport to end of a dungeon without any levels");
   }  
   
+  public void setResetMinMax(Player p,String dname,String t) {
+    Dungeon dung = dungeons.get(dname);
+    if(dung!=null) {
+      dung.setResetMinMax(t);
+    }
+  } 
+  
   public void enableDungeon(Player p,String dname) {
-    //dungeons.enable(dname,getDatabase());
-    dungeons.enable(dname,sql);
+    dungeons.enable(dname);
   }  
   
   public void deleteDungeon(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
     dung.delete(this,handler);
     handler.add(p);
-    //dungeons.remove(dname,prot,getDatabase());
-    dungeons.remove(dname,prot,sql);
+    dungeons.remove(dname);
   }
   
   public void resetDungeon(Player p,String dname) {
@@ -883,8 +913,7 @@ public class Catacombs extends JavaPlugin {
   }
   
   public void unprotDungeon(Player p,String dname) {
-    //dungeons.remove(dname,prot,getDatabase());
-    dungeons.remove(dname,prot,sql);
+    dungeons.remove(dname);
   }
   
   public void inform(Player p,Exception e) {

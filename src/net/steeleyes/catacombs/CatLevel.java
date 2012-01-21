@@ -55,7 +55,7 @@ public class CatLevel {
   private Boolean can_go_lower = false;
   private String map = "";
   
-  private int lid=0;
+  private int lid=-1;
 
   public CatLevel(CatConfig cnf, Location pt) {
     this(cnf,pt.getWorld(),pt.getBlockX(),pt.getBlockY()-1,pt.getBlockZ(),Direction.ANY);
@@ -113,37 +113,37 @@ public class CatLevel {
 
     level = new Level(cnf);   
 
-    cube.setEnable(enable);
+    //cube.setEnable(enable);
     roofDepth = lvl.getInt("roof");
     roomDepth = lvl.getInt("room");
     floorDepth = lvl.getInt("floor");
     levelDepth = floorDepth+roomDepth+roofDepth;  
   }
   
-  public CatLevel(Catacombs plugin, ResultSet lvl, World world) throws Exception {
-    build_ok = true;
-    can_go_lower = true;
-    this.cnf = plugin.cnf;
-    this.world  = world;
-
-    top = new Vector(lvl.getInt("sx"),lvl.getInt("sy"),lvl.getInt("sz"));
-    bot = new Vector(lvl.getInt("ex"),lvl.getInt("ey"),lvl.getInt("ez"));
-
-    cube = new CatCuboid(world,lvl.getInt("xl"),lvl.getInt("yl"),lvl.getInt("zl"),
-            lvl.getInt("xh"),lvl.getInt("yh"),lvl.getInt("zh"),
-            (lvl.getInt("hut")==1)?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL);
-
-    level = new Level(cnf);    
-
-    if(lvl.getInt("enable")!=0)
-      cube.enable();
-    else
-      cube.suspend();
-    roofDepth = cube.guessRoofSize();
-    roomDepth = cube.guessRoomSize();
-    floorDepth = 0;
-    levelDepth = 0;
-  }
+//  public CatLevel(Catacombs plugin, ResultSet lvl, World world) throws Exception {
+//    build_ok = true;
+//    can_go_lower = true;
+//    this.cnf = plugin.cnf;
+//    this.world  = world;
+//
+//    top = new Vector(lvl.getInt("sx"),lvl.getInt("sy"),lvl.getInt("sz"));
+//    bot = new Vector(lvl.getInt("ex"),lvl.getInt("ey"),lvl.getInt("ez"));
+//
+//    cube = new CatCuboid(world,lvl.getInt("xl"),lvl.getInt("yl"),lvl.getInt("zl"),
+//            lvl.getInt("xh"),lvl.getInt("yh"),lvl.getInt("zh"),
+//            (lvl.getInt("hut")==1)?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL);
+//
+//    level = new Level(cnf);    
+//
+//    if(lvl.getInt("enable")!=0)
+//      cube.enable();
+//    else
+//      cube.suspend();
+//    roofDepth = cube.guessRoofSize();
+//    roomDepth = cube.guessRoomSize();
+//    floorDepth = 0;
+//    levelDepth = 0;
+//  }
   
   public CatLevel(CatConfig cnf, World world, int x,int y,int z,Direction dir) {
     build_ok = false;
@@ -196,6 +196,29 @@ public class CatLevel {
     }
   }
 
+  public void saveDB(CatSQL sql,int did) {
+    if(lid<=0) {
+      sql.command("INSERT INTO levels2 "+
+        "(did,type,room,roof,floor,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez) VALUES"+
+        "("+did+",'"+cube.getType()+"',"+roomDepth+","+roofDepth+","+floorDepth+
+          ","+cube.xl+","+cube.yl+","+cube.zl+
+          ","+cube.xh+","+cube.yh+","+cube.zh+
+          ","+top.x+","+top.y+","+top.z+
+          ","+bot.x+","+bot.y+","+bot.z+
+        ");");
+      lid = sql.getLastId();      
+    } else {
+      System.err.println("[Catacombs] INTERNAL ERROR: CatLevel .db updates not implemented yet");      
+    }
+    
+  }
+  
+  public Block getEndChestDoor() {
+    Block blk = world.getBlockAt(bot.x,bot.y+floorDepth+1,bot.z);
+    assert(blk.getType()==Material.CHEST || blk.getType()==Material.TRAP_DOOR);
+    return blk;
+  }
+  
   public List<String> dump(Vector top) {
     return cube.dump(top);
   }
@@ -647,13 +670,13 @@ public class CatLevel {
   public void suspend(Catacombs plugin, CatMat major) {
     if(plugin != null)
       cube.clearMonsters(plugin);
-    cube.suspend();
+    //cube.suspend();
     if(major != null)
       cube.addGlow(major,roofDepth);
   }
 
   public void enable(CatMat major) {
-    cube.enable();
+    //cube.enable();
     if(major != null)
       cube.removeGlow(major,roofDepth);
   }

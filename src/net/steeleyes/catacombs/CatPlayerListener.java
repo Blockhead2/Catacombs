@@ -55,7 +55,7 @@ public class CatPlayerListener  extends PlayerListener{
     Player player = event.getPlayer();
     Block blk = player.getLocation().getBlock();
     World w = blk.getWorld();
-    if(plugin.prot.isProtected(blk)) {
+    if(plugin.dungeons.isProtected(blk)) {
       for(String cmd:plugin.cnf.BannedCommands()) {
         if (event.getMessage().startsWith(cmd)) {
           player.sendMessage("'"+cmd+"' is blocked in dungeons");
@@ -72,21 +72,21 @@ public class CatPlayerListener  extends PlayerListener{
       return;
     
     Block blk = event.getClickedBlock();
-    if(blk.getType()==Material.STONE_BUTTON && plugin.prot.isInRaw(blk)) {
+    if(blk.getType()==Material.STONE_BUTTON && plugin.dungeons.isInRaw(blk)) {
       Dungeon dung = plugin.dungeons.which(blk);
       plugin.Commands(null,new String[] {"reset",dung.getName()} );
     }
     
     if(false && /*plugin.cnf.BossEnabled() && */ blk.getType()==Material.CHEST &&
-       plugin.prot.isInRaw(blk) && blk.getRelative(BlockFace.DOWN).getType()==Material.GRASS) {
+       plugin.dungeons.isInRaw(blk) && blk.getRelative(BlockFace.DOWN).getType()==Material.GRASS) {
             
       Dungeon dung = plugin.dungeons.which(blk);
       if(dung.isSuspended() || dung.bossKilled())
         return;
         
-      if(!dung.triggerEncounter(plugin,blk)) {
-        plugin.inform(event.getPlayer(),"There is a battle already in progress in this dungeon");
-      }
+//      if(!dung.triggerEncounter(plugin,blk)) {
+//        plugin.inform(event.getPlayer(),"There is a battle already in progress in this dungeon");
+//      }
       event.setCancelled(true);
     } 
   }  
@@ -124,8 +124,7 @@ public class CatPlayerListener  extends PlayerListener{
       return;
     
     Block block = event.getBlockClicked();
-    CatCuboid c = plugin.prot.getCube(block);
-    if(c != null) {
+    if(plugin.dungeons.isProtected(block)) {
       event.setCancelled(true);
     }
   }
@@ -136,8 +135,7 @@ public class CatPlayerListener  extends PlayerListener{
       return;
     
     Block block = event.getBlockClicked();
-    CatCuboid c = plugin.prot.getCube(block);
-    if(c != null) {
+    if(plugin.dungeons.isProtected(block)) {
       event.setCancelled(true);
     }
   }

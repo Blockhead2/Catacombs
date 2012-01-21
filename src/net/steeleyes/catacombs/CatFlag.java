@@ -19,21 +19,27 @@
 */
 package net.steeleyes.catacombs;
 
+import java.sql.ResultSet;
+
 public class CatFlag {
 
   public enum Type {
     BOSS_KILLED(Boolean.class),
+    IS_ENABLED(Boolean.class),
+    RESET_TIME(Long.class),
+    RESET_MIN(Long.class),
+    RESET_MAX(Long.class),
     OWNER(String.class);
     
     private Class c;
-    
+
     private Type(Class c) {
       this.c = c;
     }
    
     public Boolean wrongClass(Class cls) {
       if(!this.c.equals(cls)) {
-        System.out.println("[Catacombs] Incorrect type for '"+this+"' expecting "+c+" found call for "+cls);
+        System.err.println("[Catacombs] Incorrect type for '"+this+"' expecting "+c+" found call for "+cls);
         return true;
       }
       return false;
@@ -51,13 +57,21 @@ public class CatFlag {
     }
   }
   
+  private int fid=-1;  
   private Type type;
   private Object val;
+  private Catacombs plugin=null;
+  
+  public CatFlag(Catacombs plugin,ResultSet rs) throws Exception{
+    this(rs.getString("type"),rs.getString("val"));
+    fid = rs.getInt("fid");
+    this.plugin = plugin;
+  }
 
   public CatFlag(String stype, String v) {
     type = CatUtils.getEnumFromString(Type.class, stype);
     if(type.isClass(Boolean.class)) {
-      val = (v.equalsIgnoreCase("true"))?true:false;
+      val = (v.equalsIgnoreCase("false")||v.equals("0"))?false:true;
     } else if(type.isClass(Double.class)) {
       val = Double.parseDouble(v);
     } else if(type.isClass(Long.class)) {
@@ -113,6 +127,22 @@ public class CatFlag {
       this.val = val;
     } 
   }  
+  
+  @Override
+  public String toString() {
+    return type+" "+fid+" "+val;
+  }
+  
+  public void saveDB(CatSQL sql, int did) {
+    if(fid<=0) {
+      sql.command("INSERT INTO flags "+
+        "(did,type,val) VALUES ("+did+",'"+type+"','"+val+"');");
+      fid = sql.getLastId();
+    } else {
+      sql.command("UPDATE flags SET val='"+val+"' WHERE fid='"+fid+"';");
+    }
+  }
+  
   public Boolean matches(Type t) {
     return type == t;
   }
@@ -149,5 +179,30 @@ public class CatFlag {
     if(type.wrongClass(Boolean.class))
       return null;
     return (Boolean)val;
+  }
+  
+  public void setBoolean(Boolean val) {
+    if(!type.wrongClass(Boolean.class))
+      this.val = val;
+  }
+  
+  public void setString(String val) {
+    if(!type.wrongClass(String.class))
+      this.val = val;
+  }
+  
+  public void setLong(Long val) {
+    if(!type.wrongClass(Long.class))
+      this.val = val;
+  }
+
+  public void setDouble(Double val) {
+    if(!type.wrongClass(Double.class))
+      this.val = val;
+  }
+
+  public void setInteger(Integer val) {
+    if(!type.wrongClass(Integer.class))
+      this.val = val;
   }
 }

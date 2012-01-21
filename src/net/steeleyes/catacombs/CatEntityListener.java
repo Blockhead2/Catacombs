@@ -54,7 +54,7 @@ public class CatEntityListener extends EntityListener {
   public void onEntityDeath(EntityDeathEvent evt) {
     LivingEntity damagee = (LivingEntity) evt.getEntity();
     Block blk = damagee.getLocation().getBlock();
-    Boolean inDungeon =   plugin.prot.isInRaw(blk);
+    Boolean inDungeon =   plugin.dungeons.isInRaw(blk);
     
     //Is the monster managed?
     if(plugin.cnf.AdvancedCombat()) {
@@ -101,7 +101,7 @@ public class CatEntityListener extends EntityListener {
       return;
 
     Block blk = evt.getEntity().getLocation().getBlock();
-    Boolean inDungeon = plugin.prot.isInRaw(blk);
+    Boolean inDungeon = plugin.dungeons.isInRaw(blk);
     
     if(!inDungeon) {
       return;
@@ -161,21 +161,25 @@ public class CatEntityListener extends EntityListener {
     
     SpawnReason reason = evt.getSpawnReason();
     Block blk = evt.getLocation().getBlock();
+    Boolean isMonster = evt.getEntity() instanceof Monster;
       
-    if(plugin.cnf.MobsSpawnUnderCover() &&
-       evt.getEntity() instanceof Monster &&
+    if(plugin.cnf.MobsSpawnOnlyUnderground() &&
+       isMonster &&
        reason == SpawnReason.NATURAL &&
        CatUtils.onSurface(blk)) {
       evt.setCancelled(true);
       return;
     }
     
-    CatCuboid cube = plugin.prot.getCube(blk);
+    Dungeon dung = plugin.dungeons.getDungeon(blk);
 
-    if(cube == null) // Not in dungeon
+    if(dung == null) { // Not in dungeon
+      if(plugin.cnf.MobsSpawnOnlyInDungeons() && isMonster)
+        evt.setCancelled(true);
       return;
+    }
     
-    if(!cube.isEnabled()) {  // Cancel spawns in suspended dungeons
+    if(!dung.isEnabled()) {  // Cancel spawns in suspended dungeons
       evt.setCancelled(true);
       return;
     }   
@@ -250,14 +254,14 @@ public class CatEntityListener extends EntityListener {
     Block blk = loc.getBlock();
     List<Block> list = eEvent.blockList();
 
-    if(plugin.prot.isProtected(blk) || any_protected(list)) {
+    if(plugin.dungeons.isProtected(blk) || any_protected(list)) {
       list.clear();
     }
   }
   
   private Boolean any_protected(List<Block> list) {
     for(Block b : list) {
-      if(plugin.prot.isProtected(b)) {
+      if(plugin.dungeons.isProtected(b)) {
         return true;
       }
     }
@@ -270,7 +274,7 @@ public class CatEntityListener extends EntityListener {
       return;
 
     Block blk = eEvent.getBlock();
-    if(plugin.prot.isProtected(blk))
+    if(plugin.dungeons.isProtected(blk))
       eEvent.setCancelled(true);
   }
   
@@ -280,7 +284,7 @@ public class CatEntityListener extends EntityListener {
       return;
 
     Block blk = eEvent.getLocation().getBlock();
-    if(plugin.prot.isProtected(blk))
+    if(plugin.dungeons.isProtected(blk))
       eEvent.setCancelled(true);
   }
 }

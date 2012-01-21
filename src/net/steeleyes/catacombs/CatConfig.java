@@ -73,7 +73,8 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean DungeonProtectOff()      { return getSBoolean(ECatConfig.DungeonProtectOff.getStr());  }
   public  Boolean SaveDungeons()           { return getSBoolean(ECatConfig.SaveDungeons.getStr());  }
   public  Boolean NoPvPInDungeon()         { return getSBoolean(ECatConfig.NoPvPInDungeon.getStr());  }
-  public  Boolean MobsSpawnUnderCover()    { return getSBoolean(ECatConfig.MobsSpawnUnderCover.getStr());  }
+  public  Boolean MobsSpawnOnlyUnderground(){ return getSBoolean(ECatConfig.MobsSpawnOnlyUnderground.getStr());  }
+  public  Boolean MobsSpawnOnlyInDungeons(){ return getSBoolean(ECatConfig.MobsSpawnOnlyInDungeons.getStr());  }
   //public  Boolean BossEnabled()            { return getSBoolean(ECatConfig.BossEnabled.getStr());  }
   public  Boolean AdvancedCombat()         { return getSBoolean(ECatConfig.AdvancedCombat.getStr());  }
   public  Integer GroupRadius()            { return getSInt(ECatConfig.GroupRadius.getStr());  }

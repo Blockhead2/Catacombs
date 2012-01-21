@@ -56,7 +56,7 @@ public class CatBlockListener extends BlockListener {
     if(mat == Material.TORCH)
       return;
 
-    if(plugin.prot.isProtected(block))
+    if(plugin.dungeons.isProtected(block))
       event.setCancelled(true);
   }
 
@@ -75,7 +75,7 @@ public class CatBlockListener extends BlockListener {
     if(plugin.cnf.isBreakable(block))
       return;
 
-    Boolean is_prot = plugin.prot.isProtected(block);
+    Boolean is_prot = plugin.dungeons.isProtected(block);
     
     if(mat == Material.MOB_SPAWNER) {
       if(plugin.cnf.ProtectSpawners() && is_prot) {
@@ -97,7 +97,7 @@ public class CatBlockListener extends BlockListener {
     if(event.isCancelled())
       return;
 
-    if(plugin.prot.isInRaw(event.getBlock()))
+    if(plugin.dungeons.isInRaw(event.getBlock()))
       event.setCancelled(true);
   }
   
@@ -106,18 +106,21 @@ public class CatBlockListener extends BlockListener {
     if(event.isCancelled())
       return;
 
-    if(plugin.prot.isInRaw(event.getBlock()))
+    if(plugin.dungeons.isInRaw(event.getBlock()))
       event.setCancelled(true);
   }  
   
   @Override
   public void onBlockDamage(BlockDamageEvent event){
-    if(event.isCancelled())
-      return;
+    
+    // Wordguard cancels the damage events so allow
+    //   secret doors and debug to work regardless.
+    //if(event.isCancelled())
+    //  return;
 
     Block block = event.getBlock();
     
-    if(!plugin.prot.isInRaw(block) && plugin.cnf.SecretDoorOnlyInDungeon())
+    if(!plugin.dungeons.isInRaw(block) && plugin.cnf.SecretDoorOnlyInDungeon())
       return;    
 
     Material mat = block.getType();

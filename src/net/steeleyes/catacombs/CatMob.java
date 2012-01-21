@@ -182,6 +182,12 @@ public class CatMob {
     return "";
   }
   
+  public Player getTarget() {
+    LivingEntity t = hate.target();
+    if(t instanceof Player)
+      return (Player)t;
+    return null;
+  }  
   public void target(EntityTargetEvent evt) {      
     // somebody on hate then target them. 
     if(hate.size()>0) {

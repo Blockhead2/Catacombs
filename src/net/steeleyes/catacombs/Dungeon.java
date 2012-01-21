@@ -40,83 +40,160 @@ import org.bukkit.block.BlockFace;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.sql.ResultSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Dungeon {
-  private CatConfig cnf = null;
+  private Catacombs plugin = null;
   private World world;
   private final ArrayList<CatLevel> levels = new ArrayList<CatLevel>();
   private String name;
   private String builder;
   private CatMat major;
   private CatMat minor;
-  private Boolean enable = true;
-  
+    
   private Boolean running = false;
-  private long    resetTime = 0;
   private int     resetWarnings = 0;
-  private Boolean bossKilled = false;
-  private int     did=0;
-  //private CatArena arena = null;
-
+  
+  private int         did=-1;
+  //private List<CatFlag> flags = new ArrayList<CatFlag>();
+  //private List<CatLocation> locations = new ArrayList<CatLocation>();
+  private CatFlag     bossKilled = null;
+  private CatFlag     isEnabled = null;
+  private CatFlag     resetTime = null;
+  private CatFlag     resetMin = null;
+  private CatFlag     resetMax = null;
+  private CatLocation endChest = null;
+  
   private static Map<String,PrePlanned> hut_list = null;
   
-  private List<CatFlag> flags = new ArrayList<CatFlag>();
-  private List<CatLocation> locations = new ArrayList<CatLocation>();
- 
   private Boolean built = false;
   
-
-  public Dungeon(String name,CatConfig cnf,World world){
-    this.name = name;
-    this.cnf = cnf;
-    this.world = world;
-    major = cnf.majorMat();
-    minor = cnf.minorMat();
-    //if(name.equals("a"))
-    //  this.resetTime = System.currentTimeMillis() + 1000*60;
-    setup_huts();
+  public Dungeon(Catacombs plugin,String name,World world){
+    this(plugin,name,world,plugin.cnf.majorMat(),plugin.cnf.minorMat());
   }
   
-  public Dungeon(String name,CatConfig cnf,World world,CatMat major, CatMat minor){
+  public Dungeon(Catacombs plugin,String name,World world,CatMat major, CatMat minor){
     this.name = name;
-    this.cnf = cnf;
+    //this.cnf = cnf;
     this.world = world;
     this.major = major;
     this.minor = minor;
-    //if(name.equals("a"))
-    //  this.resetTime = System.currentTimeMillis() + 1000*60;
     setup_huts();
   }
   
-  public Boolean isSuspended() {
-    return !enable;
+  public Dungeon(Catacombs plugin,ResultSet rs) {
+    try {  
+      this.plugin = plugin;
+      did = rs.getInt("did");
+      built = true;
+      name = rs.getString("dname");
+      String wname = rs.getString("wname");
+      builder = rs.getString("pname");
+      world = plugin.getServer().getWorld(wname);
+      if(world==null) {
+        System.err.println("[Catacombs] World '"+wname+"' required for dungeon '"+name+"' can't be found");
+      } else {
+        major = CatMat.parseMaterial(rs.getString("major"));
+        minor = CatMat.parseMaterial(rs.getString("minor"));
+        //enable = (rs.getInt("enable")!=0);
+        
+        ResultSet rs2 = plugin.sql.query("SELECT lid,type,room,roof,floor,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez FROM levels2 WHERE did="+did+" ORDER BY yh DESC;");
+        while(rs2.next()) {
+          CatLevel clevel = new CatLevel(plugin,rs2,world,false); // ToDo: Remove legacy version of this
+          add(clevel);
+        }
+        ResultSet rs3 = plugin.sql.query("SELECT fid,type,val FROM flags WHERE did="+did+";");
+        while(rs3.next()) {
+          CatFlag flag = new CatFlag(plugin,rs3);
+          if (flag.matches(CatFlag.Type.BOSS_KILLED)) {
+            bossKilled = flag;
+          } else if(flag.matches(CatFlag.Type.IS_ENABLED)) {
+            isEnabled = flag;
+          } else if(flag.matches(CatFlag.Type.RESET_TIME)) {
+            resetTime = flag;
+          } else if(flag.matches(CatFlag.Type.RESET_MAX)) {
+            resetMax = flag;
+          } else if(flag.matches(CatFlag.Type.RESET_MIN)) {
+            resetMin = flag;
+          } else {
+            System.err.println("[Catacombs] ERROR: unrecognised dungeon flag="+flag);
+          }
+        }
+        ResultSet rs4 = plugin.sql.query("SELECT xid,type,x,y,z FROM locations WHERE did="+did+";");
+        while(rs4.next()) {
+          CatLocation loc = new CatLocation(plugin,rs4);
+          if (loc.matches(CatLocation.Type.END_CHEST)) {
+            endChest = loc;
+            //System.out.println("[Catacombs] loaded location (END_CHEST) "+loc);
+          } else {
+            System.err.println("[Catacombs] ERROR: unrecognised dungeon location="+loc);
+          }
+        }
+        setupFlagsLocations();  // Set default flags and locations
+
+      }
+      //registerCubes(plugin.prot);
+    } catch(Exception e) {
+      System.err.println("[Catacombs] ERROR: "+e.getMessage());
+    }
   }
   
-  public void setDid(int did) {
-    this.did = did;
+  public void saveDB() {
+    if(did<=0) {    
+      plugin.sql.command("INSERT INTO dungeons"+
+        "(version,dname,wname,pname,major,minor) VALUES"+
+        "('"+plugin.info.getVersion()+"','"+name+"','"+world.getName()+"','"+builder+"','"+major+"','"+minor+"';");
+      if(did<=0)
+        did = plugin.sql.getLastId();
+
+      for(CatLevel l: levels) {
+        l.saveDB(plugin.sql,did);
+      }
+      resetMin.saveDB(plugin.sql, did);
+      resetMax.saveDB(plugin.sql, did);
+      resetTime.saveDB(plugin.sql, did);
+      bossKilled.saveDB(plugin.sql, did);
+      isEnabled.saveDB(plugin.sql, did);
+      endChest.saveDB(plugin.sql, did);
+    } else {
+      System.err.println("[Catacombs] INTERNAL ERROR: Dungeon .db updates not implemented yet");
+    }
   }
-  public int getDid() {
-    return did;
-  }  
+  
+  public final void setupFlagsLocations() {
+    if(endChest==null) {
+      Block chest = getEndChest();
+      endChest = new CatLocation(CatLocation.Type.END_CHEST,chest.getX(),chest.getY(),chest.getZ());
+    }
+    if(bossKilled == null)
+      bossKilled = new CatFlag(CatFlag.Type.BOSS_KILLED,false);
+    if(isEnabled == null)
+      isEnabled = new CatFlag(CatFlag.Type.IS_ENABLED,true);
+    if(resetTime == null)
+      resetTime = new CatFlag(CatFlag.Type.RESET_TIME,(long)0);
+    if(resetMax == null)
+      resetMax = new CatFlag(CatFlag.Type.RESET_MAX,(long)0);
+    if(resetMin == null)
+      resetMin = new CatFlag(CatFlag.Type.RESET_MIN,(long)0);
+  }
+    
+  public Boolean isSuspended() {
+    return !isEnabled.getBoolean();
+  }
+  
   public void setBuilt(Boolean built) {
     this.built = built;
   }
   
-  public void add(CatLevel l) {
+  public final void add(CatLevel l) {
     levels.add(l);
-  }
-  
-  public Boolean bossKilled() {
-    return bossKilled;
   }
   
   public World getWorld() {
     return world;
   }
-  
-  public void setBossKilled(Boolean val) {
-    bossKilled = val;
-  }  
   
   @Override
   public String toString() {
@@ -152,58 +229,7 @@ public class Dungeon {
     return info;
   }
   
-  public void maintain() {
-    //System.out.println("[Catacombs] Calling regular process on "+name);
-    
-    List<Player> players = allPlayersInRaw();
-    
-    // Timed reset
-    if(resetTime > 0) {
-      long now = System.currentTimeMillis();
-      if(now > resetTime) {
-        System.out.println("[Catacombs] Time to reset Dungeon("+name+") "+players);
-        for(Player player: players) {
-          player.sendMessage("Dungeon("+name+") timed reset");
-        }
-        resetTime = now + 1000*60;
-        resetWarnings = 0;
-      } else {
-        long delta = (resetTime - now + 500)/1000;
 
-        int cnt = 1;
-        int newWarn = 0;
-        for(long warn: new long[] {60*5,60*4,60*3,60*2,60,30,15,10,5}) {
-          if(delta<=warn) {
-            newWarn = cnt;
-          }
-          cnt++;
-        }  
-        if(newWarn > resetWarnings) {
-          String when = (delta>60)?(delta/60)+" min(s)":delta+" sec(s)";
-          //System.out.println("[Catacombs] Timed reset Dungeon("+name+") "+players+" in "+when);
-          for(Player player: players) {
-            player.sendMessage("Dungeon("+name+") will reset in "+when);
-          }
-          resetWarnings = newWarn;
-        }
-      }
-    }
-
-    // Are any players in the dungeon
-    Boolean old_running = running;
-    running = players.size() > 0;
-    if(old_running!=running) {
-      if(running)
-        System.out.println("[Catacombs] Activating Dungeon("+name+") "+players);
-      else
-        System.out.println("[Catacombs] De-activating Dungeon("+name+")");
-    }
-    
-    // Check Spawners
-    
-    // Dungeon ownership
-        
-  }
   
   public List<String> dump() {
     CatLevel hut = getLowest(CatCuboid.Type.HUT);
@@ -286,28 +312,6 @@ public class Dungeon {
        System.err.println("[Catacombs] Can't figure out major mat for dungeon="+getName());
     }
   }
-  public void debugMajor() {
-    for(CatLevel l: levels) {
-      int roof = l.getCube().guessRoofSize();
-      int room = l.getCube().guessRoomSize();
-      CatMat m = l.getCube().guessMajorMat(roof);
-      if(!m.is(Material.AIR)) {
-        System.out.println("[Catacombs] Dungeon '"+name+"'  Major="+m+" roofDepth="+roof+" roomDepth="+room);
-        major = m;
-        break;
-      }
-    }
-    if(major.is(Material.AIR)) {
-       System.err.println("[Catacombs] Can't figure out major mat for dungeon="+getName());
-    }
-  }
-  
-  public Boolean triggerEncounter(Catacombs plugin, Block blk) {
-    return false;
-  }
-  
-  public void stopEncounter(Boolean won) {
-  }
   
   public ArrayList<String> summary() {
     ArrayList<String> res = new ArrayList<String>();
@@ -318,6 +322,9 @@ public class Dungeon {
   }
   
   public Boolean overlaps(Dungeon that) {
+    if(!world.equals(that.world))
+      return false;
+    
     for(CatLevel a : levels) {
       for(CatLevel b : that.levels) {
         if(a.getCube().overlaps(b.getCube())) {
@@ -328,18 +335,15 @@ public class Dungeon {
     return false;
   }  
   
-  public Boolean overlaps(CatCuboid that) {
-    for(CatLevel l : levels) {
-      if(l.getCube().overlaps(that)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  
   public Boolean isProtected(Block blk) {
+    if(!world.equals(blk.getWorld()))
+      return false;
+    
+    if(!isEnabled.getBoolean())
+      return false;
+    
     for(CatLevel l : levels) {
-      if(l.getCube().isProtected(blk)) {
+      if(l.getCube().isInRaw(blk)) {
         return true;
       }
     }
@@ -347,8 +351,14 @@ public class Dungeon {
   }
   
   public Boolean isSuspended(Block blk) {
+    if(!world.equals(blk.getWorld()))
+      return false;
+
+    if(isEnabled.getBoolean())
+      return false;
+ 
     for(CatLevel l : levels) {
-      if(l.getCube().isSuspended(blk)) {
+      if(l.getCube().isInRaw(blk)) {
         return true;
       }
     }
@@ -356,6 +366,9 @@ public class Dungeon {
   }
   
   public Boolean isInRaw(Block blk) {
+    if(!world.equals(blk.getWorld()))
+      return false;
+
     for(CatLevel l : levels) {
       if(l.getCube().isInRaw(blk)) {
         return true;
@@ -376,7 +389,7 @@ public class Dungeon {
     builder = p.getName();
     levels.clear();
     
-    CatLevel level = new CatLevel(cnf,world,x,y,z,getHut(cnf.HutType()),dir);
+    CatLevel level = new CatLevel(plugin.cnf,world,x,y,z,getHut(plugin.cnf.HutType()),dir);
     levels.add(level);
     if(level.getBuild_ok() && maxLevels >0) {
       CatLevel from = level;
@@ -390,7 +403,7 @@ public class Dungeon {
         } else {
           tmp_dir = Direction.ANY;
         }
-        CatLevel lvl = new CatLevel(cnf,world,from.getBot(),tmp_dir);
+        CatLevel lvl = new CatLevel(plugin.cnf,world,from.getBot(),tmp_dir);
         if(lvl.getBuild_ok()) {
           from.stealDirection(lvl);
           levels.add(lvl);
@@ -431,36 +444,74 @@ public class Dungeon {
   
   public void reset(Catacombs plugin) {
     allPlayersToTopProt();
-    bossKilled=false;
+    setBossKilled(false);
     for(CatLevel l : levels) {
       l.reset(plugin);
     }
   }
   
-  public void setEnable(Boolean enable) {
-    this.enable = enable;
-  }
-  
-  public void suspend(Catacombs plugin,CatSQL sql) {
-    enable = false;
+  public void suspend() {
+    isEnabled.setBoolean(false);
+    isEnabled.saveDB(plugin.sql, did);
     for(CatLevel l : levels) {
       l.suspend(plugin,major);
     }
-    if(sql != null)
-      sql.suspendDungeon(name);
   }
   
-  public void enable(CatSQL sql) {
-    enable = true;
+  public Boolean isEnabled() {
+    return isEnabled.getBoolean();
+  }
+  
+  public void enable() {
+    isEnabled.setBoolean(true);
+    isEnabled.saveDB(plugin.sql, did);
     for(CatLevel l : levels) {
       l.enable(major);
     }
-    if(sql != null)
-      sql.enableDungeon(name);
-  }  
+  } 
   
-  public void remove(CatSQL sql) {
-    sql.removeDungeon(name);
+  public void setResetMinMax(String t) {
+    Pattern p = Pattern.compile("((\\d+[smhd])+)-((\\d+[smhd])+)");
+    Matcher m = p.matcher(t);
+    Long lo,hi;
+    if(m.find()) {
+      Long a = CatUtils.parseTime(m.group(1));
+      Long b = CatUtils.parseTime(m.group(3));
+      lo = Math.min(a, b);
+      hi = Math.max(a, b);
+      //System.out.println("[Catacombs] a="+a+" b="+b+" lo="+lo+" hi="+hi+" a="+m.group(1)+" b="+m.group(3));
+    } else {
+      lo = hi = CatUtils.parseTime(t);
+    }
+    resetMax.setLong(hi);
+    resetMin.setLong(lo);
+    resetMax.saveDB(plugin.sql, did);
+    resetMin.saveDB(plugin.sql, did);
+    newResetTime();
+  }
+  
+  public Boolean bossKilled() {
+    if(bossKilled == null) {
+      System.err.println("[Catacombs] INTERNAL ERROR: bossKilled flag is null (attempt to get)");
+      return false;
+    }
+    return bossKilled.getBoolean();
+  }
+  
+  public void setBossKilled(Boolean val) {
+    if(bossKilled == null) {
+      System.err.println("[Catacombs] INTERNAL ERROR: bossKilled flag is null (attempt to set)");
+    } else {
+      bossKilled.setBoolean(val);
+      if(did <= 0)
+        System.err.println("[Catacombs] INTERNAL ERROR: Attempt to set bossKilled on dungeon with no dungeon id "+name);
+      else
+        bossKilled.saveDB(plugin.sql, did);
+    }
+  }
+    
+  public void remove() {
+    plugin.sql.removeDungeon(did);
   }
   
   public Location getSafePlace(Block blk) {
@@ -491,6 +542,8 @@ public class Dungeon {
         lvl = l;
       }
     }
+    if(lvl == null) 
+      System.err.println("[Catacombs] ERROR: Can't find lowest "+type+" level for dungeon "+name);
     return lvl;
   }
   
@@ -503,12 +556,14 @@ public class Dungeon {
     return getSafePlace(world.getBlockAt(l.getTop().x,l.getTop().y-depth+1,l.getTop().z));
   }
   
-  public Location getBotLocation() {
+  public Block getEndChest() {
     CatLevel l = getLowest(CatCuboid.Type.LEVEL);
-    if(l==null || l.getBot().y==0)
-      return null;
-    int depth = l.getFloorDepth(); 
-    return getSafePlace(world.getBlockAt(l.getBot().x,l.getBot().y+depth+1,l.getBot().z));
+    return l.getEndChestDoor();
+  }
+  
+  public Location getBotLocation() {
+    Block chest = getEndChest();
+    return (chest==null)?null:getSafePlace(chest);
   }  
   
   public Boolean teleportToTop(Player player) {
@@ -539,30 +594,7 @@ public class Dungeon {
       w.refreshChunk(chunk.getX(), chunk.getZ());   
     p.teleport(loc);
   }
-  
-  
-  public void saveDB(Catacombs plugin, CatSQL sql) {
-    System.err.print("Need to implent Dungeon.saveDB()");
-    
-    int i = 0;
-    for(CatLevel l: levels) {
-      CatCuboid cube = l.getCube();
-      int hut = (cube.isHut())?1:0;
-      Vector top = l.getTop();
-      Vector bot = l.getBot();
-      int en = (cube.isEnabled())?1:0;
-      sql.command("INSERT INTO levels"+
-        "(dname,wname,pname,hut,enable,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,dx,dy,num,map) VALUES"+
-        "('"+name+"','"+world.getName()+"','"+builder+"',"+hut+","+en+
-          ","+cube.xl+","+cube.yl+","+cube.zl+
-          ","+cube.xh+","+cube.yh+","+cube.zh+
-          ","+top.x+","+top.y+","+top.z+
-          ","+bot.x+","+bot.y+","+bot.z+
-          ","+cube.dx()+","+cube.dz()+","+i+",''"+
-        ");");
-      i++;
-    } 
-  }
+
     
   public Boolean isBuilt() {
     return built;
@@ -570,7 +602,7 @@ public class Dungeon {
 
   public Boolean isNatural() {
     for (CatLevel l : levels) {
-      if(l.getCube().isLevel() && !l.getCube().isNatural(cnf)) {
+      if(l.getCube().isLevel() && !l.getCube().isNatural(plugin.cnf)) {
         return false;
       }
     }
@@ -632,20 +664,6 @@ public class Dungeon {
   public void allPlayersToTopProt() {
     movePlayers(getTopLocation(),allPlayersProtected());
   }  
-
-  public void registerCubes(MultiWorldProtect prot) {
-    String wld = world.getName();
-    for(CatLevel l : levels) {
-      prot.add(wld,l.getCube());
-    }
-  }
-  
-  public void unregisterCubes(MultiWorldProtect prot) {
-    String wld = world.getName();
-    for(CatLevel l : levels) {
-      prot.remove(wld,l.getCube());
-    }
-  }
 
   private static void setup_huts() {
     if(hut_list == null) {
@@ -758,5 +776,79 @@ public class Dungeon {
       System.out.println("[Catacombs] legal hut names "+hut_list.keySet());
     }
     return hut_list.get("default");
+  }
+  
+  private void newResetTime() {
+    if(resetMax.getLong()==0) {
+      resetTime.setLong((long)0);
+      resetTime.saveDB(plugin.sql, did);
+    } else {
+      long now = System.currentTimeMillis();
+      int hi = (int)(resetMax.getLong()/1000);
+      int lo = (int)(resetMin.getLong()/1000);
+      long n;
+      if(hi==lo)
+        n = lo*1000;
+      else
+        n = (long)(plugin.cnf.nextInt(hi-lo)+lo)*1000;
+      resetTime.setLong(now + n);
+      resetTime.saveDB(plugin.sql, did);
+      System.out.println("[Catacombs] Next reset ("+name+") "+CatUtils.formatTime(n));
+    } 
+    resetWarnings = 0;
+  }
+  
+  public void maintain() {
+    //System.out.println("[Catacombs] Calling regular process on "+name);
+    
+    List<Player> players = allPlayersInRaw();
+    
+    // Timed reset
+    if(resetTime.getLong() > 0) {
+      long now = System.currentTimeMillis();
+      if(now > resetTime.getLong()) {
+        System.out.println("[Catacombs] Timed reset of Dungeon '"+name+"' "+players);
+        for(Player player: players) {
+          player.sendMessage("Dungeon '"+name+"' timed reset");
+        }
+        reset(plugin);
+        newResetTime();
+      } else {
+        long delta = (resetTime.getLong() - now + 500)/1000;
+
+        int cnt = 1;
+        int newWarn = 0;
+        for(long warn: new long[] {60*5,60*4,60*3,60*2,60,30,15,10,5}) {
+          if(delta<=warn) {
+            newWarn = cnt;
+          }
+          cnt++;
+        }  
+        if(newWarn > resetWarnings) {
+          //String when = (delta>60)?(delta/60)+" min(s)":delta+" sec(s)";
+          String when = CatUtils.formatTime(delta*1000);
+          //System.out.println("[Catacombs] Timed reset Dungeon("+name+") "+players+" in "+when);
+          for(Player player: players) {
+            player.sendMessage("Dungeon("+name+") will reset in "+when);
+          }
+          resetWarnings = newWarn;
+        }
+      }
+    }
+
+    // Are any players in the dungeon
+    Boolean old_running = running;
+    running = players.size() > 0;
+    if(old_running!=running) {
+      if(running)
+        System.out.println("[Catacombs] Activating Dungeon("+name+") "+players);
+      else
+        System.out.println("[Catacombs] De-activating Dungeon("+name+")");
+    }
+    
+    // Check Spawners
+    
+    // Dungeon ownership
+        
   }
 }

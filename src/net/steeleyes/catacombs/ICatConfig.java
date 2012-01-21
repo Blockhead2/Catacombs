@@ -49,7 +49,8 @@ public interface ICatConfig extends IConfig {
   public  Boolean DungeonProtectOff();
   public  Boolean SaveDungeons();
   public  Boolean NoPvPInDungeon();
-  public  Boolean MobsSpawnUnderCover();
+  public  Boolean MobsSpawnOnlyUnderground();
+  public  Boolean MobsSpawnOnlyInDungeons();
   public  Boolean AdvancedCombat();
   public  Integer GroupRadius();
   public  Integer GroupDepth();

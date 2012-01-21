@@ -19,6 +19,8 @@
 */
 package net.steeleyes.catacombs;
 
+import java.sql.ResultSet;
+
 public class CatLocation {
   
   public enum Type {
@@ -29,16 +31,46 @@ public class CatLocation {
   //store world too?
   //store back link to dungeon?
   
-  private Vector location;
+  private Vector loc;
   private Type type;
+  private int xid=-1;
   
-  public CatLocation(Type type, Vector location) {
+  public CatLocation(Type type, Vector loc) {
     this.type = type;
-    this.location = location;
+    this.loc = loc;
   }
   
   public CatLocation(Type type, int x, int y, int z) {
     this.type = type;
-    this.location = new Vector(x,y,z);
+    this.loc = new Vector(x,y,z);
+  }
+    
+  public CatLocation(String stype, int x, int y, int z) {
+    type = CatUtils.getEnumFromString(Type.class, stype);;
+    this.loc = new Vector(x,y,z);
+  } 
+  
+  public CatLocation(Catacombs plugin,ResultSet rs) throws Exception{
+    this(rs.getString("type"),rs.getInt("x"),rs.getInt("y"),rs.getInt("z"));
+    xid = rs.getInt("xid");
+  }
+  
+  @Override
+  public String toString() {
+    return type+" "+xid+" "+loc;
   }  
+  
+  public void saveDB(CatSQL sql, int did) {
+    if(xid<=0) {
+      sql.command("INSERT INTO locations "+
+        "(did,type,x,y,z) VALUES ("+did+",'"+type+"',"+loc.x+","+loc.y+","+loc.z+");");
+      xid = sql.getLastId();
+    } else {
+      System.err.println("[Catacombs] INTERNAL ERROR: CatLocation .db updates not implemented yet");
+    }    
+  }
+  public Boolean matches(Type t) {
+    return type == t;
+  }
 }
+

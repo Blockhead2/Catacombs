@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -104,6 +106,15 @@ public class CatUtils {
       }
     }
     return true;
+  }
+  
+  public static <T> void pickOne(List<T> list) {
+    if(!list.isEmpty()) {
+      int num = rnd.nextInt(list.size());
+      T o = list.get(num);
+      list.clear();
+      list.add(o);
+    }
   }
   
   public static List<Player> getPlayerNear(Entity ent, double r) {
@@ -316,6 +327,52 @@ public class CatUtils {
       else if(mat==Material.LEATHER_HELMET) total+=1;
     }
     return total;
+  }
+    
+  public static long parseTime(String s) {
+    Pattern p = Pattern.compile("(\\d+)([smhd])");
+    Matcher m = p.matcher(s);
+    long num = 0;
+    while(m.find()) {
+      int i = Integer.parseInt(m.group(1));
+      String unit = m.group(2);
+      //    System.out.println("[Catacombs]   parse "+unit+" "+i);
+
+      if(unit.equals("m"))
+        i=i*60;
+      if(unit.equals("h"))
+        i=i*60*60;
+      if(unit.equals("d"))
+        i=i*60*60*24;
+      num+=i;
+    }
+    //System.out.println("[Catacombs] Parse "+s+" = "+num+"sec(s)");
+
+    return num*1000;
+  }
+  
+  public static String formatTime(Long num) {
+    String str = "";
+    num = num / 1000;
+    if(num>=60*60*24) {
+      int d = (int)(num/(60*60*24));
+      str += d+"d";
+      num = num - (d*60*60*24);
+    }
+    if(num>=60*60) {
+      int d = (int)(num/(60*60));
+      str += d+"h";
+      num = num - (d*60*60);
+    }
+    if(num>=60) {
+      int d = (int)(num/(60));
+      str += d+"m";
+      num = num - (d*60);
+    }
+    if(num>0) {
+      str += num+"s";
+    }
+    return str;
   }
   
   public static <T extends Enum<T>> T getEnumFromString(Class<T> c, String string) {

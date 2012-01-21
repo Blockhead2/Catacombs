@@ -23,12 +23,16 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 
 public class CatSQL {
   
-  Connection conn = null;
-  String path;
+  private Connection conn = null;
+  private String path;
+  public Boolean debug = false;
   
   public CatSQL(String p) {
     path = p;
@@ -56,12 +60,29 @@ public class CatSQL {
   
   public void command(String cmd) {
     try {
-      Statement stat = conn.createStatement();
-      int res = stat.executeUpdate(cmd);
-      stat.close();
+      if(debug) {
+        System.out.println("[Catacombs] "+cmd);
+      } else {
+        Statement stat = conn.createStatement();
+        int res = stat.executeUpdate(cmd);
+        stat.close();
+      }
     } catch (Exception e) {
       System.err.println("[Catacombs] Sqlite error: "+e.getMessage());
     }
+  }
+  
+  public int getLastId() {
+    int id = -1;
+    try {
+      ResultSet rs = query("select last_insert_rowid();");
+      if(rs.next()) {
+        id = rs.getInt(1);
+      }
+    } catch(Exception e) {
+      System.err.println("[Catacombs] Sqlite error: "+e.getMessage());
+    }
+    return id;    
   }
   
   public ResultSet query(String cmd) {
@@ -77,15 +98,12 @@ public class CatSQL {
     }
     return rs;
   }
-  
-  public void suspendDungeon(String dname) {
-    command("UPDATE levels SET enable=0 WHERE dname='"+dname+"';");
-  }
-  public void enableDungeon(String dname) {
-    command("UPDATE levels SET enable=1 WHERE dname='"+dname+"';");
-  }  
-  public void removeDungeon(String dname) {
-    command("DELETE FROM levels WHERE dname='"+dname+"';"); 
+   
+  public void removeDungeon(int did) {
+    command("DELETE FROM dungeons WHERE did='"+did+"';"); 
+    command("DELETE FROM levels2 WHERE did='"+did+"';"); 
+    command("DELETE FROM flags WHERE did='"+did+"';"); 
+    command("DELETE FROM locations WHERE did='"+did+"';"); 
   }
   
   public int getDid(String dname) {
@@ -103,35 +121,35 @@ public class CatSQL {
     }
     return did;
   }
-  public void createLegacyTables() {
-    if(!tableExists("levels")) {
-      System.out.println("[Catacombs] Creating Legacy SQL table 'levels'");
-      command("CREATE TABLE `levels` (" +
-        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-        "dname TEXT," +
-        "wname TEXT," +
-        "pname TEXT," +
-        "hut INTEGER," +
-        "xl INTEGER," +
-        "yl INTEGER," +
-        "zl INTEGER," +
-        "xh INTEGER," +
-        "yh INTEGER," +
-        "zh INTEGER," +
-        "sx INTEGER," +
-        "sy INTEGER," +
-        "sz INTEGER," +
-        "ex INTEGER," +
-        "ey INTEGER," +
-        "ez INTEGER," +
-        "enable INTEGER," +
-        "num INTEGER," +
-        "dx INTEGER," +
-        "dy INTEGER," +
-        "map TEXT" +
-      ");");      
-    }
-  }
+//  public void createLegacyTables() {
+//    if(!tableExists("levels")) {
+//      System.out.println("[Catacombs] Creating Legacy SQL table 'levels'");
+//      command("CREATE TABLE `levels` (" +
+//        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+//        "dname TEXT," +
+//        "wname TEXT," +
+//        "pname TEXT," +
+//        "hut INTEGER," +
+//        "xl INTEGER," +
+//        "yl INTEGER," +
+//        "zl INTEGER," +
+//        "xh INTEGER," +
+//        "yh INTEGER," +
+//        "zh INTEGER," +
+//        "sx INTEGER," +
+//        "sy INTEGER," +
+//        "sz INTEGER," +
+//        "ex INTEGER," +
+//        "ey INTEGER," +
+//        "ez INTEGER," +
+//        "enable INTEGER," +
+//        "num INTEGER," +
+//        "dx INTEGER," +
+//        "dy INTEGER," +
+//        "map TEXT" +
+//      ");");      
+//    }
+//  }
   
   public void dropTables() {
     // ToDo: Need to figure out the locking
@@ -150,8 +168,7 @@ public class CatSQL {
         "wname TEXT," +
         "pname TEXT," +
         "major TEXT," +
-        "minor TEXT," +
-        "enable INTEGER" +
+        "minor TEXT" +
       ");");      
     }
     if(!tableExists("levels2")) {
@@ -183,7 +200,7 @@ public class CatSQL {
         "fid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
         "did INTEGER," +
         "type STRING," +
-        "value STRING" +
+        "val STRING" +
       ");");      
     } 
     if(!tableExists("locations")) {
@@ -207,7 +224,7 @@ public class CatSQL {
         String dname = rs.getString("dname");
         String wname = rs.getString("wname");
         String pname = rs.getString("pname");
-        int    enable = rs.getInt("enable");
+        Boolean    enable = rs.getInt("enable")!=0;
         System.out.println("[Catacombs]   dungeon '"+dname+"'");
         
         String version = "javax";
@@ -215,29 +232,29 @@ public class CatSQL {
         String minor = "MOSSY_COBBLESTONE";
         int roof = 0;
         int room = 0;
-        int floor = 3;
-        
-        ResultSet rs2 = query("SELECT xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,hut FROM levels WHERE dname='"+dname+"' ORDER BY yh DESC;");
-        while(rs2.next()) {
-          int xl = rs2.getInt("xl");
-          int yl = rs2.getInt("yl");
-          int zl = rs2.getInt("zl");
-          int xh = rs2.getInt("xh");
-          int yh = rs2.getInt("yh");
-          int zh = rs2.getInt("zh");
-          int sx = rs2.getInt("sx");
-          int sy = rs2.getInt("sy");
-          int sz = rs2.getInt("sz");
-          int ex = rs2.getInt("ex");
-          int ey = rs2.getInt("ey");
-          int ez = rs2.getInt("ez");
-          int hut = rs2.getInt("hut");
-          
-          if(ex==0 && ey==0 && ez==0) version = "mysql";
-          World world = plugin.getServer().getWorld(wname);
-          if(world == null) {
-            System.err.println("[Catacombs] Can't find a world called '"+wname+"'");
-          } else {
+        Block end = null;
+        World world = plugin.getServer().getWorld(wname);
+        if(world == null) {
+          System.err.println("[Catacombs] Can't find a world called '"+wname+"' dungeon '"+dname+"' can't be converted and will be dropped");
+        } else {
+          ResultSet rs2 = query("SELECT xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,hut FROM levels WHERE dname='"+dname+"' ORDER BY yh DESC;");
+          while(rs2.next()) {
+            int xl = rs2.getInt("xl");
+            int yl = rs2.getInt("yl");
+            int zl = rs2.getInt("zl");
+            int xh = rs2.getInt("xh");
+            int yh = rs2.getInt("yh");
+            int zh = rs2.getInt("zh");
+            int sx = rs2.getInt("sx");
+            int sy = rs2.getInt("sy");
+            int sz = rs2.getInt("sz");
+            int ex = rs2.getInt("ex");
+            int ey = rs2.getInt("ey");
+            int ez = rs2.getInt("ez");
+            int hut = rs2.getInt("hut");
+
+            if(ex==0 && ey==0 && ez==0) version = "mysql";
+
             CatCuboid.Type t = (hut==1)?CatCuboid.Type.HUT:CatCuboid.Type.LEVEL;
             CatCuboid cube = new CatCuboid(world,xl,yl,zl,xh,yh,zh,t);
             if(ex==0 && ey==0 && ez==0) {
@@ -251,6 +268,11 @@ public class CatSQL {
                 System.err.println("[Catacombs] Can't find end location for level in '"+dname+"'");
               }
             }
+            
+            int floor = guessFloorDepth(world.getBlockAt(ex,ey+4,ez));
+            
+            end = world.getBlockAt(ex,ey+floor+1,ez);  // Save the last level end chest
+            
             if(roof == 0) {
               roof = cube.guessRoofSize();
             }
@@ -263,43 +285,57 @@ public class CatSQL {
               if(major.equals("AIR")) // Try again on the next level down
                 major = null;
             }
+            
+            String cmd = "INSERT INTO levels2 "+
+              "(did,type,roof,room,floor,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez) VALUES"+
+              "("+did+",'"+((hut==1)?"HUT":"LEVEL")+"',"+roof+","+room+","+floor+
+                ","+xl+","+yl+","+zl+
+                ","+xh+","+yh+","+zh+
+                ","+sx+","+sy+","+sz+
+                ","+ex+","+ey+","+ez+
+              ");";
+            command(cmd);
           }
+          rs2.close();
+          
+          if(major==null || major.equals("AIR"))
+            major = "COBBLESTONE";
 
-          //System.out.println("[Catacombs]   "+did+" hut="+hut+" ("+xl+","+yl+","+zl+") ("+xh+","+yh+","+zh+") ("+sx+","+sy+","+sz+") ("+ex+","+ey+","+ez+")");
-          String cmd = "INSERT INTO levels2 "+
-            "(did,type,roof,room,floor,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez) VALUES"+
-            "("+did+",'"+((hut==1)?"HUT":"LEVEL")+"',"+roof+","+room+","+floor+
-              ","+xl+","+yl+","+zl+
-              ","+xh+","+yh+","+zh+
-              ","+sx+","+sy+","+sz+
-              ","+ex+","+ey+","+ez+
-            ");";
-          //System.out.println(cmd);
-          command(cmd);
+          assert(end!=null); // Problems: no levels or no end Block
 
+          command("INSERT INTO dungeons "+
+            "(did,version,dname,wname,pname,major,minor) VALUES"+
+            "("+did+",'"+version+"','"+dname+"','"+wname+"','"+pname+"','"+major+"','"+minor+"');");       
+          command("INSERT INTO flags (did,type,val) VALUES ("+did+",'IS_ENABLED','"+enable+"');");        
+          command("INSERT INTO flags (did,type,val) VALUES ("+did+",'BOSS_KILLED','0');");
+          command("INSERT INTO flags (did,type,val) VALUES ("+did+",'RESET_TIME','0');");
+          command("INSERT INTO flags (did,type,val) VALUES ("+did+",'RESET_MAX','0');");
+          command("INSERT INTO flags (did,type,val) VALUES ("+did+",'RESET_MIN','0');");
+          command("INSERT INTO locations (did,type,x,y,z) VALUES ("+did+",'END_CHEST',"+
+                  end.getX()+","+end.getY()+","+end.getZ()+");");        
 
+          did++;
         }
-        if(major==null || major.equals("AIR"))
-          major = "COBBLESTONE";
-        if(roof == 0)
-          roof = 1;
-        if(room == 0)
-          room = 3;
-        rs2.close();
-        //System.out.println("[Catacombs] convert "+version+" "+major+" "+minor+" "+roof+" "+room+" "+floor);
-        String cmd = "INSERT INTO dungeons "+
-          "(did,version,dname,wname,pname,enable,major,minor) VALUES"+
-          "("+did+",'"+version+"','"+dname+"','"+wname+"','"+pname+"',"+enable+",'"+major+"','"+minor+"');";
-        //System.out.println(cmd);
-        command(cmd);
-        did++;
       }
- 
       rs.close();
     } catch(Exception e) {
       System.err.println("[Catacombs] sqlite error "+e.getMessage());
     }    
   } 
+  
+  private int guessFloorDepth(Block blk) {
+    int floor = 3;
+    while(true) {
+      if(blk.getType() == Material.CHEST || blk.getType() == Material.TRAP_DOOR) {
+        return floor;
+      }
+      floor++;
+      blk = blk.getRelative(BlockFace.UP);
+      if(blk==null || floor > 20) {
+        return 3;
+      }
+    }
+  }
 }  
 
   

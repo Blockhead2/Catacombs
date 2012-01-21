@@ -38,7 +38,6 @@ import org.bukkit.entity.LivingEntity;
 
 public class CatCuboid extends Cuboid {
   private Type type = Type.LEVEL;
-  private Boolean enable = true;
   private World world = null;
   public enum Type { LEVEL, HUT }
 
@@ -55,60 +54,10 @@ public class CatCuboid extends Cuboid {
   
   @Override
   public String toString() {
-    return super.toString()+" enable="+enable+" world="+world.getName()+" type="+type;
+    return super.toString()+" world="+world.getName()+" type="+type;
   }
   
-  // Try and figure out an approximate map from the world blocks
-  public List<String> map() {
-    List<String> info = new ArrayList<String>();
-    char [][] grid = new char[xh-xl+1][zh-zl+1];
-    for(int x=xl;x<=xh;x++) {
-      for(int z=zl;z<=zh;z++) {
-        grid[x-xl][z-zl] = ' ';
-      }
-    }
-    for(int y=yl;y<=yh;y++) {
-      for(int x=xl;x<=xh;x++) {
-        for(int z=zl;z<=zh;z++) {
-          Block blk = world.getBlockAt(x,y,z);
-          int id = blk.getTypeId();
-          char was = grid[x-xl][z-zl];
-          if (id == 29) grid[x-xl][z-zl]='$';
-          if ((was == ' ' || was==',') && (id==4 || id==48 || id==98 || id==24)) grid[x-xl][z-zl]='#';
-          if ((was == '#' || was==' ') && (id==0)) grid[x-xl][z-zl]=',';
-          if ((was == ',') && (id==0)) grid[x-xl][z-zl]='.';
-          if (id==20 || id==102) grid[x-xl][z-zl]='G';
-          if (id==9 || id ==8) grid[x-xl][z-zl]='W';
-          if (id==11 || id == 10) grid[x-xl][z-zl]='L';
-          if (id==26) grid[x-xl][z-zl]='z';
-          if (id==30) grid[x-xl][z-zl]='w';
-          if (id==42) grid[x-xl][z-zl]='A';
-          if (id==50) grid[x-xl][z-zl]='t';
-          if (id==52) grid[x-xl][z-zl]='M';
-          if (id==54) grid[x-xl][z-zl]='c';
-          if (id==58) grid[x-xl][z-zl]='T';
-          if (id==61) grid[x-xl][z-zl]='f';
-          if (id==64) grid[x-xl][z-zl]='+';
-          if (id==65) grid[x-xl][z-zl]='^';
-          if (id==70) grid[x-xl][z-zl]='x';
-          if (id==88) grid[x-xl][z-zl]='s';
-          if (id==92) grid[x-xl][z-zl]='=';
-          if (id==96) grid[x-xl][z-zl]='v';
-        }
-      }
-    }
-    for(int z=zl;z<=zh;z++) {
-      String s = "# ";
-      for(int x=xl;x<=xh;x++) {
-        char ch = grid[x-xl][z-zl];
-        s += (ch==',')?'#':ch;
-      }
-      info.add(s);
-    }
-    info.add(" ");
-    return info;
-  }
-  
+
   public List<String> dump(Vector top) {
     List<String> info = map();
     info.add(" ");
@@ -117,7 +66,6 @@ public class CatCuboid extends Cuboid {
         for(int z=zl;z<=zh;z++) {
           Block blk = world.getBlockAt(x,y,z);
           info.add((x-top.x)+","+(y-top.y)+","+(z-top.z)+","+blk.getTypeId()+","+blk.getData());
-          //info.add((x-top.x)+":"+(y-top.y)+":"+(z-top.z)+":"+blk.getType()+":"+blk.getData());
         }
       }
     }
@@ -147,7 +95,9 @@ public class CatCuboid extends Cuboid {
           }
         }
       }
-    }    
+    }
+    if(depth==256)
+      depth = 1;
     return depth;
   } 
   
@@ -172,7 +122,9 @@ public class CatCuboid extends Cuboid {
           }
         }
       }
-    }    
+    }  
+    if(max_depth<3)
+      max_depth = 3;
     return max_depth;
   } 
   
@@ -261,26 +213,6 @@ public class CatCuboid extends Cuboid {
     return best_mat;
   }
   
-  public Boolean getEnable() {
-    return enable;
-  }
-
-  public void setEnable(Boolean enable) {
-    this.enable = enable;
-  }
-  
-  public void suspend() {
-    enable = false;
-  }
-  
-  public void enable() {
-    enable = true;
-  }
- 
-  public Boolean isEnabled() {
-    return enable;
-  }
-  
   public Boolean isLevel() {
     return type == Type.LEVEL;
   }
@@ -290,23 +222,15 @@ public class CatCuboid extends Cuboid {
   }
   
   public Boolean overlaps(CatCuboid that) {
-    return world.getName().equals(that.world.getName()) &&
-      intersects(that);
+    // higher levels check the worlds match so no need to check again
+    assert(world.equals(that.world));
+    return intersects(that);
   }
-  
-  public Boolean isProtected(Block blk) {
-    return enable && world.getName().equals(blk.getWorld().getName()) &&
-      super.isIn(blk.getX(),blk.getY(),blk.getZ());
-  }
-  
+
   public Boolean isInRaw(Block blk) {
-    return world.getName().equals(blk.getWorld().getName()) &&
-      super.isIn(blk.getX(),blk.getY(),blk.getZ());
-  } 
-  
-  public Boolean isSuspended(Block blk) {
-    return !enable &&  world.getName().equals(blk.getWorld().getName()) &&
-      super.isIn(blk.getX(),blk.getY(),blk.getZ());
+    // higher levels check the worlds match so no need to check again
+    assert(world.equals(blk.getWorld()));
+    return super.isIn(blk.getX(),blk.getY(),blk.getZ());
   }  
   
   public void unrender(BlockChangeHandler handler,Boolean emptyChest,int num_air) {
@@ -546,5 +470,54 @@ public class CatCuboid extends Cuboid {
     return true;
   }
 
-
+  // Try and figure out an approximate map from the world blocks
+  public List<String> map() {
+    List<String> info = new ArrayList<String>();
+    char [][] grid = new char[xh-xl+1][zh-zl+1];
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        grid[x-xl][z-zl] = ' ';
+      }
+    }
+    for(int y=yl;y<=yh;y++) {
+      for(int x=xl;x<=xh;x++) {
+        for(int z=zl;z<=zh;z++) {
+          Block blk = world.getBlockAt(x,y,z);
+          int id = blk.getTypeId();
+          char was = grid[x-xl][z-zl];
+          if (id == 29) grid[x-xl][z-zl]='$';
+          if ((was == ' ' || was==',') && (id==4 || id==48 || id==98 || id==24)) grid[x-xl][z-zl]='#';
+          if ((was == '#' || was==' ') && (id==0)) grid[x-xl][z-zl]=',';
+          if ((was == ',') && (id==0)) grid[x-xl][z-zl]='.';
+          if (id==20 || id==102) grid[x-xl][z-zl]='G';
+          if (id==9 || id ==8) grid[x-xl][z-zl]='W';
+          if (id==11 || id == 10) grid[x-xl][z-zl]='L';
+          if (id==26) grid[x-xl][z-zl]='z';
+          if (id==30) grid[x-xl][z-zl]='w';
+          if (id==42) grid[x-xl][z-zl]='A';
+          if (id==50) grid[x-xl][z-zl]='t';
+          if (id==52) grid[x-xl][z-zl]='M';
+          if (id==54) grid[x-xl][z-zl]='c';
+          if (id==58) grid[x-xl][z-zl]='T';
+          if (id==61) grid[x-xl][z-zl]='f';
+          if (id==64) grid[x-xl][z-zl]='+';
+          if (id==65) grid[x-xl][z-zl]='^';
+          if (id==70) grid[x-xl][z-zl]='x';
+          if (id==88) grid[x-xl][z-zl]='s';
+          if (id==92) grid[x-xl][z-zl]='=';
+          if (id==96) grid[x-xl][z-zl]='v';
+        }
+      }
+    }
+    for(int z=zl;z<=zh;z++) {
+      String s = "# ";
+      for(int x=xl;x<=xh;x++) {
+        char ch = grid[x-xl][z-zl];
+        s += (ch==',')?'#':ch;
+      }
+      info.add(s);
+    }
+    info.add(" ");
+    return info;
+  }
 }

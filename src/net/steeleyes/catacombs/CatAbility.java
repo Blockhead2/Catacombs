@@ -19,51 +19,105 @@
 */
 package net.steeleyes.catacombs;
 
-public enum CatAbility {
-  ARROW,
-  FIREBALL,
-  FIRE_TARGET, // instant on target
-  FIRE_NEAR,   // instant on melee
-  FIRE_FAR,    // instant on ranged
-  FIRE_WAVE,   // delayed around mob
-  FIRE_MINE,   // delayed around random player old location
-  FIRE_BOMB,   // delayed around random player
-  // Delayed if not around mob
-  // Delayed if not around player old location
-  // Delayed if not around player
-  LIGHTNING_TARGET,
-  LIGHTNING_NEAR,
-  LIGHTNING_FAR,
-  LIGHTNING_WAVE,
-  LIGHTNING_BOMB,
-  ROOT_TARGET,
-  ROOT_NEAR,
-  ROOT_FAR,
-  ROOT_WAVE,
-  ROOT_BOMB,
-  THROW_TARGET,
-  THROW_NEAR,
-  THROW_FAR,
-  THROW_WAVE,
-  THROW_BOMB,
-  SUMMON_TARGET,
-  SUMMON_NEAR,
-  SUMMON_FAR,
-  SUMMON_WAVE,
-  SUMMON_BOMB,
-  SPIN_TARGET,
-  SPIN_NEAR,
-  SPIN_FAR,
-  SPIN_WAVE,
-  SPIN_BOMB,
-  SHUFFLE,
-  WARP_TARGET,
-  WARP_NEAR,
-  WARP_FAR,
-  WARP_WAVE,
-  WARP_BOMB,
-  WARP_MINE,
-  NO_RANGED,
-  NO_MELEE;
+import java.util.ArrayList;
+import java.util.List;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+
+public class CatAbility {
+  private static final int NEAR = 3;
+  private static final int FAR  = 20;
+  
+  private EffectType effect;
+  private TargetType type;
+  private String name;
+  private int after;
+  private Entity ent=null;
+  
+  public enum EffectType {
+    ARROW,
+    FIRE_BALL,
+    FIRE_DAMAGE,
+    FIRE_START,
+    LIGHTNING,
+    ROOT,
+    THROW,
+    SUMMON,
+    SPIN,
+    WARP,
+    FLOOD,
+    SHUFFLE;        
+  }
+  
+  public enum TargetType {
+    TARGET,
+    ONE_NEAR_ENT,
+    ALL_NEAR_ENT,
+    ONE_FAR_ENT,
+    ALL_FAR_ENT,
+    BLOCK,
+    ONE_NEAR_BLK,
+    ALL_NEAR_BLK,
+    ONE_FAR_BLK,
+    ALL_FAR_BLK;
+  }
+  
+  public CatAbility(String name,EffectType effect, TargetType type,int after) {
+    this.name = name;
+    this.effect = effect;
+    this.type = type;
+    this.after = after;
+  }
+  
+  public CatAbility(String name,String effect, String type,int after) {
+    this.name = name;
+    this.effect = CatUtils.getEnumFromString(EffectType.class, effect);
+    this.type = CatUtils.getEnumFromString(TargetType.class, type);
+    this.after = after;
+  }
+  
+  @Override
+  public String toString() {
+    return name;
+  }
+  
+  public List<Player> getTargets(CatMob from) {
+    List<Player> list=null;//= new ArrayList<Player>();
+    switch(type) {
+      case TARGET: 
+        Player target = from.getTarget();
+        if(target!=null) {
+          list =  new ArrayList<Player>();
+          list.add(target);
+        }
+        break;
+      case ONE_NEAR_ENT:
+        list = CatUtils.getPlayerNear(from.getEntity(),NEAR);
+        CatUtils.pickOne(list);
+        break;
+      case ALL_NEAR_ENT:
+        list = CatUtils.getPlayerNear(from.getEntity(),NEAR);
+        break;
+      case ONE_FAR_ENT:
+        list = CatUtils.getPlayerFar(from.getEntity(),NEAR,FAR);
+        CatUtils.pickOne(list);
+        break;
+      case ALL_FAR_ENT:
+        list = CatUtils.getPlayerFar(from.getEntity(),NEAR,FAR);
+        break;
+      default:
+        list = new ArrayList<Player>();
+    }
+    return list;
+  }
+  
+  public List<Player> getTargets(Block from) {
+    List<Player> list = new ArrayList<Player>();
+    return list;
+  }
+  // No melee
+  // No ranged
+  
   
 }
