@@ -350,7 +350,7 @@ public class Catacombs extends JavaPlugin {
     cnf = new CatConfig(getConfig());
     info = this.getDescription();
     monsters = new Monsters(this);
-    mobtypes = new MobTypes(getConfig());
+    //mobtypes = new MobTypes(getConfig());
     
     mapdir = new File("plugins" + File.separator + info.getName() + File.separator + "maps");
     if(!mapdir.exists()){

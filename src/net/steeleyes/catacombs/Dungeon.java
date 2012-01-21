@@ -151,6 +151,7 @@ public class Dungeon {
       for(CatLevel l: levels) {
         l.saveDB(plugin.sql,did);
       }
+      setupFlagsLocations();
       resetMin.saveDB(plugin.sql, did);
       resetMax.saveDB(plugin.sql, did);
       resetTime.saveDB(plugin.sql, did);
