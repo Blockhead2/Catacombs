@@ -147,7 +147,7 @@ public class CatMob {
   
   public void death(EntityDeathEvent evt) {
     if(ent != null) {
-      if(creature != CatCreature.SILVERFISH) {
+      if(!cnf.GoldOff() && creature != CatCreature.SILVERFISH) {
         // "Share" cash and exp (simply give the cash and exp to all
         //   attackers to encourage team work)
         for(Entity attacker : hate.attackers()) {

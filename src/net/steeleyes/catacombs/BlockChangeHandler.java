@@ -85,11 +85,13 @@ public class BlockChangeHandler implements Runnable {
       setBlock(x);
       cnt++;
     }
-    while(!low.isEmpty() && cnt < MAX_CHANGE) {
-      BlockChange x = low.remove(0);
-      setBlock(x);
-      cnt++;
-    } 
+    if(cnt==0) { // Only do low priority on a new tick
+      while(!low.isEmpty() && cnt < MAX_CHANGE) {
+        BlockChange x = low.remove(0);
+        setBlock(x);
+        cnt++;
+      }
+    }
     if(cnt>0) {
       changed += cnt;
     }

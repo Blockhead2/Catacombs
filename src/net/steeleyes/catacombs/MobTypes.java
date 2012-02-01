@@ -20,7 +20,6 @@ along with Catacombs.  If not, see <http://www.gnu.org/licenses/>.
 package net.steeleyes.catacombs;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +30,7 @@ public class MobTypes {
   
   private Map<String,MobType> mobs = new HashMap<String,MobType>();
   private Map<String,CatAbility> abilities = new HashMap<String,CatAbility>();
+  private Map<String,CatLootList> loot = new HashMap<String,CatLootList>();
   FileConfiguration fcnf;
   
   public MobTypes(FileConfiguration config) {
@@ -40,36 +40,38 @@ public class MobTypes {
       if(mobTypeFile.exists()) {
         fcnf.load(mobTypeFile);
         System.out.println("[Catacombs]");
-        for(String ability: getKeys(fcnf,"ability")) {
-          String path = "ability."+ability;
-          String effect = getSString(path+".effect");
-          String target = getSString(path+".target");
-          int after     = getSInt(path+".after");
-          CatAbility ab = new CatAbility(ability,effect,target,after);
-          abilities.put(ability,ab);
+        for(String ability: CatUtils.getKeys(fcnf,"ability")) {
           System.out.println("[Catacombs]   ability="+ability);
-          System.out.println("[Catacombs]     effect="+effect);
-          System.out.println("[Catacombs]     target="+target);
-          System.out.println("[Catacombs]     after="+after);
+          CatAbility ab = new CatAbility(ability,fcnf,"ability."+ability);
+          abilities.put(ability,ab);
         }
-        for(String mob: getKeys(fcnf,"monster")) {
+        for(String group: CatUtils.getKeys(fcnf,"loot")) {
+          System.out.println("[Catacombs]   loot=loot."+group);
+          CatLootList ll = new CatLootList(group,fcnf,"loot."+group);
+          loot.put(group,ll);
+        }
+        for(String mob: CatUtils.getKeys(fcnf,"monster")) {
           String path = "monster."+mob;
-          String shape = getSString(path+".shape");
-          int hps = getSInt(path+".hps");
-          List<CatAbility> list = new LinkedList<CatAbility>();
-
-          //System.out.println("[Catacombs]   mob="+mob);
-          //System.out.println("[Catacombs]     shape="+shape);
-          //System.out.println("[Catacombs]     hps="+hps);
-          for(String abil: getSStringList(path+".abilities")) {
+          String shape = CatUtils.getSString(fcnf,path+".shape");
+          int hps = CatUtils.getSInt(fcnf,path+".hps");
+          String gold = CatUtils.getSString(fcnf,path+".gold");
+          List<CatAbility> ability_list = new LinkedList<CatAbility>();
+          for(String abil: CatUtils.getSStringList(fcnf,path+".abilities")) {
             if(abilities.containsKey(abil)) {
-              //System.out.println("[Catacombs]     ability="+abil);
-              list.add(abilities.get(abil));
+              ability_list.add(abilities.get(abil));
             } else {
               System.out.println("[Catacombs] Abilitiy '"+abil+"' required by '"+mob+"' is not defined");              
             }
           }
-          MobType mt = new MobType(mob,shape,hps,list);
+          List<CatLootList> loot_list = new LinkedList<CatLootList>();
+          for(String l: CatUtils.getSStringList(fcnf,path+".loot")) {
+            if(loot.containsKey(l)) {
+              loot_list.add(loot.get(l));
+            } else {
+              System.out.println("[Catacombs] Loot '"+l+"' required by '"+mob+"' is not defined");              
+            }
+          }
+          MobType mt = new MobType(mob,shape,hps,gold,ability_list,loot_list);
           mobs.put(mob,mt);
           System.out.println("[Catacombs] mob="+mt);
         }
@@ -81,58 +83,4 @@ public class MobTypes {
       System.err.println("[Catacombs] "+e.getMessage());
     }
   }
-
-  private static List<String> getKeys(FileConfiguration config, String path) {
-    if(config.contains(path)) {
-      List<String> list = new ArrayList<String>();
-      for(String s:config.getConfigurationSection(path).getKeys(false))
-        list.add(s);
-      return list;
-    }
-    return null;
-  }
-  
-  protected Object getSP(String path) {
-    Object property = null;
-    if (property == null) {
-      property = fcnf.get(path);
-    }
-    if(property == null) {
-      System.err.println("[Catacombs] No configuration attribute called "+path+" or <style>."+path);
-    }
-    return property;    
-  }
-  
-  @SuppressWarnings("unchecked")
-  private Boolean getSBoolean(String path) {
-    return (Boolean) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  private Integer getSInt(String path) {
-    return (Integer) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  private Double getSDouble(String path) {
-    return (Double) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  private String getSString(String path) {
-    return (String) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  private List<Boolean> getSBooleanList(String path) {
-    return (List<Boolean>) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  private List<Integer> getSIntList(String path) {
-    return (List<Integer>) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  private List<Double> getSDoubleList(String path) {
-    return (List<Double>) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  private List<String> getSStringList(String path) {
-    return (List<String>) getSP(path);
-  } 
 }

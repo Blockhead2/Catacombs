@@ -82,7 +82,7 @@ public class CatEntityListener extends EntityListener {
         plugin.monsters.removeThreat(player);
       }
     } else {
-      if(inDungeon) {
+      if(inDungeon && !plugin.cnf.GoldOff()) {
         EntityDamageEvent ev = damagee.getLastDamageCause();
         Entity damager = CatUtils.getDamager(ev);
         if(damager instanceof Player) {

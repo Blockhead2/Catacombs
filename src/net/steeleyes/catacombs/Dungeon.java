@@ -76,6 +76,7 @@ public class Dungeon {
   
   public Dungeon(Catacombs plugin,String name,World world,CatMat major, CatMat minor){
     this.name = name;
+    this.plugin = plugin;
     //this.cnf = cnf;
     this.world = world;
     this.major = major;
@@ -144,7 +145,7 @@ public class Dungeon {
     if(did<=0) {    
       plugin.sql.command("INSERT INTO dungeons"+
         "(version,dname,wname,pname,major,minor) VALUES"+
-        "('"+plugin.info.getVersion()+"','"+name+"','"+world.getName()+"','"+builder+"','"+major+"','"+minor+"';");
+        "('"+plugin.info.getVersion()+"','"+name+"','"+world.getName()+"','"+builder+"','"+major+"','"+minor+"');");
       if(did<=0)
         did = plugin.sql.getLastId();
 
@@ -340,7 +341,7 @@ public class Dungeon {
     if(!world.equals(blk.getWorld()))
       return false;
     
-    if(!isEnabled.getBoolean())
+    if(isEnabled == null || !isEnabled.getBoolean())
       return false;
     
     for(CatLevel l : levels) {
@@ -801,6 +802,8 @@ public class Dungeon {
   
   public void maintain() {
     //System.out.println("[Catacombs] Calling regular process on "+name);
+    if(!built)
+      return;
     
     List<Player> players = allPlayersInRaw();
     
@@ -840,12 +843,12 @@ public class Dungeon {
     // Are any players in the dungeon
     Boolean old_running = running;
     running = players.size() > 0;
-    if(old_running!=running) {
-      if(running)
-        System.out.println("[Catacombs] Activating Dungeon("+name+") "+players);
-      else
-        System.out.println("[Catacombs] De-activating Dungeon("+name+")");
-    }
+//    if(old_running!=running) {
+//      if(running)
+//        System.out.println("[Catacombs] Activating Dungeon("+name+") "+players);
+//      else
+//        System.out.println("[Catacombs] De-activating Dungeon("+name+")");
+//    }
     
     // Check Spawners
     

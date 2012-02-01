@@ -146,6 +146,7 @@ public class CatLevel {
 //  }
   
   public CatLevel(CatConfig cnf, World world, int x,int y,int z,Direction dir) {
+
     build_ok = false;
     can_go_lower = false;
     this.cnf = cnf;
@@ -438,7 +439,7 @@ public class CatLevel {
           case DOOR:
           case WEB:
           case ARCH:           renderTile(handler,xx,top.y,zz,undr,cob ,air ,cob ,ecob,over); break;
-          case HIDDEN:         renderTile(handler,xx,top.y,zz,cob ,cob ,air ,cob ,ecob,over); break;
+          case HIDDEN:         renderTile(handler,xx,top.y,zz,cob ,air ,air ,cob ,ecob,over); break;
           case ENCHANT:
           case BOOKCASE:
           case BOOKCASE2:
@@ -494,16 +495,10 @@ public class CatLevel {
         if(s==Square.HIDDEN) {
           int small = (cnf.Chance(50))?1:0;
           
-          // A bit of a knack to getting the block in the right order to make the secret door
-          //   TODO: Simplify the order
-          handler.addHigh(world,xx,room_l+(1-small),zz,Material.AIR);
-          handler.addHigh(world,xx,room_l+small,zz,Material.AIR);
-          handler.addHigh(world,xx,floor_h,zz,Material.AIR);
           handler.addHigh(world,xx,floor_h-2,zz,Material.AIR);
-          
           handler.addHigh(world,xx,floor_h-1,zz,Material.PISTON_STICKY_BASE,(byte)9);
-          handler.addLow(world,xx,room_l+(1-small),zz,major.getMat(),major.getCode());
-          handler.addLow(world,xx,room_l+small,zz,minor.getMat(),minor.getCode());
+          handler.addHigh(world,xx,room_l+(1-small),zz,major.getMat(),major.getCode());
+          handler.addHigh(world,xx,room_l+small,zz,minor.getMat(),minor.getCode());
           handler.addLow(world,xx,floor_h-2,zz,Material.REDSTONE_TORCH_ON);
 
         }

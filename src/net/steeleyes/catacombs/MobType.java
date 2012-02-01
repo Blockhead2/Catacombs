@@ -26,16 +26,20 @@ public class MobType {
   private String name;
   private String shape;
   private List<CatAbility> abilities;
+  private List<CatLootList> loot;
+  private String gold;
   
-  public MobType(String name,String shape,int hps,List<CatAbility> abilities) {
+  public MobType(String name,String shape,int hps,String gold,List<CatAbility> abilities,List<CatLootList> loot) {
     this.name = name;
     this.shape = shape;
     this.hps = hps;
+    this.gold = gold;
     this.abilities = abilities;
+    this.loot = loot;
   }
   
   @Override
   public String toString() {
-    return name+" "+hps+" "+abilities;
+    return name+" "+shape+" "+hps+" "+abilities+" "+loot;
   }   
 }

@@ -40,15 +40,16 @@ import java.util.List;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
-import java.util.ArrayList;
 import org.bukkit.block.BlockFace;
-import org.bukkit.configuration.file.FileConfiguration;
 
 /**
  * 
  * 
  * 
- *
+Release v1.4
+*
+ 
+ 
 Release v1.3
 * Fixed potion loot so that splash potions can be created. The syntax is
   like this potion/16425:10:1 (this means a 10% chance of splash potion of
@@ -79,6 +80,8 @@ Release v1.3
   will be reset every 5 and a half hours (starting from now). The time can also
   be a range, so 5h30m-6h30m would set the dungeon up to reset every 5.5 to 6.5 hours.
   The automatic reset is disabled by setting the reset time to zero (0s or 0m or 0h or 0d)
+* Made some changes to hopefully avoid some secret door operation issues.
+* Levers in dungeons now get cleared too when a dungeon is reset.
  
 Release v1.2
 * Added chance of finding enchanting tables (with book cases)
@@ -370,7 +373,6 @@ public class Catacombs extends JavaPlugin {
       PluginManager pm = this.getServer().getPluginManager();
       
       // TODO: create a new way to configure all the listeners individually
-      
       if(!cnf.DungeonProtectOff()) {
         pm.registerEvent(Event.Type.BLOCK_PLACE,       blockListener,  Event.Priority.Highest, this);
         pm.registerEvent(Event.Type.BLOCK_BREAK,       blockListener,  Event.Priority.Low, this);
@@ -379,9 +381,9 @@ public class Catacombs extends JavaPlugin {
       }
       if(!cnf.SecretDoorOff())
         pm.registerEvent(Event.Type.BLOCK_DAMAGE,      blockListener,  Event.Priority.Low, this);
-      if(!cnf.GoldOff()) {
-        pm.registerEvent(Event.Type.ENTITY_DEATH,      entityListener, Event.Priority.Low, this);
-      }
+      
+      pm.registerEvent(Event.Type.ENTITY_DEATH,      entityListener, Event.Priority.Low, this);
+      
       if(cnf.AdvancedCombat()) {
         pm.registerEvent(Event.Type.PLAYER_KICK,         playerListener, Event.Priority.Low, this);
         pm.registerEvent(Event.Type.PLAYER_QUIT,         playerListener, Event.Priority.Low, this);
@@ -645,8 +647,8 @@ public class Catacombs extends JavaPlugin {
       // TEST  
       } else if(cmd(p,args,"test")) {
         debug = !debug;
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
-        dung.saveDB();
+        //Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        //dung.saveDB();
 
         //Dungeon dung = dungeons.which(p.getLocation().getBlock());
         //dung.guessMajor();

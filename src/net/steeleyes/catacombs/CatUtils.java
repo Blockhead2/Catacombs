@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Projectile;
@@ -52,6 +53,65 @@ public class CatUtils {
   public static Boolean Chance(int i) {
     return rnd.nextInt(100)+1 <= i;
   }
+  public static int Between(int lo,int hi) {
+    assert(lo<=hi);
+    return rnd.nextInt(hi-lo+1)+lo;
+  }
+  
+  public static List<String> getKeys(FileConfiguration config, String path) {
+    if(config.contains(path)) {
+      List<String> list = new ArrayList<String>();
+      for(String s:config.getConfigurationSection(path).getKeys(false)) {
+        list.add(s);
+      }
+      return list;
+    }
+    return null;
+  }  
+  
+  public static Object getSP(FileConfiguration fcnf,String path) {
+    Object property = null;
+    if (property == null) {
+      property = fcnf.get(path);
+    }
+    if(property == null) {
+      System.err.println("[Catacombs] No configuration attribute called "+path+" or <style>."+path);
+    }
+    return property;    
+  }
+  
+  @SuppressWarnings("unchecked")
+  public static Boolean getSBoolean(FileConfiguration fcnf,String path) {
+    return (Boolean) getSP(fcnf,path);
+  }
+  @SuppressWarnings("unchecked")
+  public static Integer getSInt(FileConfiguration fcnf,String path) {
+    return (Integer) getSP(fcnf,path);
+  }
+  @SuppressWarnings("unchecked")
+  public static Double getSDouble(FileConfiguration fcnf,String path) {
+    return (Double) getSP(fcnf,path);
+  }
+  @SuppressWarnings("unchecked")
+  public static String getSString(FileConfiguration fcnf,String path) {
+    return (String) getSP(fcnf,path);
+  }
+  @SuppressWarnings("unchecked")
+  public static List<Boolean> getSBooleanList(FileConfiguration fcnf,String path) {
+    return (List<Boolean>) getSP(fcnf,path);
+  }
+  @SuppressWarnings("unchecked")
+  public static List<Integer> getSIntList(FileConfiguration fcnf,String path) {
+    return (List<Integer>) getSP(fcnf,path);
+  }
+  @SuppressWarnings("unchecked")
+  public static List<Double> getSDoubleList(FileConfiguration fcnf,String path) {
+    return (List<Double>) getSP(fcnf,path);
+  }
+  @SuppressWarnings("unchecked")
+  public static List<String> getSStringList(FileConfiguration fcnf,String path) {
+    return (List<String>) getSP(fcnf,path);
+  } 
   
   public static String giveCash(CatConfig cnf,Entity ent, int gold) {
     if(cnf == null || cnf.GoldOff())

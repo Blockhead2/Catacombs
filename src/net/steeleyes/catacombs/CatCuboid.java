@@ -314,6 +314,8 @@ public class CatCuboid extends Cuboid {
 
           } else if(blk.getType() == Material.TRAP_DOOR) {
             blk.setData((byte)(blk.getData() & ~4));
+          } else if(blk.getType() == Material.LEVER) {
+            blk.setData((byte)(blk.getData() & ~8));
           } else if(secretOn && blk.getType() == Material.PISTON_STICKY_BASE) {
             Block power = blk.getRelative(BlockFace.DOWN,1);
             if(power.getType() != Material.REDSTONE_TORCH_ON) {

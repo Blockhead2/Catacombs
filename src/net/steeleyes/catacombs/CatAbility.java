@@ -22,6 +22,7 @@ package net.steeleyes.catacombs;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -47,10 +48,19 @@ public class CatAbility {
     SPIN,
     WARP,
     FLOOD,
-    SHUFFLE;        
+    SHUFFLE,
+    STARVE,
+    POISON,
+    DRAIN_EXP,
+    
+    STRENGTH,   // Buffs
+    ARMOUR,
+    HEAL,
+    REGEN;
   }
   
   public enum TargetType {
+    SELF,
     TARGET,
     ONE_NEAR_ENT,
     ALL_NEAR_ENT,
@@ -61,6 +71,13 @@ public class CatAbility {
     ALL_NEAR_BLK,
     ONE_FAR_BLK,
     ALL_FAR_BLK;
+  }
+  
+  public CatAbility(String name, FileConfiguration fcnf, String path) {
+    this(name,
+      CatUtils.getSString(fcnf,path+".effect"),
+      CatUtils.getSString(fcnf,path+".target"),
+      CatUtils.getSInt(fcnf,path+".after"));
   }
   
   public CatAbility(String name,EffectType effect, TargetType type,int after) {
