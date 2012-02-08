@@ -444,6 +444,14 @@ public class Dungeon {
     }
   }
   
+  public int fixSecretDoors(Catacombs plugin) {
+    int cnt = 0;
+    for(CatLevel l : levels) {
+      cnt += l.fixSecretDoors(plugin);
+    }
+    return cnt;
+  } 
+  
   public void reset(Catacombs plugin) {
     allPlayersToTopProt();
     setBossKilled(false);

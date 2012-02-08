@@ -207,8 +207,17 @@ public class Dungeons {
     for(Entry<String,Dungeon> e: dungeons.entrySet()) {
       e.getValue().clearMonsters(plugin);
     }
-  }  
+  } 
   
+  public void fixSecretDoors(Catacombs plugin) {
+    for(Entry<String,Dungeon> e: dungeons.entrySet()) {
+      Dungeon dung = e.getValue();
+      int cnt = dung.fixSecretDoors(plugin);
+      if(cnt>0) {
+        System.out.println("[Catacombs]   '"+dung.getName()+"' fixed "+cnt+" secret doors");
+      }
+    }
+  }  
   public List<String> getNames() {
     List<String> list = new ArrayList<String>(dungeons.keySet());
     Collections.sort(list);

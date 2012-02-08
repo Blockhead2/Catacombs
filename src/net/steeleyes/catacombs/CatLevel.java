@@ -496,7 +496,7 @@ public class CatLevel {
           int small = (cnf.Chance(50))?1:0;
           
           handler.addHigh(world,xx,floor_h-2,zz,Material.AIR);
-          handler.addHigh(world,xx,floor_h-1,zz,Material.PISTON_STICKY_BASE,(byte)9);
+          handler.addHigh(world,xx,floor_h-1,zz,Material.PISTON_STICKY_BASE,(byte)1);
           handler.addHigh(world,xx,room_l+(1-small),zz,major.getMat(),major.getCode());
           handler.addHigh(world,xx,room_l+small,zz,minor.getMat(),minor.getCode());
           handler.addLow(world,xx,floor_h-2,zz,Material.REDSTONE_TORCH_ON);
@@ -661,7 +661,9 @@ public class CatLevel {
   public void clearMonsters(Catacombs plugin) {
     cube.clearMonsters(plugin);
   }
-  
+  public int fixSecretDoors(Catacombs plugin) {
+    return cube.fixSecretDoors(plugin);
+  }  
   public void suspend(Catacombs plugin, CatMat major) {
     if(plugin != null)
       cube.clearMonsters(plugin);

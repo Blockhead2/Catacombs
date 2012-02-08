@@ -47,7 +47,7 @@ import org.bukkit.block.BlockFace;
  * 
  * 
 Release v1.4
-*
+* Added extra code to fix any broken secret doors at start up.
  
  
 Release v1.3
@@ -426,7 +426,7 @@ public class Catacombs extends JavaPlugin {
      
       // Clear the dungeons of mobs so we can manage those that spawn
       dungeons.clearMonsters(this);
-      
+      dungeons.fixSecretDoors(this);
       enabled = true;
     }
   }
@@ -659,7 +659,8 @@ public class Catacombs extends JavaPlugin {
 
       // DEBUG
       } else if(cmd(p,args,"debug")) {
-
+        Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        dung.fixSecretDoors(this);
       } else {
         help(p);
       }

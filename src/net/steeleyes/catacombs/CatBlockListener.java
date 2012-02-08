@@ -42,16 +42,18 @@ public class CatBlockListener extends BlockListener {
 
   @Override
   public void onBlockPlace(BlockPlaceEvent event){
+    Block block = event.getBlockPlaced();
+    Material mat = block.getType();
+    if(plugin.debug) {
+      System.out.println("[Catacombs] Block place="+mat+"("+mat.getId()+") already_cancelled="+event.isCancelled());
+    }
     if(event.isCancelled())
       return;
 
-    Block block = event.getBlock();
-    Material mat = block.getType();
-    
-    if(plugin.debug) {
-      Player player = event.getPlayer();
-      player.sendMessage("PLACE : " + mat+ " ("+block.getX()+","+block.getY()+","+block.getZ()+")");
-    }
+    //if(plugin.debug) {
+    //  Player player = event.getPlayer();
+    //  player.sendMessage("PLACE : " + mat+ " ("+block.getX()+","+block.getY()+","+block.getZ()+")");
+    //}
 
     if(mat == Material.TORCH)
       return;

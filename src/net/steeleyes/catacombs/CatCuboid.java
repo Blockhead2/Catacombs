@@ -371,7 +371,38 @@ public class CatCuboid extends Cuboid {
       }
     }
   }
-
+  
+  public int fixSecretDoors(Catacombs plugin) {
+    int cnt = 0;
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        for(int y=yl;y<=yh;y++) {
+          Block blk = world.getBlockAt(x,y,z);
+          Material mat = blk.getType();
+          Block above = blk.getRelative(BlockFace.UP);
+          Block above2 = above.getRelative(BlockFace.UP);
+          Block below = blk.getRelative(BlockFace.DOWN);
+          if(blk.getType() == Material.PISTON_STICKY_BASE &&
+             below.getType() == Material.REDSTONE_TORCH_ON &&
+             above.getType() != Material.PISTON_EXTENSION) {
+            //System.out.println("[Catacombs] Fixing closed secret door "+blk+" "+mat+" "+above.getType()+" "+below.getType());
+            above.setTypeIdAndData(Material.PISTON_EXTENSION.getId(),(byte)9,false);
+            blk.setTypeIdAndData(Material.PISTON_STICKY_BASE.getId(),(byte)9,false);
+            cnt++;
+          } else if (blk.getType() == Material.PISTON_STICKY_BASE &&
+             below.getType() != Material.REDSTONE_TORCH_ON && above2.getType() != Material.AIR) {
+             //System.out.println("[Catacombs] fixing open secret door "+blk+" "+mat+" "+above.getType()+" "+below.getType());
+             above.setTypeIdAndData(above2.getType().getId(),above2.getData(),false);
+             above2.setType(Material.AIR);
+             blk.setTypeIdAndData(Material.PISTON_STICKY_BASE.getId(),(byte)1,false);
+             cnt++;
+          }
+        }
+      }
+    }
+    return cnt;
+  }
+  
   public Boolean isBigChest(Block blk) {
     if(blk.getType() != Material.CHEST)
       return false;
