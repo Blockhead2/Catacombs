@@ -264,7 +264,18 @@ public class Config implements IConfig {
   }
   @SuppressWarnings("unchecked")
   protected Double getSDouble(String path) {
-    return (Double) getSP(path);
+    double a = 0.0;
+    try {
+      a = (Double) getSP(path);
+    } catch(Exception e) {
+      try {
+        int x = (Integer) getSP(path);
+        a = (double) x;
+      } catch(Exception e2) {
+        
+      }
+    }
+    return a;
   }
   @SuppressWarnings("unchecked")
   protected String getSString(String path) {
