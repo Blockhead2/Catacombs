@@ -113,7 +113,7 @@ public class CatUtils {
     return (List<String>) getSP(fcnf,path);
   } 
   
-  public static String giveCash(CatConfig cnf,Entity ent, int gold) {
+  public static String giveCash(CatConfig cnf,Entity ent, double gold) {
     if(cnf == null || cnf.GoldOff())
       return null;
     String res = null;
@@ -154,8 +154,9 @@ public class CatUtils {
   // ToDo: count under trees and shallow overhangs as surface too
   public static Boolean onSurface(Block blk) {
     Location loc = blk.getLocation();
+    Block spawn = loc.getBlock();
     Block surface = blk.getWorld().getHighestBlockAt(loc);
-    return loc.equals(surface);
+    return spawn.getY() == surface.getY();
   }
   
   public static Boolean nobodyNear(Entity ent,double h, double v) {

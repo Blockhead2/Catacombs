@@ -48,7 +48,9 @@ import org.bukkit.block.BlockFace;
  * 
 Release v1.4
 * Added extra code to fix any broken secret doors at start up.
- 
+* Fixed a bug with the MobsOnlySpawnUnderground option (however mobs will still
+  spawn in forests and cave mouthes so be warned).
+* Added code to allow small amounts (fractions) if cash to be given for monster kills
  
 Release v1.3
 * Fixed potion loot so that splash potions can be created. The syntax is
@@ -647,6 +649,10 @@ public class Catacombs extends JavaPlugin {
       // TEST  
       } else if(cmd(p,args,"test")) {
         debug = !debug;
+        //Location loc = p.getLocation();
+        //Block blk = loc.getBlock();
+        //Block surface = p.getWorld().getHighestBlockAt(loc);
+        //System.out.println("[Catacombs] "+blk+"("+blk.getType()+") "+surface+"("+surface.getType()+")");
         //Dungeon dung = dungeons.which(p.getLocation().getBlock());
         //dung.saveDB();
 

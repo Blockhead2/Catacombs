@@ -67,7 +67,7 @@ public interface ICatConfig extends IConfig {
   public  String       Economy();
   public  List<String> BannedCommands();
   public  String       SpawnerType();
-  public  Integer      Gold();
+  public  Double       Gold();
   public  Material     ShroomType();
   public  Material     AirType();
   public  Boolean      isNatural(Block b);

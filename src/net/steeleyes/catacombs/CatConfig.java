@@ -52,8 +52,8 @@ public class CatConfig extends Config implements ICatConfig {
   private Integer BlazePct()               { return getSInt(ECatConfig.BlazePct.getStr());  }
   private Integer CreeperPct()             { return getSInt(ECatConfig.CreeperPct.getStr());  }
   //private Integer SilverFishPct()          { return getSInt(ECatConfig.SilverFishPct.getStr());  }
-  private Integer GoldMin()                { return getSInt(ECatConfig.GoldMin.getStr());  }
-  private Integer GoldMax()                { return getSInt(ECatConfig.GoldMax.getStr());  }
+  private Double GoldMin()                 { return getSDouble(ECatConfig.GoldMin.getStr());  }
+  private Double GoldMax()                 { return getSDouble(ECatConfig.GoldMax.getStr());  }
   private Integer SmallEquipPct()          { return getSInt(ECatConfig.SmallEquipPct.getStr());  }
   private Integer MedEquipPct()            { return getSInt(ECatConfig.MedEquipPct.getStr());  }
   private Integer BigEquipPct()            { return getSInt(ECatConfig.BigEquipPct.getStr());  }
@@ -230,8 +230,23 @@ public class CatConfig extends Config implements ICatConfig {
       return "Creeper";
     return "Zombie";
   }
-  public Integer Gold() {
-    return rnd.nextInt(GoldMax()-GoldMin()+1)+GoldMin();
+  
+  public Double Gold() {
+    double a = 0.0;
+    double max = GoldMax();
+    double min = GoldMin();
+    if(max-min<0.001)
+      a=min;
+    else
+      a=(Math.random() * (max-min))+min;
+    return Round(a,2);
+  }
+  
+  private static double Round(double Rval, int Rpl) {
+    double p = (double) Math.pow(10, Rpl);
+    Rval = Rval * p;
+    double tmp = Math.round(Rval);
+    return (double) tmp / p;
   }
   
   public Material ShroomType() {

@@ -86,7 +86,7 @@ public class CatEntityListener extends EntityListener {
         EntityDamageEvent ev = damagee.getLastDamageCause();
         Entity damager = CatUtils.getDamager(ev);
         if(damager instanceof Player) {
-          int gold = plugin.cnf.Gold();
+          double gold = plugin.cnf.Gold();
           String bal = CatUtils.giveCash(plugin.cnf,damager,gold);
           if(bal!=null && gold > 0)
             ((Player)damager).sendMessage(gold+" coins ("+bal+")");
@@ -169,8 +169,7 @@ public class CatEntityListener extends EntityListener {
        CatUtils.onSurface(blk)) {
       evt.setCancelled(true);
       return;
-    }
-    
+    }    
     Dungeon dung = plugin.dungeons.getDungeon(blk);
 
     if(dung == null) { // Not in dungeon
