@@ -25,7 +25,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.World;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.event.Event;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -46,6 +45,29 @@ import org.bukkit.block.BlockFace;
  * 
  * 
  * 
+ *
+
+Release v1.5
+* Cake blocks are now restored to fences with air above them on reset. Partially
+  eat cake is also restored to full.
+* Added 2 additional block types to the config file to control the floor and ceiling
+  blocks. For legacy dungeons these will default to the major block. In the config
+  file the default for both of these will be cobblestone for new dungeons.
+* Prevented grass spreading out from under the wolf spawners across a dirt floor.
+* Added feature that should allow torches to be placed in dungeons even when they
+  are protected by other plugins (like worldguard)
+* Updated my permissions handler to use sk89q's WEPIF permissions handler code.
+  Hopefully this will improve integration with permissions handlers in general.
+* Changed player death options so they function in dungeons even without the
+  AdvancedCombat option being set.
+* Updated the Event code to the new bukkit style. This makes the following admin
+  configurations options now obsolete (because there is no time to be saved by not
+  calling the listeners)
+  MessyCreepers, MessyEndermen, SecretDoorOff, CalmSpawns & DungeonProtectOff
+* Record the world name and the dungeon start coordinate in the map files from now on.
+* Updated the Enderman pickup and place events to use the latest versions of the
+  bukkit calls (EntityChangeBlockEvent).
+  
 Release v1.4
 * Added extra code to fix any broken secret doors at start up.
 * Fixed a bug with the MobsOnlySpawnUnderground option (however mobs will still
@@ -364,61 +386,66 @@ public class Catacombs extends JavaPlugin {
     System.out.println("[" + info.getName() + "] version " + info.getVersion()+ " is loaded");
   }
   
+  @Override
   public void onEnable(){
     if(!enabled) {
-      permissions = new CatPermissions(this.getServer());
+      //permissions = new CatPermissions(this.getServer());
+      permissions = new CatPermissions(this);
 
       if(cnf.SaveDungeons())
         setupDatabase();  
       dungeons = new Dungeons(this,sql);  
 
       PluginManager pm = this.getServer().getPluginManager();
+      pm.registerEvents(blockListener, this);
+      pm.registerEvents(entityListener, this);
+      pm.registerEvents(playerListener, this);
+      pm.registerEvents(serverListener, this);
+//      // TODO: create a new way to configure all the listeners individually
+//      if(!cnf.DungeonProtectOff()) {
+//        pm.registerEvent(Event.Type.BLOCK_PLACE,       blockListener,  Event.Priority.Highest, this);
+//        pm.registerEvent(Event.Type.BLOCK_BREAK,       blockListener,  Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.BLOCK_BURN,        blockListener,  Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.BLOCK_IGNITE,      blockListener,  Event.Priority.Low, this);
+//      }
+//      if(!cnf.SecretDoorOff())
+//        pm.registerEvent(Event.Type.BLOCK_DAMAGE,      blockListener,  Event.Priority.Low, this);
+//      
+//      pm.registerEvent(Event.Type.ENTITY_DEATH,      entityListener, Event.Priority.Low, this);
       
-      // TODO: create a new way to configure all the listeners individually
-      if(!cnf.DungeonProtectOff()) {
-        pm.registerEvent(Event.Type.BLOCK_PLACE,       blockListener,  Event.Priority.Highest, this);
-        pm.registerEvent(Event.Type.BLOCK_BREAK,       blockListener,  Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.BLOCK_BURN,        blockListener,  Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.BLOCK_IGNITE,      blockListener,  Event.Priority.Low, this);
-      }
-      if(!cnf.SecretDoorOff())
-        pm.registerEvent(Event.Type.BLOCK_DAMAGE,      blockListener,  Event.Priority.Low, this);
+//      if(cnf.AdvancedCombat()) {
+//        pm.registerEvent(Event.Type.PLAYER_KICK,         playerListener, Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.PLAYER_QUIT,         playerListener, Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.PLAYER_TELEPORT,     playerListener, Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.PLAYER_BED_ENTER,    playerListener, Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.PLAYER_CHANGED_WORLD,playerListener, Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.PLAYER_PORTAL,       playerListener, Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.PLAYER_FISH,         playerListener, Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.PLAYER_RESPAWN,      playerListener, Event.Priority.Low, this);
+////        pm.registerEvent(Event.Type.ENTITY_TARGET,       entityListener, Event.Priority.Low, this);
+//      }
+////      pm.registerEvent(Event.Type.ENTITY_DAMAGE,       entityListener, Event.Priority.Low, this);
+//
+//      
+//      pm.registerEvent(Event.Type.PLAYER_INTERACT,     playerListener, Event.Priority.Low, this);
+//      pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL,  playerListener, Event.Priority.Low, this);
+//      pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Event.Priority.Low, this);
+//
+//      pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
+
+//      if(!cnf.CalmSpawns())
+//        pm.registerEvent(Event.Type.CREATURE_SPAWN,    entityListener, Event.Priority.Low, this);
       
-      pm.registerEvent(Event.Type.ENTITY_DEATH,      entityListener, Event.Priority.Low, this);
-      
-      if(cnf.AdvancedCombat()) {
-        pm.registerEvent(Event.Type.PLAYER_KICK,         playerListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.PLAYER_QUIT,         playerListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.PLAYER_TELEPORT,     playerListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.PLAYER_BED_ENTER,    playerListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.PLAYER_CHANGED_WORLD,playerListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.PLAYER_PORTAL,       playerListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.PLAYER_FISH,         playerListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.PLAYER_RESPAWN,      playerListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.ENTITY_TARGET,       entityListener, Event.Priority.Low, this);
-      }
-      pm.registerEvent(Event.Type.ENTITY_DAMAGE,       entityListener, Event.Priority.Low, this);
+//      if(!cnf.MessyCreepers())
+//        pm.registerEvent(Event.Type.ENTITY_EXPLODE,    entityListener, Event.Priority.Low, this);
 
-      
-      pm.registerEvent(Event.Type.PLAYER_INTERACT,     playerListener, Event.Priority.Low, this);
-      pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL,  playerListener, Event.Priority.Low, this);
-      pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Event.Priority.Low, this);
+//      if(!cnf.MessyEndermen()) {
+//        pm.registerEvent(Event.Type.ENDERMAN_PICKUP,   entityListener, Event.Priority.Low, this);
+//        pm.registerEvent(Event.Type.ENDERMAN_PLACE,    entityListener, Event.Priority.Low, this);
+//      }
 
-      pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
-
-      if(!cnf.CalmSpawns())
-        pm.registerEvent(Event.Type.CREATURE_SPAWN,    entityListener, Event.Priority.Low, this);
-      
-      if(!cnf.MessyCreepers())
-        pm.registerEvent(Event.Type.ENTITY_EXPLODE,    entityListener, Event.Priority.Low, this);
-
-      if(!cnf.MessyEndermen()) {
-        pm.registerEvent(Event.Type.ENDERMAN_PICKUP,   entityListener, Event.Priority.Low, this);
-        pm.registerEvent(Event.Type.ENDERMAN_PLACE,    entityListener, Event.Priority.Low, this);
-      }
-
-      pm.registerEvent(Event.Type.PLUGIN_ENABLE,       serverListener, Event.Priority.Low, this);
-      pm.registerEvent(Event.Type.PLUGIN_DISABLE,      serverListener, Event.Priority.Low, this);
+//      pm.registerEvent(Event.Type.PLUGIN_ENABLE,       serverListener, Event.Priority.Low, this);
+//      pm.registerEvent(Event.Type.PLUGIN_DISABLE,      serverListener, Event.Priority.Low, this);
 
       handler = new BlockChangeHandler(this);
       this.getServer().getScheduler().scheduleSyncRepeatingTask(this,handler,40,20);

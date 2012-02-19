@@ -19,13 +19,15 @@
 */
 package net.steeleyes.catacombs;
 
-import org.bukkit.event.server.ServerListener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 
 import com.nijikokun.catacombsregister.payment.Methods;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 
-public class CatServerListener extends ServerListener {
+public class CatServerListener implements Listener {
   private Catacombs plugin;
   private Methods Methods = null;
 
@@ -33,7 +35,7 @@ public class CatServerListener extends ServerListener {
       this.plugin = plugin;
   }
 
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPluginDisable(PluginDisableEvent event) {
     if (this.Methods != null && this.Methods.hasMethod()) {
       Boolean check = this.Methods.checkDisabled(event.getPlugin());
@@ -53,7 +55,7 @@ public class CatServerListener extends ServerListener {
     return Methods.setPreferred(getPreferred());
   }
     
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPluginEnable(PluginEnableEvent event) {
     if (!this.Methods.hasMethod()) {
       if (!hasPreferred()) {

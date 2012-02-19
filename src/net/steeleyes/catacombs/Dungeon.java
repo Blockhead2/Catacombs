@@ -52,6 +52,8 @@ public class Dungeon {
   private String builder;
   private CatMat major;
   private CatMat minor;
+  private CatMat floorMat;
+  private CatMat roofMat;
     
   private Boolean running = false;
   private int     resetWarnings = 0;
@@ -64,26 +66,28 @@ public class Dungeon {
   private CatFlag     resetTime = null;
   private CatFlag     resetMin = null;
   private CatFlag     resetMax = null;
+  private CatFlag     roofFlg = null;
+  private CatFlag     floorFlg = null;
   private CatLocation endChest = null;
   
   private static Map<String,PrePlanned> hut_list = null;
   
   private Boolean built = false;
   
+  // New dungeon
   public Dungeon(Catacombs plugin,String name,World world){
-    this(plugin,name,world,plugin.cnf.majorMat(),plugin.cnf.minorMat());
-  }
-  
-  public Dungeon(Catacombs plugin,String name,World world,CatMat major, CatMat minor){
     this.name = name;
     this.plugin = plugin;
     //this.cnf = cnf;
     this.world = world;
-    this.major = major;
-    this.minor = minor;
+    this.major    = plugin.cnf.majorMat();
+    this.minor    = plugin.cnf.minorMat();
+    this.floorMat = plugin.cnf.floorMat();
+    this.roofMat  = plugin.cnf.roofMat();
     setup_huts();
-  }
+  }  
   
+  // Re-load saved dungeon
   public Dungeon(Catacombs plugin,ResultSet rs) {
     try {  
       this.plugin = plugin;
@@ -118,6 +122,12 @@ public class Dungeon {
             resetMax = flag;
           } else if(flag.matches(CatFlag.Type.RESET_MIN)) {
             resetMin = flag;
+          } else if(flag.matches(CatFlag.Type.ROOF)) {
+            roofFlg = flag;
+            roofMat = CatMat.parseMaterial(roofFlg.getString());
+          } else if(flag.matches(CatFlag.Type.FLOOR)) {
+            floorFlg = flag;
+            floorMat = CatMat.parseMaterial(floorFlg.getString());
           } else {
             System.err.println("[Catacombs] ERROR: unrecognised dungeon flag="+flag);
           }
@@ -131,6 +141,17 @@ public class Dungeon {
           } else {
             System.err.println("[Catacombs] ERROR: unrecognised dungeon location="+loc);
           }
+        }
+        // New defaults
+        if(floorFlg == null) {
+          floorFlg = new CatFlag(CatFlag.Type.FLOOR,major.toString());
+          floorFlg.saveDB(plugin.sql, did);
+          floorMat = CatMat.parseMaterial(floorFlg.getString());
+        }
+        if(roofFlg == null) {
+          roofFlg = new CatFlag(CatFlag.Type.ROOF,major.toString());
+          roofFlg.saveDB(plugin.sql, did);
+          roofMat = CatMat.parseMaterial(roofFlg.getString());
         }
         setupFlagsLocations();  // Set default flags and locations
 
@@ -159,6 +180,8 @@ public class Dungeon {
       bossKilled.saveDB(plugin.sql, did);
       isEnabled.saveDB(plugin.sql, did);
       endChest.saveDB(plugin.sql, did);
+      roofFlg.saveDB(plugin.sql, did);
+      floorFlg.saveDB(plugin.sql, did);
     } else {
       System.err.println("[Catacombs] INTERNAL ERROR: Dungeon .db updates not implemented yet");
     }
@@ -177,6 +200,10 @@ public class Dungeon {
       resetTime = new CatFlag(CatFlag.Type.RESET_TIME,(long)0);
     if(resetMax == null)
       resetMax = new CatFlag(CatFlag.Type.RESET_MAX,(long)0);
+    if(roofFlg == null)
+      roofFlg = new CatFlag(CatFlag.Type.ROOF,roofMat.toString());
+    if(floorFlg == null)
+      floorFlg = new CatFlag(CatFlag.Type.FLOOR,floorMat.toString());
     if(resetMin == null)
       resetMin = new CatFlag(CatFlag.Type.RESET_MIN,(long)0);
   }
@@ -231,8 +258,6 @@ public class Dungeon {
     return info;
   }
   
-
-  
   public List<String> dump() {
     CatLevel hut = getLowest(CatCuboid.Type.HUT);
 
@@ -244,6 +269,7 @@ public class Dungeon {
     }
     return info;
   }
+  
   public List<String> map() {
     List<String> info = new ArrayList<String>();
     for(CatLevel l: levels) {
@@ -262,6 +288,7 @@ public class Dungeon {
       int num = 0;
       for(CatLevel l: levels) {
         out.write("LEVEL,"+(num++)+"\r\n");
+        out.write("WORLD,"+world.getName()+"\r\n");
         List<String> map = l.getMap();
         for(String s:map) {
           out.write(s+"\r\n");
@@ -302,18 +329,18 @@ public class Dungeon {
     return true;
   }
  
-  public void guessMajor() {
-    for(CatLevel l: levels) {
-      CatMat m = l.getCube().guessMajorMat(l.getRoofDepth());
-      if(!m.is(Material.AIR)) {
-        major = m;
-        break;
-      }
-    }
-    if(major.is(Material.AIR)) {
-       System.err.println("[Catacombs] Can't figure out major mat for dungeon="+getName());
-    }
-  }
+//  public void guessMajor() {
+//    for(CatLevel l: levels) {
+//      CatMat m = l.getCube().guessMajorMat(l.getRoofDepth());
+//      if(!m.is(Material.AIR)) {
+//        major = m;
+//        break;
+//      }
+//    }
+//    if(major.is(Material.AIR)) {
+//       System.err.println("[Catacombs] Can't figure out major mat for dungeon="+getName());
+//    }
+//  }
   
   public ArrayList<String> summary() {
     ArrayList<String> res = new ArrayList<String>();
@@ -464,7 +491,7 @@ public class Dungeon {
     isEnabled.setBoolean(false);
     isEnabled.saveDB(plugin.sql, did);
     for(CatLevel l : levels) {
-      l.suspend(plugin,major);
+      l.suspend(plugin,roofMat);
     }
   }
   
@@ -476,7 +503,7 @@ public class Dungeon {
     isEnabled.setBoolean(true);
     isEnabled.saveDB(plugin.sql, did);
     for(CatLevel l : levels) {
-      l.enable(major);
+      l.enable(roofMat);
     }
   } 
   

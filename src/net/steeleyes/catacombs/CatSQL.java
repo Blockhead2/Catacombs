@@ -311,6 +311,8 @@ public class CatSQL {
           command("INSERT INTO flags (did,type,val) VALUES ("+did+",'RESET_TIME','0');");
           command("INSERT INTO flags (did,type,val) VALUES ("+did+",'RESET_MAX','0');");
           command("INSERT INTO flags (did,type,val) VALUES ("+did+",'RESET_MIN','0');");
+          command("INSERT INTO flags (did,type,val) VALUES ("+did+",'ROOF','"+major+"');");
+          command("INSERT INTO flags (did,type,val) VALUES ("+did+",'FLOOR','"+major+"');");
           command("INSERT INTO locations (did,type,x,y,z) VALUES ("+did+",'END_CHEST',"+
                   end.getX()+","+end.getY()+","+end.getZ()+");");        
 

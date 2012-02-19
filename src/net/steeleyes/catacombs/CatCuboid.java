@@ -34,6 +34,7 @@ import org.bukkit.Location;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.bukkit.Chunk;
 import org.bukkit.entity.LivingEntity;
 
 public class CatCuboid extends Cuboid {
@@ -245,6 +246,7 @@ public class CatCuboid extends Cuboid {
     }
   }
 
+  @Deprecated
   public void clearBlock(Material mat) {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
@@ -265,34 +267,84 @@ public class CatCuboid extends Cuboid {
     }
   }
   
-  public void addGlow(CatMat major,int roofDepth) {
+  public void removeTorch() {
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        Block b = world.getBlockAt(x,yl,z);
+        World w = b.getWorld();
+        Chunk chunk = w.getChunkAt(b.getLocation());
+        if (!w.isChunkLoaded(chunk))
+          w.loadChunk(chunk);
+        //else
+        //  w.refreshChunk(chunk.getX(), chunk.getZ());
+        for(int y=yl;y<=yh;y++) {
+          Block blk = world.getBlockAt(x,y,z);
+          if(blk.getType() == Material.TORCH) {
+            //blk.setTypeId(Material.AIR.getId(),true);
+            blk.setType(Material.AIR);
+            //          w.refreshChunk(chunk.getX(), chunk.getZ());
+
+            byte aaa = blk.getLightFromBlocks();
+            byte bbb = blk.getLightLevel();
+//((CraftWorld)world).getHandle().a(net.minecraft.server.EnumSkyBlock.BLOCK, x, y, z, 0);
+        //((CraftWorld)world).getHandle().a(net.minecraft.server.EnumSkyBlock.SKY, x, y, z);
+        //((CraftWorld)world).getHandle().notify(x, y, z);
+        //            System.out.println("[Catacombs] light level "+aaa+" blk "+bbb);
+
+          }
+        }
+      }
+    }
+  }
+  
+  public void restoreCake() {
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        for(int y=yl;y<=yh;y++) {
+          Block blk = world.getBlockAt(x,y,z);
+          Block above = blk.getRelative(BlockFace.UP);
+          if(blk.getType() == Material.FENCE) {
+            if(above.getType() == Material.AIR) {
+              above.setType(Material.CAKE_BLOCK);
+            } else if(above.getType() == Material.CAKE_BLOCK) {
+              if(above.getData() != (byte)0) {
+                above.setData((byte)0);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  public void addGlow(CatMat mat,int roofDepth) {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         int y = yh-roofDepth+1;
         Block blk = world.getBlockAt(x,y,z);
         Block other = blk.getRelative(BlockFace.DOWN,1);
-        if(major.equals(blk) && other.getType() == Material.AIR) {
+        if(mat.equals(blk) && other.getType() == Material.AIR) {
           blk.setType(Material.GLOWSTONE);
         }
       }
     }
   }
   
-  public void removeGlow(CatMat major,int roofDepth) {
+  public void removeGlow(CatMat mat,int roofDepth) {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         int y = yh-roofDepth+1;
         Block blk = world.getBlockAt(x,y,z);
         Block other = blk.getRelative(BlockFace.DOWN,1);
         if(blk.getType() == Material.GLOWSTONE && other.getType() == Material.AIR) {
-          major.setBlock(blk);
+          mat.setBlock(blk);
         }
       }
     }
   }  
   
   public void closeDoors(Catacombs plugin) {
-    Boolean secretOn = !plugin.cnf.SecretDoorOff();
+    //Boolean secretOn = !plugin.cnf.SecretDoorOff();
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         for(int y=yl;y<=yh;y++) {
@@ -316,7 +368,7 @@ public class CatCuboid extends Cuboid {
             blk.setData((byte)(blk.getData() & ~4));
           } else if(blk.getType() == Material.LEVER) {
             blk.setData((byte)(blk.getData() & ~8));
-          } else if(secretOn && blk.getType() == Material.PISTON_STICKY_BASE) {
+          } else if(blk.getType() == Material.PISTON_STICKY_BASE) {
             Block power = blk.getRelative(BlockFace.DOWN,1);
             if(power.getType() != Material.REDSTONE_TORCH_ON) {
               Block upper_door = blk.getRelative(BlockFace.UP,3);
@@ -330,7 +382,7 @@ public class CatCuboid extends Cuboid {
       }
     }
   }
-
+  
   public void refillChests(CatConfig config) {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {

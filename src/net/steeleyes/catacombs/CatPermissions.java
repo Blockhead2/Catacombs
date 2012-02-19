@@ -19,46 +19,55 @@
 */
 package net.steeleyes.catacombs;
 
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
-public class CatPermissions {
-  public Object  permissionHandler;
-  public Boolean enabled = false;
+import com.sk89q.catacombs.wepif.PermissionsResolverManager;
 
-  public CatPermissions(Server server) {
-    System.out.println("[Catacombs] Looking for Permissions plugin");
-    Plugin test = server.getPluginManager().getPlugin("Permissions");
-    if(test != null) {
-      permissionHandler = (PermissionHandler) ((Permissions) test).getHandler();
-      enabled = true;
-      System.out.println("[Catacombs] Found and will use plugin "+test.getDescription().getFullName());
-    } else {
-      System.out.println("[Catacombs] Permission system not detected, defaulting to OP");
+public class CatPermissions {
+  //public Object  permissionHandler;
+  //public Boolean enabled = false;
+  
+  private PermissionsResolverManager perm;
+
+  public CatPermissions(Plugin plugin) {
+    System.out.println("[Catacombs] Using WEPIF for find permissions plugin");
+    PermissionsResolverManager.initialize(plugin);
+    perm = PermissionsResolverManager.getInstance();
+    if(perm == null) {
+      System.out.println("[Catacombs] No permissions plugin found, will use player's Op flag");
     }
   }
+  
+//  public CatPermissions(Server server) {
+//    System.out.println("[Catacombs] Looking for Permissions plugin"); 
+//    Plugin test = server.getPluginManager().getPlugin("Permissions");
+//    if(test != null) {
+//      permissionHandler = (PermissionHandler) ((Permissions) test).getHandler();
+//      enabled = true;
+//      System.out.println("[Catacombs] Found and will use plugin "+test.getDescription().getFullName());
+//    } else {
+//      System.out.println("[Catacombs] Permission system not detected, defaulting to OP");
+//    }
+//  }
+  
   private Boolean permission(Player player, String permission) {
-    if(enabled && player != null) {
-      return ((PermissionHandler) permissionHandler).has(player, permission);
+    if(perm != null && player != null) {
+      //return ((PermissionHandler) permissionHandler).has(player, permission);
+      return perm.hasPermission(player, permission);
     }
-    return player.isOp();
+    if(player != null)
+      return player.isOp();
+    
+    return true;
   }
 
   public boolean admin(Player player){
-    if (enabled && player != null) {
-      return permission(player, "catacombs.admin");
-    }
-    return true;
+    return permission(player, "catacombs.admin");
   }
 
   public Boolean hasPermission(Player player,String perm) {
-    if (enabled && player != null) {
-      return permission(player, "catacombs.admin") ||
-             permission(player, perm);
-    }
-    return true;
+    return permission(player, "catacombs.admin") ||
+           permission(player, perm);
   }
 }

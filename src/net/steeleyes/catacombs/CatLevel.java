@@ -252,7 +252,7 @@ public class CatLevel {
   
   public List<String> getMap() {
     List<String> list = new ArrayList<String>();
-    // ToDo: Add Worldname,xl,yl,zl,xh,yh,zh Here to the map
+    list.add("TOP,"+top.x+","+top.y+","+top.z+"\r\n");
     list.addAll(level.getMap());
     return list;
   }  
@@ -398,11 +398,15 @@ public class CatLevel {
     int roof_l  = room_h+1;
     int roof_h  = roof_l+roofDepth-1;
 
-    CatMat major = cnf.majorMat();
-    CatMat minor = cnf.minorMat();
-    
+    CatMat major    = cnf.majorMat();
+    CatMat minor    = cnf.minorMat();
+    CatMat floorBlk = cnf.floorMat();
+    CatMat roofBlk  = cnf.roofMat();
+
     // Short hand names to help a bit with code formatting
     Material cob = major.getMat();
+    Material flr = floorBlk.getMat();
+    Material roo = roofBlk.getMat();
     Material air = Material.AIR;
     Material bar = Material.IRON_FENCE;
     
@@ -430,15 +434,15 @@ public class CatLevel {
           case FIXEDWALL:      renderTile(handler,xx,top.y,zz,undr,undr,cob ,cob ,ecob,over); break;
           case WATER:
           case LAVA:           Material liq = (s==Square.LAVA)?Material.STATIONARY_LAVA:Material.STATIONARY_WATER;
-                               renderTile(handler,xx,top.y,zz,cob ,liq ,air ,air ,cob ,over);  break;
-          case BARS:           renderTile(handler,xx,top.y,zz,undr,cob ,air ,bar ,cob ,over);  break;
+                               renderTile(handler,xx,top.y,zz,flr ,liq ,air ,air ,roo ,over);  break;
+          case BARS:           renderTile(handler,xx,top.y,zz,undr,flr ,air ,bar ,roo ,over);  break;
           case FLOOR:
-          case FIXEDFLOOR:     renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);  break;
-          case FIXEDFLOORUP:   renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,cob );  break;
-          case FIXEDFLOORDOWN: renderTile(handler,xx,top.y,zz,cob ,cob ,air ,air ,cob ,over);  break;
+          case FIXEDFLOOR:     renderTile(handler,xx,top.y,zz,undr,flr ,air ,air ,roo ,over);  break;
+          case FIXEDFLOORUP:   renderTile(handler,xx,top.y,zz,undr,flr ,air ,air ,roo ,cob );  break;
+          case FIXEDFLOORDOWN: renderTile(handler,xx,top.y,zz,flr ,flr ,air ,air ,roo ,over);  break;
           case DOOR:
           case WEB:
-          case ARCH:           renderTile(handler,xx,top.y,zz,undr,cob ,air ,cob ,ecob,over); break;
+          case ARCH:           renderTile(handler,xx,top.y,zz,undr,flr ,air ,cob ,ecob,over); break;
           case HIDDEN:         renderTile(handler,xx,top.y,zz,cob ,air ,air ,cob ,ecob,over); break;
           case ENCHANT:
           case BOOKCASE:
@@ -455,19 +459,19 @@ public class CatLevel {
           case BIGCHEST:
           case MIDCHEST:
           case EMPTYCHEST:
-          case CHEST:          renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over); break;
+          case CHEST:          renderTile(handler,xx,top.y,zz,undr,flr ,air ,air ,roo ,over); break;
           case ARROW:          renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,ecob,over); break;
           case RED1:           
           case RED2:           
-          case PRESSURE:       renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);  break;
-          case SPAWNER:        renderTile(handler,xx,top.y,zz,cob ,cob ,air ,air ,cob ,over); break;
+          case PRESSURE:       renderTile(handler,xx,top.y,zz,undr,flr ,air ,air ,roo ,over);  break;
+          case SPAWNER:        renderTile(handler,xx,top.y,zz,cob ,flr ,air ,air ,roo ,over); break;
           case O_FLOOR:     
-          case O_TORCH:        renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,over,over); break;
-          case UP:             renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,air ,air ); break;
+          case O_TORCH:        renderTile(handler,xx,top.y,zz,undr,flr ,air ,air ,over,over); break;
+          case UP:             renderTile(handler,xx,top.y,zz,undr,flr ,air ,air ,air ,air ); break;
           case DOWN:         if(can_go_lower)
-                               renderTile(handler,xx,top.y,zz,air ,air ,air ,air ,cob ,over);
+                               renderTile(handler,xx,top.y,zz,air ,air ,air ,air ,roo ,over);
                              else
-                               renderTile(handler,xx,top.y,zz,undr,cob ,air ,air ,cob ,over);
+                               renderTile(handler,xx,top.y,zz,undr,flr ,air ,air ,roo ,over);
                              break;
           default:
         }
@@ -651,9 +655,10 @@ public class CatLevel {
   
   public void reset(Catacombs plugin) {
     if(!cube.isHut()) {
-      cube.clearBlock(Material.TORCH);
+      cube.removeTorch();
       cube.refillChests(cnf);
     }
+    cube.restoreCake();
     cube.clearMonsters(plugin);
     cube.closeDoors(plugin);
   }
@@ -664,18 +669,18 @@ public class CatLevel {
   public int fixSecretDoors(Catacombs plugin) {
     return cube.fixSecretDoors(plugin);
   }  
-  public void suspend(Catacombs plugin, CatMat major) {
+  public void suspend(Catacombs plugin, CatMat mat) {
     if(plugin != null)
       cube.clearMonsters(plugin);
     //cube.suspend();
-    if(major != null)
-      cube.addGlow(major,roofDepth);
+    if(mat != null)
+      cube.addGlow(mat,roofDepth);
   }
 
-  public void enable(CatMat major) {
+  public void enable(CatMat mat) {
     //cube.enable();
-    if(major != null)
-      cube.removeGlow(major,roofDepth);
+    if(mat != null)
+      cube.removeGlow(mat,roofDepth);
   }
   
   private CatCuboid getNaturalCuboid(CatConfig cnf,World world,int ox,int oy, int oz) {

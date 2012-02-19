@@ -20,12 +20,9 @@
 package net.steeleyes.catacombs;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityListener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EndermanPickupEvent;
-import org.bukkit.event.entity.EndermanPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import java.util.List;
 import org.bukkit.block.Block;
@@ -33,28 +30,51 @@ import org.bukkit.entity.Entity;
 import org.bukkit.Location;
 
 import org.bukkit.entity.CreatureType;
+import org.bukkit.entity.Enderman;
 import org.bukkit.entity.LivingEntity;
 
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Wolf;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
-public class CatEntityListener extends EntityListener {
+public class CatEntityListener implements Listener {
   private static Catacombs plugin;
 
   public CatEntityListener(Catacombs instance) {
     plugin = instance;
   }
 
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onEntityDeath(EntityDeathEvent evt) {
     LivingEntity damagee = (LivingEntity) evt.getEntity();
     Block blk = damagee.getLocation().getBlock();
     Boolean inDungeon =   plugin.dungeons.isInRaw(blk);
+    
+    if(evt instanceof PlayerDeathEvent) {
+      PlayerDeathEvent pevt = (PlayerDeathEvent) evt;
+      Player player = (Player) damagee;
+      if(inDungeon) {
+        if(plugin.cnf.DeathExpKept()>0) // Don't drop any exp if some will be retained.
+          pevt.setDroppedExp(0);
+        int expLevel = player.getLevel();
+        pevt.setNewExp((int)(7.0*expLevel*plugin.cnf.DeathExpKept()));
+        if(plugin.cnf.DeathKeepGear()) {
+          plugin.players.saveGear(player);
+          evt.getDrops().clear(); // We'll handle the items, don't drop them
+        }
+      }
+      if(plugin.cnf.AdvancedCombat())
+        plugin.monsters.removeThreat(player);
+      return;
+    }
     
     //Is the monster managed?
     if(plugin.cnf.AdvancedCombat()) {
@@ -69,17 +89,6 @@ public class CatEntityListener extends EntityListener {
         //System.out.println("[Catacombs] Entity death (adv) "+evt.getEntity() +" "+mob+" "+mob.getHealth());
         plugin.monsters.remove(damagee);
         mob.death(evt); 
-      } else if(evt instanceof PlayerDeathEvent) {
-        PlayerDeathEvent pevt = (PlayerDeathEvent) evt;
-        Player player = (Player) damagee;
-        if(inDungeon) {
-          pevt.setDroppedExp(0);
-          int expLevel = player.getLevel();
-          pevt.setNewExp((int)(7.0*expLevel*plugin.cnf.DeathExpKept()));
-          plugin.players.saveGear(player);
-          evt.getDrops().clear(); // We'll handle to items, don't drop them
-        }
-        plugin.monsters.removeThreat(player);
       }
     } else {
       if(inDungeon && !plugin.cnf.GoldOff()) {
@@ -95,7 +104,7 @@ public class CatEntityListener extends EntityListener {
     }   
   }  
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onEntityDamage(EntityDamageEvent evt) {
     if(evt.isCancelled())
       return;
@@ -131,11 +140,11 @@ public class CatEntityListener extends EntityListener {
     }
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onEntityTarget(EntityTargetEvent evt) {
     if(evt.isCancelled())
       return;
-    
+    if(!plugin.cnf.AdvancedCombat()) return;
     LivingEntity damagee = (LivingEntity) evt.getEntity();
     if(plugin.monsters.isManaged(damagee)) {
       CatMob mob = plugin.monsters.get(damagee);
@@ -154,7 +163,7 @@ public class CatEntityListener extends EntityListener {
   }
 
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onCreatureSpawn(CreatureSpawnEvent evt) {
     if(evt.isCancelled())
       return;
@@ -196,8 +205,10 @@ public class CatEntityListener extends EntityListener {
        
     LivingEntity ent = (LivingEntity) evt.getEntity();
     
-    // No hook yet to prevent the smooth_stone dungeons getting trashed by this yet
+//    // No hook yet to prevent the smooth_stone dungeons getting trashed by this yet
 //    if(evt.getCreatureType() == CreatureType.SILVERFISH) {
+//      System.out.println("[Catacombs] Silverfish spawn "+evt.getSpawnReason());
+//
 //      if(evt.getSpawnReason() == SpawnReason.CUSTOM && !plugin.monsters.isManaged(ent)) {
 //        System.out.println("[Catacombs] Cancel Silverfish spawn "+evt.getSpawnReason());
 //        evt.setCancelled(true);
@@ -244,7 +255,7 @@ public class CatEntityListener extends EntityListener {
     }
   }
 
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onEntityExplode(EntityExplodeEvent eEvent){
     if(eEvent.isCancelled())
       return;
@@ -267,23 +278,16 @@ public class CatEntityListener extends EntityListener {
     return false;
   }
 
-  @Override
-  public void onEndermanPickup(EndermanPickupEvent eEvent) {
+  @EventHandler(priority = EventPriority.LOW)
+  public void onEntityChangeBlock(EntityChangeBlockEvent eEvent) {
     if(eEvent.isCancelled())
       return;
 
     Block blk = eEvent.getBlock();
-    if(plugin.dungeons.isProtected(blk))
+    if(eEvent.getEntity() instanceof Enderman && plugin.dungeons.isInRaw(blk)) {
+      //System.out.println("[Catacombs] Enderman EntityChangeBlockEvent cancelled");
       eEvent.setCancelled(true);
+    }
   }
-  
-  @Override
-  public void onEndermanPlace(EndermanPlaceEvent eEvent) {
-    if(eEvent.isCancelled())
-      return;
 
-    Block blk = eEvent.getLocation().getBlock();
-    if(plugin.dungeons.isProtected(blk))
-      eEvent.setCancelled(true);
-  }
 }

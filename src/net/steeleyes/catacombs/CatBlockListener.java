@@ -22,7 +22,6 @@ package net.steeleyes.catacombs;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
@@ -30,23 +29,38 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.entity.CreatureType;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockSpreadEvent;
 
-public class CatBlockListener extends BlockListener {
-  private static Catacombs plugin;
-
-  public CatBlockListener(Catacombs instance) {
-    plugin = instance;
+public class CatBlockListener implements Listener {
+  private Catacombs plugin;
+  
+  public CatBlockListener(final Catacombs plugin) {
+    this.plugin = plugin;
+    //Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
   }
 
-  @Override
-  public void onBlockPlace(BlockPlaceEvent event){
+   @EventHandler(priority = EventPriority.HIGHEST)
+   public void onBlockPlace(BlockPlaceEvent event){
     Block block = event.getBlockPlaced();
     Material mat = block.getType();
     if(plugin.debug) {
       System.out.println("[Catacombs] Block place="+mat+"("+mat.getId()+") already_cancelled="+event.isCancelled());
     }
+    
+    // Special feature to allow players to put torches in dungeons in worldguard zones
+    if(event.isCancelled() && mat==Material.TORCH && plugin.dungeons.isInRaw(block)) {
+      event.setCancelled(false);
+      if(plugin.debug)
+        System.out.println("[Catacombs] Allowing torch to be placed inside guarded dungeon");
+      return;
+    }
+    
     if(event.isCancelled())
       return;
 
@@ -62,7 +76,7 @@ public class CatBlockListener extends BlockListener {
       event.setCancelled(true);
   }
 
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onBlockBreak(BlockBreakEvent event){
    // if(event.isCancelled())
    //   return;
@@ -93,8 +107,24 @@ public class CatBlockListener extends BlockListener {
     if(is_prot)
       event.setCancelled(true);
   }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onBlockSpread(BlockSpreadEvent event){
+    if(event.isCancelled())
+      return;
 
-  @Override
+    
+    if(plugin.dungeons.isInRaw(event.getBlock())) {
+      Block before = event.getBlock();
+      BlockState state = event.getNewState();
+      if(before.getType() == Material.DIRT && state.getType() == Material.GRASS) {
+        //System.out.println("[Catacombs] Block spread cancelled"+state);
+        event.setCancelled(true);
+      }
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
   public void onBlockIgnite(BlockIgniteEvent event){
     if(event.isCancelled())
       return;
@@ -103,7 +133,7 @@ public class CatBlockListener extends BlockListener {
       event.setCancelled(true);
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onBlockBurn(BlockBurnEvent event){
     if(event.isCancelled())
       return;
@@ -112,7 +142,7 @@ public class CatBlockListener extends BlockListener {
       event.setCancelled(true);
   }  
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onBlockDamage(BlockDamageEvent event){
     
     // Wordguard cancels the damage events so allow
@@ -132,7 +162,7 @@ public class CatBlockListener extends BlockListener {
       if(block.getType() == Material.MOB_SPAWNER) {
         CreatureSpawner spawner = (CreatureSpawner) block.getState();
         System.out.println("[Catacombs] Spawner "+spawner.getCreatureType()+" delay="+spawner.getDelay()+" light="+spawner.getLightLevel());
-        spawner.setCreatureType(CreatureType.ZOMBIE);
+        spawner.setCreatureType(CreatureType.SILVERFISH);
       }
     }
 

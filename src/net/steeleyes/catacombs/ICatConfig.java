@@ -36,17 +36,19 @@ public interface ICatConfig extends IConfig {
   public  Boolean UnderFill();
   public  Boolean OverFill();
   public  Boolean ResetButton();
-  public  String  majorBlock();
-  public  String  minorBlock();
+  //private  String  majorBlock();
+  //private  String  minorBlock();
+  //private  String  floorBlock();
+  //private  String  roofBlock();
   public  Boolean emptyChest();
-  public  Boolean MessyCreepers();
-  public  Boolean MessyEndermen();
+  //public  Boolean MessyCreepers();
+  //public  Boolean MessyEndermen();
   public  Boolean ProtectSpawners();
-  public  Boolean SecretDoorOff();
+  //public  Boolean SecretDoorOff();
   public  Boolean SecretDoorOnlyInDungeon();
   public  Boolean GoldOff();
-  public  Boolean CalmSpawns();
-  public  Boolean DungeonProtectOff();
+  //public  Boolean CalmSpawns();
+  //public  Boolean DungeonProtectOff();
   public  Boolean SaveDungeons();
   public  Boolean NoPvPInDungeon();
   public  Boolean MobsSpawnOnlyUnderground();
@@ -86,6 +88,8 @@ public interface ICatConfig extends IConfig {
 
   public  CatMat majorMat();
   public  CatMat minorMat(); 
+  public  CatMat floorMat(); 
+  public  CatMat roofMat(); 
 
   
 //  public  Boolean MySQLEnabled();

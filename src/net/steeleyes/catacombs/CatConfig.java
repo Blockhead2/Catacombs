@@ -36,8 +36,10 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean UnderFill()              { return getSBoolean(ECatConfig.UnderFill.getStr());  }
   public  Boolean OverFill()               { return getSBoolean(ECatConfig.OverFill.getStr());  }
   public  Boolean ResetButton()            { return getSBoolean(ECatConfig.ResetButton.getStr());  }
-  public  String  majorBlock()             { return getSString(ECatConfig.majorBlock.getStr());  }
-  public  String  minorBlock()             { return getSString(ECatConfig.minorBlock.getStr());  }
+  private String  majorBlock()             { return getSString(ECatConfig.majorBlock.getStr());  }
+  private String  minorBlock()             { return getSString(ECatConfig.minorBlock.getStr());  }
+  private String  floorBlock()             { return getSString(ECatConfig.floorBlock.getStr());  }
+  private String  roofBlock()              { return getSString(ECatConfig.roofBlock.getStr());  }
   public  Integer floorDepth()             { return getSInt(ECatConfig.floorDepth.getStr());  }
   public  Integer roomDepth()              { return getSInt(ECatConfig.roomDepth.getStr());  }
   public  Integer roofDepth()              { return getSInt(ECatConfig.roofDepth.getStr());  }
@@ -63,14 +65,14 @@ public class CatConfig extends Config implements ICatConfig {
   public  List<String> LootBigList()       { return getSStringList(ECatConfig.LootBigList.getStr());  }
  
   public  Boolean emptyChest()             { return getSBoolean(ECatConfig.emptyChest.getStr());  }
-  public  Boolean MessyCreepers()          { return getSBoolean(ECatConfig.MessyCreepers.getStr());  }
-  public  Boolean MessyEndermen()          { return getSBoolean(ECatConfig.MessyEndermen.getStr());  }
+  //public  Boolean MessyCreepers()          { return getSBoolean(ECatConfig.MessyCreepers.getStr());  }
+  //public  Boolean MessyEndermen()          { return getSBoolean(ECatConfig.MessyEndermen.getStr());  }
   public  Boolean ProtectSpawners()        { return getSBoolean(ECatConfig.ProtectSpawners.getStr());  }
-  public  Boolean SecretDoorOff()          { return getSBoolean(ECatConfig.SecretDoorOff.getStr());  }
+  //public  Boolean SecretDoorOff()          { return getSBoolean(ECatConfig.SecretDoorOff.getStr());  }
   public  Boolean SecretDoorOnlyInDungeon(){ return getSBoolean(ECatConfig.SecretDoorOnlyInDungeon.getStr());  }
   public  Boolean GoldOff()                { return getSBoolean(ECatConfig.GoldOff.getStr());  }
-  public  Boolean CalmSpawns()             { return getSBoolean(ECatConfig.CalmSpawns.getStr());  }
-  public  Boolean DungeonProtectOff()      { return getSBoolean(ECatConfig.DungeonProtectOff.getStr());  }
+  //public  Boolean CalmSpawns()             { return getSBoolean(ECatConfig.CalmSpawns.getStr());  }
+  //public  Boolean DungeonProtectOff()      { return getSBoolean(ECatConfig.DungeonProtectOff.getStr());  }
   public  Boolean SaveDungeons()           { return getSBoolean(ECatConfig.SaveDungeons.getStr());  }
   public  Boolean NoPvPInDungeon()         { return getSBoolean(ECatConfig.NoPvPInDungeon.getStr());  }
   public  Boolean MobsSpawnOnlyUnderground(){ return getSBoolean(ECatConfig.MobsSpawnOnlyUnderground.getStr());  }
@@ -100,6 +102,8 @@ public class CatConfig extends Config implements ICatConfig {
 
   public  CatMat majorMat()                { return CatMat.parseMaterial(majorBlock());  } 
   public  CatMat minorMat()                { return CatMat.parseMaterial(minorBlock());  } 
+  public  CatMat floorMat()                { return CatMat.parseMaterial(floorBlock());  } 
+  public  CatMat roofMat()                 { return CatMat.parseMaterial(roofBlock());  } 
   
   public  void setRadiusMax(int r)         { setSInt(ECatConfig.RadiusMax.getStr(),r); }
 

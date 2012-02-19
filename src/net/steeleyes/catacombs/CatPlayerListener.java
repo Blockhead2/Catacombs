@@ -22,7 +22,6 @@ package net.steeleyes.catacombs;
 import org.bukkit.Material;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -30,25 +29,26 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.block.Block;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-public class CatPlayerListener  extends PlayerListener{
+public class CatPlayerListener implements Listener{
   private static Catacombs plugin;
 
   public CatPlayerListener(Catacombs instance) {
     plugin = instance;
   }
 
-  @Override
+  @EventHandler(priority = EventPriority.HIGHEST)
   public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
     if (event.isCancelled())
       return;
@@ -66,7 +66,7 @@ public class CatPlayerListener  extends PlayerListener{
     }
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerInteract(PlayerInteractEvent event) {
     if (event.isCancelled())
       return;
@@ -91,8 +91,9 @@ public class CatPlayerListener  extends PlayerListener{
     } 
   }  
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerFish(PlayerFishEvent evt) {
+    if(!plugin.cnf.AdvancedCombat()) return;
     //System.out.println("[Catacombs] fish state="+evt.getState()+" caught="+evt.getCaught()+" dur="+evt.getPlayer().getItemInHand().getDurability());
     if(evt.getState() == PlayerFishEvent.State.CAUGHT_ENTITY) {
       if(evt.getCaught() instanceof Player) {
@@ -106,8 +107,9 @@ public class CatPlayerListener  extends PlayerListener{
     }
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerRespawn(PlayerRespawnEvent evt) {
+    //if(!plugin.cnf.AdvancedCombat()) return;
     Player player = evt.getPlayer();
     if(plugin.players.hasGear(player)) {
       if(plugin.cnf.DeathKeepGear() && CatUtils.takeCash(player, plugin.cnf.DeathGearCost(),"to restore your equipment")) {
@@ -118,7 +120,7 @@ public class CatPlayerListener  extends PlayerListener{
     }
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
     if (event.isCancelled())
       return;
@@ -129,7 +131,7 @@ public class CatPlayerListener  extends PlayerListener{
     }
   }
 
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerBucketFill(PlayerBucketFillEvent event) {
     if (event.isCancelled())
       return;
@@ -140,28 +142,31 @@ public class CatPlayerListener  extends PlayerListener{
     }
   }
   
-  @Override
-  public void onPlayerJoin(PlayerJoinEvent evt) {
-    
-  }
+//  @EventHandler(priority = EventPriority.LOW)
+//  public void onPlayerJoin(PlayerJoinEvent evt) {
+//    
+//  }
+//  
+//  @EventHandler(priority = EventPriority.LOW)
+//  public void onItemHeldChange(PlayerItemHeldEvent evt) {
+//    
+//  }
   
-  @Override
-  public void onItemHeldChange(PlayerItemHeldEvent evt) {
-    
-  }
-  
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerPortal(PlayerPortalEvent evt) {
+    if(!plugin.cnf.AdvancedCombat()) return;
     plugin.monsters.removeThreat(evt.getPlayer());
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerChangedWorld(PlayerChangedWorldEvent evt) {
+    if(!plugin.cnf.AdvancedCombat()) return;
     plugin.monsters.removeThreat(evt.getPlayer());
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerBedEnter(PlayerBedEnterEvent evt) {
+    if(!plugin.cnf.AdvancedCombat()) return;
     plugin.monsters.removeThreat(evt.getPlayer());
   }
   
@@ -170,18 +175,21 @@ public class CatPlayerListener  extends PlayerListener{
   // 
   //}  
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerKick(PlayerKickEvent evt) {
+    if(!plugin.cnf.AdvancedCombat()) return;
     plugin.monsters.removeThreat(evt.getPlayer());
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerQuit(PlayerQuitEvent evt) {
+    if(!plugin.cnf.AdvancedCombat()) return;
     plugin.monsters.removeThreat(evt.getPlayer());
   }
   
-  @Override
+  @EventHandler(priority = EventPriority.LOW)
   public void onPlayerTeleport(PlayerTeleportEvent evt) {
+    if(!plugin.cnf.AdvancedCombat()) return;
     Block blk = evt.getTo().getBlock();
     //Boolean inDungeon =   plugin.prot.isInRaw(blk);
     //System.out.println("[Catacombs] Player teleport inDungeon="+inDungeon+" "+evt.getCause());

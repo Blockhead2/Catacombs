@@ -29,6 +29,8 @@ public class CatFlag {
     RESET_TIME(Long.class),
     RESET_MIN(Long.class),
     RESET_MAX(Long.class),
+    ROOF(String.class),
+    FLOOR(String.class),
     OWNER(String.class);
     
     private Class c;
