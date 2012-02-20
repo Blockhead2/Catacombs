@@ -62,6 +62,7 @@ public class PermissionsResolverManager implements PermissionsResolver {
             "\r\n";
 
     private static PermissionsResolverManager instance;
+    private static Boolean hasResolver=false;
 
     public static void initialize(Plugin plugin) {
         if (instance == null) {
@@ -70,14 +71,14 @@ public class PermissionsResolverManager implements PermissionsResolver {
     }
 
     public static PermissionsResolverManager getInstance() {
-//        if (instance == null) {
-//            throw new WEPIFRuntimeException("WEPIF has not yet been initialized!");
-//        }
-        return instance;
+      if(!hasResolver) {
+        return null;
+      }
+      return instance;
     }
 
     private Server server;
-    private PermissionsResolver permissionResolver;
+    private PermissionsResolver permissionResolver=null;
     private YAMLProcessor config;
     private Logger logger = Logger.getLogger(getClass().getCanonicalName());
     private List<Class<? extends PermissionsResolver>> enabledResolvers = new ArrayList<Class<? extends PermissionsResolver>>();
@@ -120,6 +121,7 @@ public class PermissionsResolverManager implements PermissionsResolver {
 //            permissionResolver = new ConfigurationPermissionsResolver(config);
 //        }
         if(permissionResolver != null) {
+          hasResolver = true;
           permissionResolver.load();
           logger.info("WEPIF: " + permissionResolver.getDetectionMessage());
         }

@@ -31,7 +31,7 @@ public class CatPermissions {
   private PermissionsResolverManager perm;
 
   public CatPermissions(Plugin plugin) {
-    System.out.println("[Catacombs] Using WEPIF for find permissions plugin");
+    System.out.println("[Catacombs] Using WEPIF to find permissions plugin");
     PermissionsResolverManager.initialize(plugin);
     perm = PermissionsResolverManager.getInstance();
     if(perm == null) {

@@ -46,10 +46,12 @@ import org.bukkit.block.BlockFace;
  * 
  * 
  *
+Release v1.6
+* Fixed a null pointer exception you get when all the permission resolvers are disabled.
 
 Release v1.5
 * Cake blocks are now restored to fences with air above them on reset. Partially
-  eat cake is also restored to full.
+  eaten cake is also restored to full.
 * Added 2 additional block types to the config file to control the floor and ceiling
   blocks. For legacy dungeons these will default to the major block. In the config
   file the default for both of these will be cobblestone for new dungeons.
