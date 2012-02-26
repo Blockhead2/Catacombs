@@ -46,11 +46,20 @@ import org.bukkit.block.BlockFace;
  * 
  * 
  *
+Release v1.7
+* Changed the default wepif.yml file that gets created so that DinnerBone's permission
+  handler (aka Bukkit permissions API) is off by default. It will not change wepif.yml
+  files that already exist, so if you are not running worldedit and you'd
+  like Catacombs to create a new file for you, remove the old one and restart the
+  server. This should help protect users with simpler setups from running into
+  permissions problems. Admins actually using Bukkit permissions API will need
+  to enable it manually in the wepif.yml file.
+
 Release v1.6
 * Fixed a null pointer exception you get when all the permission resolvers are disabled.
 
 Release v1.5
-* Cake blocks are now restored to fences with air above them on reset. Partially
+* Cake blocks are now restored on fences with air above them on reset. Partially
   eaten cake is also restored to full.
 * Added 2 additional block types to the config file to control the floor and ceiling
   blocks. For legacy dungeons these will default to the major block. In the config
@@ -462,6 +471,7 @@ public class Catacombs extends JavaPlugin {
     }
   }
   
+  @Override
   public void onDisable(){
     Methods.reset();
     System.out.println("[catacombs] plugin has been disabled!");
@@ -490,6 +500,18 @@ public class Catacombs extends JavaPlugin {
   }
 
   public Boolean Commands(Player p,String [] args) {
+    if(debug) {
+      if(p==null) {
+        System.out.println("[Catacombs] Command sent from console");
+      } else {
+        System.out.println("[Catacombs] Command sent by player("+p.getName()+")");
+      }
+      System.out.println("[Catacombs] number of arguments="+args.length);
+      int i=1;
+      for(String s:args) {
+        System.out.println("[Catacombs]   argument "+i+" is '"+s+"'");
+      }
+    }
     try {
       if(args.length <1) {
         help(p);

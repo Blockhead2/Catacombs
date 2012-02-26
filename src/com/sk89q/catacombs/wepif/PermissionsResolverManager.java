@@ -102,6 +102,7 @@ public class PermissionsResolverManager implements PermissionsResolver {
     }
 
     public void findResolver() {
+        hasResolver = false;
         for (Class<? extends PermissionsResolver> resolverClass : enabledResolvers) {
             try {
                 Method factoryMethod = resolverClass.getMethod("factory", Server.class, YAMLProcessor.class);
@@ -123,7 +124,7 @@ public class PermissionsResolverManager implements PermissionsResolver {
         if(permissionResolver != null) {
           hasResolver = true;
           permissionResolver.load();
-          logger.info("WEPIF: " + permissionResolver.getDetectionMessage());
+          logger.info("[Catacombs] WEPIF: " + permissionResolver.getDetectionMessage());
         }
     }
 
@@ -133,7 +134,7 @@ public class PermissionsResolverManager implements PermissionsResolver {
         }
 
         permissionResolver = new PluginPermissionsResolver((PermissionsProvider) plugin, plugin);
-        logger.info("WEPIF: " + permissionResolver.getDetectionMessage());
+        logger.info("[Catacombs] WEPIF: " + permissionResolver.getDetectionMessage());
     }
 
     public void load() {
@@ -173,7 +174,7 @@ public class PermissionsResolverManager implements PermissionsResolver {
     }
 
     public String getDetectionMessage() {
-        return "Using WEPIF for permissions";
+        return "[Catacombs] Using WEPIF for permissions";
     }
 
     private boolean loadConfig(File file) {
@@ -202,12 +203,19 @@ public class PermissionsResolverManager implements PermissionsResolver {
 
         if (!keys.contains("resolvers")) {
             //List<String> resolverKeys = config.getKeys("resolvers");
-            List<String> resolvers = new ArrayList<String>();
-            for (Class<?> clazz : availableResolvers) {
-                resolvers.add(clazz.getSimpleName());
+            List<String> enabled = new ArrayList<String>();
+            List<String> disabled = new ArrayList<String>();
+            for (Class<? extends PermissionsResolver> clazz : availableResolvers) {
+                if(clazz.getSimpleName().contains("DinnerPerms"))
+                  disabled.add(clazz.getSimpleName());
+                else {
+                  enabled.add(clazz.getSimpleName());
+                  enabledResolvers.add(clazz);
+                }
             }
-            enabledResolvers.addAll(Arrays.asList(availableResolvers));
-            config.setProperty("resolvers.enabled", resolvers);
+            //enabledResolvers.addAll(Arrays.asList(availableResolvers));
+            config.setProperty("resolvers.enabled", enabled);
+            config.setProperty("resolvers.disabled", disabled);
             isUpdated = true;
         } else {
             List<String> disabledResolvers = config.getStringList("resolvers.disabled", new ArrayList<String>());
@@ -255,7 +263,7 @@ public class PermissionsResolverManager implements PermissionsResolver {
 //            isUpdated = true;
 //        }
         if (isUpdated) {
-            logger.info("WEPIF: Updated config file");
+            logger.info("[Catacombs] WEPIF: Updated config file");
             config.save();
         }
         return isUpdated;
