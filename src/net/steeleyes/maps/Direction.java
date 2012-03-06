@@ -22,7 +22,7 @@ package net.steeleyes.maps;
 import java.util.Random;
 
 public enum Direction {
-  EAST,SOUTH,WEST,NORTH,ANY;
+  EAST,SOUTH,WEST,NORTH,NORTH_EAST,NORTH_WEST,SOUTH_EAST,SOUTH_WEST,ANY;
   
   static public Direction any(Random rnd) {
     Direction dir=WEST;

@@ -25,14 +25,9 @@ import java.util.Arrays;
 public enum ECatConfig {
   
     emptyChest              ("Admin.emptyChestonDelete", true),
-    //MessyCreepers           ("Admin.MessyCreepers", false),
-    //MessyEndermen           ("Admin.MessyEndermen", false),
-    //SecretDoorOff           ("Admin.SecretDoorOff", false),
     SecretDoorOnlyInDungeon ("Admin.SecretDoorOnlyInDungeon", true),
     GoldOff                 ("Admin.GoldOff", false),
-    //CalmSpawns              ("Admin.CalmSpawns", false),
     ProtectSpawners         ("Admin.ProtectSpawners", true),
-    //DungeonProtectOff       ("Admin.DungeonProtectOff", false),
     SaveDungeons            ("Admin.SaveDungeons", true),
     NoPvPInDungeon          ("Admin.NoPvPInDungeon", true),
     MobsSpawnOnlyUnderground("Admin.MobsSpawnOnlyUnderground", false),

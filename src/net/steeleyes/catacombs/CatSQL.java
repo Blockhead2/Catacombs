@@ -100,10 +100,10 @@ public class CatSQL {
   }
    
   public void removeDungeon(int did) {
-    command("DELETE FROM dungeons WHERE did='"+did+"';"); 
     command("DELETE FROM levels2 WHERE did='"+did+"';"); 
     command("DELETE FROM flags WHERE did='"+did+"';"); 
     command("DELETE FROM locations WHERE did='"+did+"';"); 
+    command("DELETE FROM dungeons WHERE did='"+did+"';"); 
   }
   
   public int getDid(String dname) {

@@ -31,58 +31,114 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 public class CatMob {
+  private Catacombs plugin;
+  //private CatConfig cnf;
+  
   private LivingEntity ent;
   private String name;
   private HateTable hate;
   private int max_hps;
   private int hps;
-  //private int damage;
   private int exp;
   private int cash;
   private int level;
   private long gotHit = 0;
   private long didHit = 0;
-  private CatCreature creature;
+  private int extra_damage=0;
+  private int extra_armour=0;
   
-  private CatConfig cnf;
+  private MobType type=null;
+  private CatAbility casting = null;
+  private Object focus;
   
-  public CatMob(CatConfig cnf,CatCreature c, World world, Location loc) {
-    this.cnf = cnf;
-    creature = c;
-    ent = creature.spawn(world, loc);
+  private int tickId=0;
+  
+  private CreatureType tmp_type;
+  
+  //private List<Object> targets; 
+  //private List<CatAbility> running = new LinkedList<CatAbility>();
+  
+  
+  public CatMob(Catacombs plugin,MobType type, World world, Location loc) {
+    this.plugin = plugin;
+    //this.cnf = plugin.cnf;
+    this.type = type;
+    ent = type.spawn(world,loc);
+    name = type.getName();
+
     common_init();
   }
   
-  public CatMob(CatConfig cnf,CreatureType c,LivingEntity e) {
-    this.cnf = cnf;
-    creature = CatCreature.getType(c);
-    if(creature==null) {
-      System.err.println("[Catacombs] Creature name problem "+c);
-    } else {
-      ent = creature.spawn(e);
-    }
+  public CatMob(Catacombs plugin,CreatureType c,LivingEntity e) {
+    this.plugin = plugin;
+    name = c.toString();
+    //this.cnf = plugin.cnf;
+    
+    // Need to figure out a default MobType from the creaturetype
+//    type=plugin.mobtypes.get(c.toString());    
+//    if(type==null) {
+//      System.err.println("[Catacombs] Can't find a monster called '"+c+"'");
+//    } else {
+//      ent = type.spawn(e);
+//    }
+    
     common_init();
   }
   
   @Override
   public String toString() {
+    if(type != null)
+      return type.getName()+"@"+type.getHps();
     return name+"-"+level;
   }
   
   private void common_init() {
-    name = creature.toString();
     name = name.substring(0,1).toUpperCase()+name.substring(1).toLowerCase();
 
     ent.setHealth(ent.getMaxHealth()); // Make sure the entity has plenty of hits for us to work with
-    int num = CatUtils.countPlayerNear(ent, cnf.GroupRadius(), cnf.GroupDepth());
+    int num = CatUtils.countPlayerNear(ent, plugin.cnf.GroupRadius(), plugin.cnf.GroupDepth());
     level = (num<1)?1:num;
     cash = 4+level*2;
     exp = 4+level*2;
     //damage = 3;
-    max_hps = (int)(creature.getHits()+cnf.GroupHpFactor()*creature.getHits()*(level-1));
+    max_hps = (int)(type.getHps()+plugin.cnf.GroupHpFactor()*type.getHps()*(level-1));
     hps = max_hps;
-    hate = new HateTable(cnf,ent,this.toString());
+    hate = new HateTable(plugin.cnf,ent,this.toString());
+    
+//    tickId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin,
+//            new Runnable() {
+//
+//              public void run() {
+//                System.out.println("[Catacombs] tick "+this);
+//              }
+//            }, type.getSpeed()*2, type.getSpeed());
+
+//    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin,
+//            new Runnable() {
+//
+//              public void run() {
+//                System.out.println("[Catacombs] End tick "+this);
+//                plugin.getServer().getScheduler().cancelTask(tickId);
+//                tickId = 0;
+//              }
+//            }, 120);
   }
+
+  public Object getFocus() {
+    return focus;
+  }
+
+  public void setFocus(Object focus) {
+    this.focus = focus;
+  }
+//
+//  public List<Object> getTargets() {
+//    return targets;
+//  }
+//
+//  public void setTargets(List<Object> targets) {
+//    this.targets = targets;
+//  }
   
   public Boolean hit(LivingEntity attacker,int dmg,int threat) {
     if(attacker instanceof Player) {
@@ -141,18 +197,14 @@ public class CatMob {
     return level;
   }
   
-  public CatCreature getCreature() {
-    return creature;
-  }
-  
   public void death(EntityDeathEvent evt) {
     if(ent != null) {
-      if(!cnf.GoldOff() && creature != CatCreature.SILVERFISH) {
+      if(!plugin.cnf.GoldOff() && type.getShape() != MobShape.SILVERFISH) {
         // "Share" cash and exp (simply give the cash and exp to all
         //   attackers to encourage team work)
         for(Entity attacker : hate.attackers()) {
           giveExp(attacker, exp);
-          String bal = CatUtils.giveCash(cnf,attacker, cash);
+          String bal = CatUtils.giveCash(plugin.cnf,attacker, cash);
           if(bal != null) {
             ((Player)attacker).sendMessage(cash+" coins ("+bal+") "+this);
           }
@@ -162,7 +214,10 @@ public class CatMob {
         evt.setDroppedExp(0);
       
       // ToDo: end dungeon if it's the final boss
-      
+      if(tickId>0) {
+        plugin.getServer().getScheduler().cancelTask(tickId);
+        tickId = 0;
+      }
       hate=null;
       ent=null;
     }

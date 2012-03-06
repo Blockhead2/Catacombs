@@ -42,21 +42,21 @@ public class MobTypes {
         System.out.println("[Catacombs]");
         for(String ability: CatUtils.getKeys(fcnf,"ability")) {
           System.out.println("[Catacombs]   ability="+ability);
-          CatAbility ab = new CatAbility(ability,fcnf,"ability."+ability);
+          CatAbility ab = new CatAbility(fcnf,ability,"ability."+ability);
           abilities.put(ability,ab);
         }
         for(String group: CatUtils.getKeys(fcnf,"loot")) {
           System.out.println("[Catacombs]   loot=loot."+group);
-          CatLootList ll = new CatLootList(group,fcnf,"loot."+group);
+          CatLootList ll = new CatLootList(fcnf,group,"loot."+group);
           loot.put(group,ll);
         }
         for(String mob: CatUtils.getKeys(fcnf,"monster")) {
           String path = "monster."+mob;
-          String shape = CatUtils.getSString(fcnf,path+".shape");
-          int hps = CatUtils.getSInt(fcnf,path+".hps");
-          String gold = CatUtils.getSString(fcnf,path+".gold");
+          String shape = fcnf.getString(path+".shape");
+          int hps = fcnf.getInt(path+".hps");
+          String gold = fcnf.getString(path+".gold");
           List<CatAbility> ability_list = new LinkedList<CatAbility>();
-          for(String abil: CatUtils.getSStringList(fcnf,path+".abilities")) {
+          for(String abil: fcnf.getStringList(path+".abilities")) {
             if(abilities.containsKey(abil)) {
               ability_list.add(abilities.get(abil));
             } else {
@@ -64,7 +64,7 @@ public class MobTypes {
             }
           }
           List<CatLootList> loot_list = new LinkedList<CatLootList>();
-          for(String l: CatUtils.getSStringList(fcnf,path+".loot")) {
+          for(String l: fcnf.getStringList(path+".loot")) {
             if(loot.containsKey(l)) {
               loot_list.add(loot.get(l));
             } else {
@@ -82,5 +82,12 @@ public class MobTypes {
     } catch (Exception e) {
       System.err.println("[Catacombs] "+e.getMessage());
     }
+  }
+  
+  public MobType get(String mob) {
+    if(mobs.containsKey(mob)) {
+      return mobs.get(mob);
+    }
+    return null;
   }
 }

@@ -135,6 +135,9 @@ public class CatEntityListener implements Listener {
       plugin.monsters.playerHits(plugin.cnf,evt);
     } else {  
       if(damagee instanceof Player) {
+        //if(plugin.debug)
+        //  evt.setCancelled(true);
+        //else
         plugin.monsters.monsterHits(plugin.cnf,evt);
       }
     }
@@ -239,7 +242,7 @@ public class CatEntityListener implements Listener {
       }      
 
       //Location loc = evt.getLocation();
-      CatMob mob = new CatMob(plugin.cnf,evt.getCreatureType(),ent);
+      CatMob mob = new CatMob(plugin,evt.getCreatureType(),ent);
       plugin.monsters.add(mob);
 
       //CatMob mob2 = new CatMob(CatCreature.CHICKEN,loc.getWorld(),loc);

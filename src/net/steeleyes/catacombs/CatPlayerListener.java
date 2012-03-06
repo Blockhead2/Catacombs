@@ -28,7 +28,6 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.block.Block;
 import org.bukkit.World;
-import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -77,18 +76,19 @@ public class CatPlayerListener implements Listener{
       plugin.Commands(null,new String[] {"reset",dung.getName()} );
     }
     
-    if(false && /*plugin.cnf.BossEnabled() && */ blk.getType()==Material.CHEST &&
-       plugin.dungeons.isInRaw(blk) && blk.getRelative(BlockFace.DOWN).getType()==Material.GRASS) {
-            
-      Dungeon dung = plugin.dungeons.which(blk);
-      if(dung.isSuspended() || dung.bossKilled())
-        return;
-        
-//      if(!dung.triggerEncounter(plugin,blk)) {
-//        plugin.inform(event.getPlayer(),"There is a battle already in progress in this dungeon");
-//      }
-      event.setCancelled(true);
-    } 
+//    if(plugin.debug && blk.getType()==Material.WEB && plugin.dungeons.isInRaw(blk)) {
+//            
+//      Dungeon dung = plugin.dungeons.which(blk);
+//      //if(dung.isSuspended() || dung.bossKilled())
+//      //  return;
+//      CatMob mob = new CatMob(plugin,plugin.mobtypes.get("Zombie"),blk.getWorld(),blk.getLocation());
+//      plugin.monsters.add(mob);
+//        
+////      if(!dung.triggerEncounter(plugin,blk)) {
+////        plugin.inform(event.getPlayer(),"There is a battle already in progress in this dungeon");
+////      }
+//      event.setCancelled(true);
+//    } 
   }  
   
   @EventHandler(priority = EventPriority.LOW)

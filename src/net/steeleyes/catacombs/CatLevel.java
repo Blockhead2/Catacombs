@@ -584,9 +584,11 @@ public class CatLevel {
         int xx = top.x+x-level.start().x;
         int zz = top.z-y+level.start().y;
         if(s==Square.DOOR) {
-          byte code = g.getDoorCode(x,y);
-          handler.addLow(world,xx,room_l,zz,Material.WOODEN_DOOR,code);
-          handler.addLow(world,xx,room_l+1,zz,Material.WOODEN_DOOR,(byte)(code+8));
+          //byte code = g.getDoorCode(x,y);
+          byte lower = g.getDoorLowerCode(x,y);
+          byte upper = g.getDoorUpperCode(x,y);
+          handler.addLow(world,xx,room_l,zz,Material.WOODEN_DOOR,lower);
+          handler.addLow(world,xx,room_l+1,zz,Material.WOODEN_DOOR,upper);
         }
         if(s==Square.UP) {
           byte code = getLadderCode(x,y);
@@ -666,9 +668,15 @@ public class CatLevel {
   public void clearMonsters(Catacombs plugin) {
     cube.clearMonsters(plugin);
   }
-  public int fixSecretDoors(Catacombs plugin) {
-    return cube.fixSecretDoors(plugin);
-  }  
+  
+  public int fixSecretDoors() {
+    return cube.fixSecretDoors();
+  }
+  
+  public int fixDoors() {
+    return cube.fixDoors();
+  }
+  
   public void suspend(Catacombs plugin, CatMat mat) {
     if(plugin != null)
       cube.clearMonsters(plugin);
@@ -813,6 +821,19 @@ public class CatLevel {
       case SOUTH: return 0;
       case WEST:  return 1;
     }
+    return 0;
+  }
+  
+  public byte getDoorLowerCode(int x,int y) {
+    Grid grid = level.grid();
+    if(grid.get(x+1,y).isWall() && grid.get(x-1,y).isWall())
+      return 3;
+    if(grid.get(x,y+1).isWall() && grid.get(x,y-1).isWall())
+      return 0;
+    if(grid.get(x+1,y).isWall()) return 6;
+    if(grid.get(x-1,y).isWall()) return 3;
+    if(grid.get(x,y+1).isWall()) return 0;
+    if(grid.get(x,y-1).isWall()) return 7;
     return 0;
   }
 }

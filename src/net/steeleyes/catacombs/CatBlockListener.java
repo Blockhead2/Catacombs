@@ -151,21 +151,22 @@ public class CatBlockListener implements Listener {
     //  return;
 
     Block block = event.getBlock();
-    
-    if(!plugin.dungeons.isInRaw(block) && plugin.cnf.SecretDoorOnlyInDungeon())
-      return;    
-
     Material mat = block.getType();
     if(plugin.debug) {
+      Block above = block.getRelative(BlockFace.UP);
       Player player = event.getPlayer();
       player.sendMessage("DAMAGE : " + mat+"  ID:"+block.getData() +" ("+block.getX()+","+block.getY()+","+block.getZ()+")");
-      if(block.getType() == Material.MOB_SPAWNER) {
-        CreatureSpawner spawner = (CreatureSpawner) block.getState();
-        System.out.println("[Catacombs] Spawner "+spawner.getCreatureType()+" delay="+spawner.getDelay()+" light="+spawner.getLightLevel());
-        spawner.setCreatureType(CreatureType.SILVERFISH);
-      }
+      System.out.println("DAMAGE : " + mat+"  ID:"+block.getData() +" "+above.getType()+" ID:"+above.getData());
+//      if(block.getType() == Material.MOB_SPAWNER) {
+//        CreatureSpawner spawner = (CreatureSpawner) block.getState();
+//        System.out.println("[Catacombs] Spawner "+spawner.getCreatureType()+" delay="+spawner.getDelay()+" light="+spawner.getLightLevel());
+//        spawner.setCreatureType(CreatureType.SILVERFISH);
+//      }
     }
-
+    
+    if(!plugin.dungeons.isInRaw(block) && plugin.cnf.SecretDoorOnlyInDungeon())
+      return; 
+    
     Block piston = null;
     for(int i=1;i<=3;i++) {
       piston = block.getRelative(BlockFace.DOWN,i);

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.bukkit.Chunk;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.LivingEntity;
 
 public class CatCuboid extends Cuboid {
@@ -281,15 +282,19 @@ public class CatCuboid extends Cuboid {
           Block blk = world.getBlockAt(x,y,z);
           if(blk.getType() == Material.TORCH) {
             //blk.setTypeId(Material.AIR.getId(),true);
+                      
             blk.setType(Material.AIR);
+          
+            //net.minecraft.server.Chunk c = ((CraftChunk) b.getChunk()).getHandle();
+            //c.initLighting(); 
             //          w.refreshChunk(chunk.getX(), chunk.getZ());
 
-            byte aaa = blk.getLightFromBlocks();
-            byte bbb = blk.getLightLevel();
+            //byte aaa = blk.getLightFromBlocks();
+            //byte bbb = blk.getLightLevel();
 //((CraftWorld)world).getHandle().a(net.minecraft.server.EnumSkyBlock.BLOCK, x, y, z, 0);
         //((CraftWorld)world).getHandle().a(net.minecraft.server.EnumSkyBlock.SKY, x, y, z);
-        //((CraftWorld)world).getHandle().notify(x, y, z);
-        //            System.out.println("[Catacombs] light level "+aaa+" blk "+bbb);
+        ((CraftWorld)w).getHandle().notify(x, y, z);
+                    //System.out.println("[Catacombs] light level "+aaa+" blk "+bbb);
 
           }
         }
@@ -351,19 +356,10 @@ public class CatCuboid extends Cuboid {
           Block blk = world.getBlockAt(x,y,z);
           if(blk.getType() == Material.WOODEN_DOOR || blk.getType() == Material.IRON_DOOR) {
             byte data = blk.getData();
-            int d = data & 7;
-            if(d == 4 || d == 2)
+            if(data >= 4 && data < 8) {
               data = (byte)(data ^ 4);
-            else if (d == 3 || d == 7) {
-              Block other = blk.getRelative(BlockFace.EAST,1); //NORTH in my coords
-              if(other.getType() == Material.WOODEN_DOOR) {
-                data = (byte) (data | 7);
-              } else {
-                data = (byte) (data & ~4);
-              }
+              blk.setData(data);
             }
-            blk.setData(data);
-
           } else if(blk.getType() == Material.TRAP_DOOR) {
             blk.setData((byte)(blk.getData() & ~4));
           } else if(blk.getType() == Material.LEVER) {
@@ -424,7 +420,11 @@ public class CatCuboid extends Cuboid {
     }
   }
   
-  public int fixSecretDoors(Catacombs plugin) {
+  // Issues with the secret door piston creation in earlier versions of Catacombs
+  //   left some secret doors broken (only opening by 1 block rather than 2).
+  //   This code finds any problem locations by inspection of nearby blocks
+  //   and fixes them.
+  public int fixSecretDoors() {
     int cnt = 0;
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
@@ -454,6 +454,71 @@ public class CatCuboid extends Cuboid {
     }
     return cnt;
   }
+  
+  // Minecraft v1.2.3 Changed the way door hinges are positioned
+  //   This code will fix up the old dungeons by inspection of nearby
+  //   blocks. It will also close all the doors.
+  public int fixDoors() {
+    int cnt = 0;
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        for(int y=yl;y<=yh;y++) {
+          Block blk = world.getBlockAt(x,y,z);
+          Material mat = blk.getType();
+          Block above = blk.getRelative(BlockFace.UP);
+          if((mat == Material.WOODEN_DOOR && above.getType() == Material.WOODEN_DOOR) ||
+             (mat == Material.IRON_DOOR && above.getType() == Material.IRON_DOOR) ) {
+            byte a = above.getData();
+            byte b = blk.getData();
+            byte new_a = getDoorUpperCode(blk);
+            byte new_b = getDoorLowerCode(blk);
+            if(a!=new_a || b!=new_b) {
+              blk.setData(new_b); 
+              above.setData(new_a); 
+              cnt++;
+            }
+          }
+        }
+      }
+    }
+    return cnt;
+  }
+  
+  private byte getDoorLowerCode(Block blk) {
+    Block e = blk.getRelative(BlockFace.EAST);
+    Block w = blk.getRelative(BlockFace.WEST);
+    if(CatUtils.isSolid(e) && CatUtils.isSolid(w))
+      return 0;
+
+    Block n = blk.getRelative(BlockFace.NORTH);
+    Block s = blk.getRelative(BlockFace.SOUTH);
+    if(CatUtils.isSolid(n) && CatUtils.isSolid(s))
+      return 1;
+    
+    if(CatUtils.isSolid(e)) return 0;
+    if(CatUtils.isSolid(w)) return 0;
+    if(CatUtils.isSolid(s)) return 1;
+    if(CatUtils.isSolid(n)) return 1;
+    return 0;
+  }
+  
+  private byte getDoorUpperCode(Block blk) {
+    Block e = blk.getRelative(BlockFace.EAST);
+    Block w = blk.getRelative(BlockFace.WEST);
+    if(CatUtils.isSolid(e) && CatUtils.isSolid(w))
+      return 8;
+
+    Block n = blk.getRelative(BlockFace.NORTH);
+    Block s = blk.getRelative(BlockFace.SOUTH);
+    if(CatUtils.isSolid(n) && CatUtils.isSolid(s))
+      return 8;
+    
+    if(CatUtils.isSolid(e)) return 8;
+    if(CatUtils.isSolid(w)) return 9;
+    if(CatUtils.isSolid(s)) return 8;
+    if(CatUtils.isSolid(n)) return 9;
+    return 0;
+  }  
   
   public Boolean isBigChest(Block blk) {
     if(blk.getType() != Material.CHEST)

@@ -223,17 +223,30 @@ public class Grid {
     return Direction.SOUTH;
   } 
   
-  public byte getDoorCode(int x, int y) {
-    if(get(x+1,y).isWall() && get(x-1,y).isWall())
-      return 3;
-    if(get(x,y+1).isWall() && get(x,y-1).isWall())
+  public byte getDoorLowerCode(int x, int y) {
+    if(isWall(x+1,y) && isWall(x-1,y))
+      return 1;
+    if(isWall(x,y+1) && isWall(x,y-1))
       return 0;
-    if(get(x+1,y).isWall()) return 6;
-    if(get(x-1,y).isWall()) return 3;
-    if(get(x,y+1).isWall()) return 0;
-    if(get(x,y-1).isWall()) return 7;
+    if(isWall(x+1,y)) return 1;
+    if(isWall(x-1,y)) return 1;
+    if(isWall(x,y+1)) return 0;
+    if(isWall(x,y-1)) return 0;
     return 0;
-  }
+  }  
+  
+  public byte getDoorUpperCode(int x, int y) {
+    if(isWall(x+1,y) && isWall(x-1,y))
+      return 8;
+    if(isWall(x,y+1) && isWall(x,y-1))
+      return 8;
+    if(isWall(x+1,y)) return 8;
+    if(isWall(x-1,y)) return 9;
+    if(isWall(x,y+1)) return 8;
+    if(isWall(x,y-1)) return 9;
+    return 8;
+  } 
+  
   public Direction getBedDir(int x, int y) {
     if(area[x][y]==Square.BED_F) {   
       if(get(x+1,y) == Square.BED_H) return Direction.EAST;
@@ -246,20 +259,7 @@ public class Grid {
     if(get(x,y+1) == Square.BED_F) return Direction.SOUTH;
     return Direction.NORTH;
   } 
-  /*
-  public byte getBedCode(int x, int y) {
-    if(area[x][y]==Square.BED_F) {   
-      if(get(x+1,y) == Square.BED_H) return 2;
-      if(get(x-1,y) == Square.BED_H) return 0;
-      if(get(x,y+1) == Square.BED_H) return 1;
-      return 3;
-    }
-    if(get(x+1,y) == Square.BED_F) return 0;
-    if(get(x-1,y) == Square.BED_F) return 2;
-    if(get(x,y+1) == Square.BED_F) return 3;
-    return 1;
-  }
-  */
+
   public Boolean isChest(int x,int y) {
     if(x<0 || y<0 || x>= size.x || y>= size.y) return false;
     return area[x][y].isChest();

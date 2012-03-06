@@ -471,13 +471,21 @@ public class Dungeon {
     }
   }
   
-  public int fixSecretDoors(Catacombs plugin) {
+  public int fixSecretDoors() {
     int cnt = 0;
     for(CatLevel l : levels) {
-      cnt += l.fixSecretDoors(plugin);
+      cnt += l.fixSecretDoors();
     }
     return cnt;
   } 
+  
+  public int fixDoors() {
+    int cnt = 0;
+    for(CatLevel l : levels) {
+      cnt += l.fixDoors();
+    }
+    return cnt;
+  }  
   
   public void reset(Catacombs plugin) {
     allPlayersToTopProt();
@@ -724,6 +732,15 @@ public class Dungeon {
         "#o.o#",
         "#o.o#",
         " #+# "
+      }));
+      name = "doors";
+      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
+        "#++##",
+        "#.:.#",
+        "+:V:+",
+        "+.:.+",
+        "#++##"
+
       }));
       name = "tiny";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {

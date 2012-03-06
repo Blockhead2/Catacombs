@@ -199,6 +199,8 @@ public class Dungeons {
   
   public void remove(String name) {
     if(dungeons.containsKey(name)) {
+      Dungeon dung = dungeons.get(name);
+      dung.remove();
       dungeons.remove(name);
     }
   }   
@@ -209,12 +211,21 @@ public class Dungeons {
     }
   } 
   
-  public void fixSecretDoors(Catacombs plugin) {
+  public void fixSecretDoors() {
     for(Entry<String,Dungeon> e: dungeons.entrySet()) {
       Dungeon dung = e.getValue();
-      int cnt = dung.fixSecretDoors(plugin);
+      int cnt = dung.fixSecretDoors();
       if(cnt>0) {
         System.out.println("[Catacombs]   '"+dung.getName()+"' fixed "+cnt+" secret doors");
+      }
+    }
+  } 
+  public void fixDoors() {
+    for(Entry<String,Dungeon> e: dungeons.entrySet()) {
+      Dungeon dung = e.getValue();
+      int cnt = dung.fixDoors();
+      if(cnt>0) {
+        System.out.println("[Catacombs]   '"+dung.getName()+"' fixed or closed "+cnt+" wooden/iron doors");
       }
     }
   }  

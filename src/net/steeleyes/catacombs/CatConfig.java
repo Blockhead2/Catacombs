@@ -78,7 +78,8 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean MobsSpawnOnlyUnderground(){ return getSBoolean(ECatConfig.MobsSpawnOnlyUnderground.getStr());  }
   public  Boolean MobsSpawnOnlyInDungeons(){ return getSBoolean(ECatConfig.MobsSpawnOnlyInDungeons.getStr());  }
   //public  Boolean BossEnabled()            { return getSBoolean(ECatConfig.BossEnabled.getStr());  }
-  public  Boolean AdvancedCombat()         { return getSBoolean(ECatConfig.AdvancedCombat.getStr());  }
+  public  Boolean AdvancedCombat()         { return false;  }
+  //public  Boolean AdvancedCombat()         { return getSBoolean(ECatConfig.AdvancedCombat.getStr());  }
   public  Integer GroupRadius()            { return getSInt(ECatConfig.GroupRadius.getStr());  }
   public  Integer GroupDepth()             { return getSInt(ECatConfig.GroupDepth.getStr());  }
   public  Double  GroupHpFactor()          { return getSDouble(ECatConfig.GroupHpFactor.getStr());  }
@@ -145,6 +146,19 @@ public class CatConfig extends Config implements ICatConfig {
     } catch (Exception e) {
       System.err.println("[Catacombs] "+e.getMessage());
     }
+  }
+  
+  public Boolean noFlag(String path) { 
+    if(!(fcnf.contains(path) && fcnf.getBoolean(path))) {
+      try {
+        fcnf.set(path,true);
+        fcnf.save(filename);
+      } catch (Exception e) {
+        System.err.println("[Catacombs] "+e.getMessage());
+      }
+      return true;
+    }  
+    return false;
   }
   
   private void setDefaults() {

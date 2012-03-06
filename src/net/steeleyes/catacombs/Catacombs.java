@@ -44,8 +44,15 @@ import org.bukkit.block.BlockFace;
 /**
  * 
  * 
- * 
- *
+Release v1.8
+* Fixed the code so deleted and unprotected dungeons really do get removed from the
+  database.
+* Minecraft 1.2.3 change the way doors work. In Catacombs I fixed the hinge
+  positions for double doors in new dungeons and added code to go around at
+  start up and fix any existing legacy dungeons. Any open doors will be closed
+  by this operation. Also changed the reset door closing code to function correctly
+  with the new scheme.
+   
 Release v1.7
 * Changed the default wepif.yml file that gets created so that DinnerBone's permission
   handler (aka Bukkit permissions API) is off by default. It will not change wepif.yml
@@ -370,7 +377,7 @@ public class Catacombs extends JavaPlugin {
 
   public  Monsters              monsters;
   public  Players               players = new Players();
-  public  MobTypes              mobtypes;
+  //public  MobTypes              mobtypes;
 
   public  PluginDescriptionFile info;
   public  Boolean               debug=false;
@@ -387,8 +394,8 @@ public class Catacombs extends JavaPlugin {
   public void onLoad() {
     cnf = new CatConfig(getConfig());
     info = this.getDescription();
-    monsters = new Monsters(this);
     //mobtypes = new MobTypes(getConfig());
+    monsters = new Monsters(this);
     
     mapdir = new File("plugins" + File.separator + info.getName() + File.separator + "maps");
     if(!mapdir.exists()){
@@ -405,58 +412,17 @@ public class Catacombs extends JavaPlugin {
 
       if(cnf.SaveDungeons())
         setupDatabase();  
-      dungeons = new Dungeons(this,sql);  
+      dungeons = new Dungeons(this,sql); 
+      if(cnf.noFlag("Admin.Patches.DoorFixDone")) {
+        System.out.println("[" + info.getName() + "] Fixing Wooden/Iron doors (for MC 1.2.3 and above)");
+        dungeons.fixDoors();
+      }
 
       PluginManager pm = this.getServer().getPluginManager();
       pm.registerEvents(blockListener, this);
       pm.registerEvents(entityListener, this);
       pm.registerEvents(playerListener, this);
       pm.registerEvents(serverListener, this);
-//      // TODO: create a new way to configure all the listeners individually
-//      if(!cnf.DungeonProtectOff()) {
-//        pm.registerEvent(Event.Type.BLOCK_PLACE,       blockListener,  Event.Priority.Highest, this);
-//        pm.registerEvent(Event.Type.BLOCK_BREAK,       blockListener,  Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.BLOCK_BURN,        blockListener,  Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.BLOCK_IGNITE,      blockListener,  Event.Priority.Low, this);
-//      }
-//      if(!cnf.SecretDoorOff())
-//        pm.registerEvent(Event.Type.BLOCK_DAMAGE,      blockListener,  Event.Priority.Low, this);
-//      
-//      pm.registerEvent(Event.Type.ENTITY_DEATH,      entityListener, Event.Priority.Low, this);
-      
-//      if(cnf.AdvancedCombat()) {
-//        pm.registerEvent(Event.Type.PLAYER_KICK,         playerListener, Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.PLAYER_QUIT,         playerListener, Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.PLAYER_TELEPORT,     playerListener, Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.PLAYER_BED_ENTER,    playerListener, Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.PLAYER_CHANGED_WORLD,playerListener, Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.PLAYER_PORTAL,       playerListener, Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.PLAYER_FISH,         playerListener, Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.PLAYER_RESPAWN,      playerListener, Event.Priority.Low, this);
-////        pm.registerEvent(Event.Type.ENTITY_TARGET,       entityListener, Event.Priority.Low, this);
-//      }
-////      pm.registerEvent(Event.Type.ENTITY_DAMAGE,       entityListener, Event.Priority.Low, this);
-//
-//      
-//      pm.registerEvent(Event.Type.PLAYER_INTERACT,     playerListener, Event.Priority.Low, this);
-//      pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL,  playerListener, Event.Priority.Low, this);
-//      pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Event.Priority.Low, this);
-//
-//      pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
-
-//      if(!cnf.CalmSpawns())
-//        pm.registerEvent(Event.Type.CREATURE_SPAWN,    entityListener, Event.Priority.Low, this);
-      
-//      if(!cnf.MessyCreepers())
-//        pm.registerEvent(Event.Type.ENTITY_EXPLODE,    entityListener, Event.Priority.Low, this);
-
-//      if(!cnf.MessyEndermen()) {
-//        pm.registerEvent(Event.Type.ENDERMAN_PICKUP,   entityListener, Event.Priority.Low, this);
-//        pm.registerEvent(Event.Type.ENDERMAN_PLACE,    entityListener, Event.Priority.Low, this);
-//      }
-
-//      pm.registerEvent(Event.Type.PLUGIN_ENABLE,       serverListener, Event.Priority.Low, this);
-//      pm.registerEvent(Event.Type.PLUGIN_DISABLE,      serverListener, Event.Priority.Low, this);
 
       handler = new BlockChangeHandler(this);
       this.getServer().getScheduler().scheduleSyncRepeatingTask(this,handler,40,20);
@@ -466,7 +432,11 @@ public class Catacombs extends JavaPlugin {
      
       // Clear the dungeons of mobs so we can manage those that spawn
       dungeons.clearMonsters(this);
-      dungeons.fixSecretDoors(this);
+      
+      if(cnf.noFlag("Admin.Patches.SecretDoorFixDone")) {
+        System.out.println("[" + info.getName() + "] Fixing Secret doors");
+        dungeons.fixSecretDoors();
+      }
       enabled = true;
     }
   }
@@ -500,7 +470,7 @@ public class Catacombs extends JavaPlugin {
   }
 
   public Boolean Commands(Player p,String [] args) {
-    if(debug) {
+    if(false && debug) {
       if(p==null) {
         System.out.println("[Catacombs] Command sent from console");
       } else {
@@ -708,6 +678,7 @@ public class Catacombs extends JavaPlugin {
         //dung.saveDB();
 
         //Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        //dungeons.fixWoodenDoors();
         //dung.guessMajor();
         //testDatabase();
         //p.sendMessage("[catacombs] Direction "+getCardinalDirection(p));
@@ -716,8 +687,8 @@ public class Catacombs extends JavaPlugin {
 
       // DEBUG
       } else if(cmd(p,args,"debug")) {
-        Dungeon dung = dungeons.which(p.getLocation().getBlock());
-        dung.fixSecretDoors(this);
+        //Dungeon dung = dungeons.which(p.getLocation().getBlock());
+        //dung.fixSecretDoors(this);
       } else {
         help(p);
       }

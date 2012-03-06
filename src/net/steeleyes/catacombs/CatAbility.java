@@ -19,122 +19,290 @@
 */
 package net.steeleyes.catacombs;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 
 public class CatAbility {
-  private static final int NEAR = 3;
-  private static final int FAR  = 20;
+  private static final int FAR  = 30;
   
   private EffectType effect;
-  private TargetType type;
+  private AreaType area;
+  private FocusType focus;
   private String name;
-  private int after;
-  private Entity ent=null;
+    
+  private int after=0;
+  private int range=3;
+  private int duration=5;
+  private InterruptMethod castInterrupt=InterruptMethod.NONE;
+  private InterruptMethod durationInterrupt=InterruptMethod.NONE;
+  
+  public enum InterruptMethod {
+    NONE,
+    ANY,
+    DAMAGE,
+    HIT,
+    SHOOT,
+    TAUNT,
+    FEED,
+    HEAL;
+  }
+  
+  private enum EffectDuration { INSTANT,DURATION };
+  private enum EffectBuff { HARM,BUFF };
   
   public enum EffectType {
+    // Instant
     ARROW,
     FIRE_BALL,
-    FIRE_DAMAGE,
-    FIRE_START,
     LIGHTNING,
-    ROOT,
     THROW,
     SUMMON,
     SPIN,
     WARP,
-    FLOOD,
     SHUFFLE,
     STARVE,
-    POISON,
     DRAIN_EXP,
+    EXTINGUISH,
+
+    // Duration
+    FIRE_DAMAGE(EffectDuration.DURATION),
+    FIRE_START(EffectDuration.DURATION),
+    ROOT(EffectDuration.DURATION), 
+    FLOOD(EffectDuration.DURATION), 
+    POISON(EffectDuration.DURATION), 
+    DARKNESS(EffectDuration.DURATION),
+    MINES(EffectDuration.DURATION),
     
-    STRENGTH,   // Buffs
-    ARMOUR,
-    HEAL,
-    REGEN;
+    // Buffs
+    HEAL(EffectBuff.BUFF),
+    STRENGTH(EffectBuff.BUFF,EffectDuration.DURATION),
+    ARMOUR(EffectBuff.BUFF,EffectDuration.DURATION),
+    REGEN(EffectBuff.BUFF,EffectDuration.DURATION);
+    
+    private Boolean instant = true;
+    private Boolean buff = false;
+    
+    private EffectType() {  
+    }
+    
+    private EffectType(EffectDuration dur) {
+      instant = dur==EffectDuration.INSTANT;
+    }
+    
+    private EffectType(EffectBuff b) {
+      buff = b==EffectBuff.BUFF;
+    }
+    
+    private EffectType(EffectBuff b,EffectDuration d) {
+      buff = b==EffectBuff.BUFF;
+      instant = d==EffectDuration.INSTANT;
+    }
+    
+    public Boolean isBuff() {
+      return buff;
+    }
+    
+    public Boolean isInstant() {
+      return instant;
+    }
   }
   
-  public enum TargetType {
+  public enum FocusType {
     SELF,
     TARGET,
-    ONE_NEAR_ENT,
-    ALL_NEAR_ENT,
-    ONE_FAR_ENT,
-    ALL_FAR_ENT,
-    BLOCK,
-    ONE_NEAR_BLK,
-    ALL_NEAR_BLK,
-    ONE_FAR_BLK,
-    ALL_FAR_BLK;
+    NEAR_PLAYER,
+    FAR_PLAYER,
+    PLAYER,
+    SELF_LOC,
+    TARGET_LOC,
+    NEAR_PLAYER_LOC,
+    FAR_PLAYER_LOC,
+    PLAYER_LOC;
   }
   
-  public CatAbility(String name, FileConfiguration fcnf, String path) {
-    this(name,
-      CatUtils.getSString(fcnf,path+".effect"),
-      CatUtils.getSString(fcnf,path+".target"),
-      CatUtils.getSInt(fcnf,path+".after"));
+  public enum AreaType {
+    SELF,
+    FOCUS,
+
+    PLAYER_NEAR_FOCUS,
+    PLAYERS_NEAR_FOCUS,
+    PLAYER_FAR_FOCUS,
+    PLAYERS_FAR_FOCUS,
+    
+    MOB_NEAR_FOCUS,
+    MOBS_NEAR_FOCUS,
+    MOB_FAR_FOCUS,
+    MOBS_FAR_FOCUS;
   }
   
-  public CatAbility(String name,EffectType effect, TargetType type,int after) {
+  public CatAbility(FileConfiguration fcnf, String name,String path) {
     this.name = name;
-    this.effect = effect;
-    this.type = type;
-    this.after = after;
+    String s_effect = fcnf.getString(path+".effect","ARROW");
+    String s_focus = fcnf.getString(path+".focus","TARGET");
+    String s_area = fcnf.getString(path+".area","TARGET");
+    effect = CatUtils.getEnumFromString(EffectType.class,s_effect);
+    area = CatUtils.getEnumFromString(AreaType.class, s_area);
+    focus = CatUtils.getEnumFromString(FocusType.class, s_focus);
+
+    after = fcnf.getInt(path+".after",0);
+    range = fcnf.getInt(path+".range",3);
+    duration = fcnf.getInt(path+".duration",(effect.isInstant())?0:5);
+    
+    String castI = fcnf.getString(path+".castInterrupt","NONE");
+    String durationI = fcnf.getString(path+".durationInterrupt","NONE");
+    castInterrupt = CatUtils.getEnumFromString(InterruptMethod.class,castI);
+    durationInterrupt = CatUtils.getEnumFromString(InterruptMethod.class,durationI);
   }
-  
-  public CatAbility(String name,String effect, String type,int after) {
-    this.name = name;
-    this.effect = CatUtils.getEnumFromString(EffectType.class, effect);
-    this.type = CatUtils.getEnumFromString(TargetType.class, type);
-    this.after = after;
-  }
-  
+ 
   @Override
   public String toString() {
+    return name+" "+effect+" "+focus+" "+area;
+  }
+
+  public Boolean isInstant() {
+    return effect.isInstant();
+  }
+  
+  public Boolean isBuff() {
+    return effect.isBuff();
+  }
+
+  public EffectType getEffect() {
+    return effect;
+  }
+
+  public String getName() {
     return name;
   }
-  
-  public List<Player> getTargets(CatMob from) {
-    List<Player> list=null;//= new ArrayList<Player>();
-    switch(type) {
-      case TARGET: 
-        Player target = from.getTarget();
-        if(target!=null) {
-          list =  new ArrayList<Player>();
-          list.add(target);
-        }
-        break;
-      case ONE_NEAR_ENT:
-        list = CatUtils.getPlayerNear(from.getEntity(),NEAR);
-        CatUtils.pickOne(list);
-        break;
-      case ALL_NEAR_ENT:
-        list = CatUtils.getPlayerNear(from.getEntity(),NEAR);
-        break;
-      case ONE_FAR_ENT:
-        list = CatUtils.getPlayerFar(from.getEntity(),NEAR,FAR);
-        CatUtils.pickOne(list);
-        break;
-      case ALL_FAR_ENT:
-        list = CatUtils.getPlayerFar(from.getEntity(),NEAR,FAR);
-        break;
-      default:
-        list = new ArrayList<Player>();
-    }
-    return list;
+
+  public AreaType getArea() {
+    return area;
   }
   
-  public List<Player> getTargets(Block from) {
-    List<Player> list = new ArrayList<Player>();
-    return list;
+  public FocusType getFocus() {
+    return focus;
+  }  
+  public int getAfter() {
+    return after;
   }
+
+  public void setAfter(int after) {
+    this.after = after;
+  }
+
+  public InterruptMethod getCastInterrupt() {
+    return castInterrupt;
+  }
+
+  public void setCastInterrupt(InterruptMethod castInterrupt) {
+    this.castInterrupt = castInterrupt;
+  }
+
+  public int getDuration() {
+    return duration;
+  }
+
+  public void setDuration(int duration) {
+    this.duration = duration;
+  }
+
+  public InterruptMethod getDurationInterrupt() {
+    return durationInterrupt;
+  }
+
+  public void setDurationInterrupt(InterruptMethod durationInterrupt) {
+    this.durationInterrupt = durationInterrupt;
+  }
+
+  public int getRange() {
+    return range;
+  }
+
+  public void setRange(int range) {
+    this.range = range;
+  }
+
+  
+//  public List<LivingEntity> getTargets(CatMob from) {
+//    List<LivingEntity> list=null;//= new ArrayList<Player>();
+//    LivingEntity tmp;
+//    switch(area) {
+//      case SELF: 
+//        tmp = from.getEntity();
+//        if(tmp!=null) {
+//          list =  new ArrayList<LivingEntity>();
+//          list.add(tmp);
+//        }
+//        break;
+////      case FOCUS: 
+////        tmp = from.getTarget();
+////        if(tmp!=null) {
+////          list =  new ArrayList<LivingEntity>();
+////          list.add(tmp);
+////        }
+////        break;
+//      case PLAYER_NEAR_FOCUS:
+//        list = CatUtils.getPlayersNear(from.getEntity(),range);
+//        CatUtils.pickOne(list);
+//        break;
+//      case PLAYERS_NEAR_FOCUS:
+//        list = CatUtils.getPlayersNear(from.getEntity(),range);
+//        break;
+//      case PLAYER_FAR_FOCUS:
+//        list = CatUtils.getPlayersFar(from.getEntity(),range,FAR);
+//        CatUtils.pickOne(list);
+//        break;
+//      case PLAYERS_FAR_FOCUS:
+//        list = CatUtils.getPlayersFar(from.getEntity(),range,FAR);
+//        break;
+//      default:
+//        System.err.println("[Catacombs] Target area "+area+" isn't implemented yet");
+//        list = new ArrayList<LivingEntity>();
+//        break;
+//    }
+//    return list;
+//  }
+//  
+//  public List<Player> getTargets(Block from) {
+//    List<Player> list = new ArrayList<Player>();
+//    return list;
+//  }
   // No melee
   // No ranged
+
+  public void captureFocus(CatMob from) {
+    // snapshot focus details into the mob using the ability
+  }
+  
+  public void captureTargets(CatMob from) {
+    // snapshot targets details into the mob using the ability
+  }    
+
+  private void startCasting(CatMob mob) {
+    // clear interrupted
+
+    // if after==0
+    //   endCasting
+
+    // else
+    //   Root the caster
+    //   Show bubbles
+    //   Inform nearby players
+    //   Set casting flag on mob
+    //   capture focus info
+   }
+  
+  private void endCasting(CatMob mob) {
+    // cancel if interrupted
+    // capture target info
+    // Inform nearby players
+    // apply effect
+    
+    // if not instant
+    //   clear interrupted
+    //   set up regular application
+    //   set up end application
+    
+  }
   
   
 }

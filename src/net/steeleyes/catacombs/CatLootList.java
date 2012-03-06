@@ -33,7 +33,7 @@ public class CatLootList {
     name = "???";
   }
   
-  public CatLootList(String name, FileConfiguration fcnf, String path) {
+  public CatLootList(FileConfiguration fcnf, String name, String path) {
     this.name = name;
     List<String> l = CatUtils.getSStringList(fcnf,path);
     if(l!=null) {

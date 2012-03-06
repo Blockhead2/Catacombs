@@ -58,6 +58,18 @@ public class CatUtils {
     return rnd.nextInt(hi-lo+1)+lo;
   }
   
+  // Is a Block soild? (this is a partial list)
+  public static Boolean isSolid(Block blk) {
+    Material mat = blk.getType();
+    return mat != Material.WOODEN_DOOR &&
+            mat != Material.IRON_DOOR &&
+            mat != Material.AIR &&
+            mat != Material.TORCH &&
+            mat != Material.WEB &&
+            mat != Material.RED_MUSHROOM &&
+            mat != Material.BROWN_MUSHROOM; 
+  }
+  
   public static List<String> getKeys(FileConfiguration config, String path) {
     if(config.contains(path)) {
       List<String> list = new ArrayList<String>();
