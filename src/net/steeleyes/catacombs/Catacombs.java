@@ -43,7 +43,28 @@ import org.bukkit.block.BlockFace;
 
 /**
  * 
- * 
+Release v2.1
+* Added configuration option for random anvils in dungeons.
+* Added work around for client side crash when chests in dungeons are deleted.
+* Fixed code so beds in dungeons are deleted correctly without dropping a bed.
+
+Release v2.0
+* Added an option to allow the button at the end to recall the presser rather
+  than resetting the dungeon. If both reset and recall options are true then the
+  reset wins.
+* Fixed an issue in the order the permissions plugins were being loaded relative
+  to Catacombs.
+* Re-enabled replacing chests when dungeons get deleted. This will cause a client
+  side crash due to a bucket/minecraft problem, but it's probably better to do this
+  than leave the empty chests buried underground.
+* Updated deprecated function calls
+
+Release v1.9
+* Fixed some issues that occurred when players died in dungeons and the code tried
+  to restore their gear. These issues were caused by changes in the way bukkit
+  handled empty slots [you used to get Material.AIR returned now you more sensibly get
+  a null pointer]
+ 
 Release v1.8
 * Fixed the code so deleted and unprotected dungeons really do get removed from the
   database.
@@ -401,7 +422,6 @@ public class Catacombs extends JavaPlugin {
     if(!mapdir.exists()){
       mapdir.mkdir();
     }
-    System.out.println("[" + info.getName() + "] version " + info.getVersion()+ " is loaded");
   }
   
   @Override
@@ -444,7 +464,6 @@ public class Catacombs extends JavaPlugin {
   @Override
   public void onDisable(){
     Methods.reset();
-    System.out.println("[catacombs] plugin has been disabled!");
     enabled = false;
   }
   
@@ -688,7 +707,7 @@ public class Catacombs extends JavaPlugin {
       // DEBUG
       } else if(cmd(p,args,"debug")) {
         //Dungeon dung = dungeons.which(p.getLocation().getBlock());
-        //dung.fixSecretDoors(this);
+        //dung.buildWindows(Material.IRON_FENCE);
       } else {
         help(p);
       }

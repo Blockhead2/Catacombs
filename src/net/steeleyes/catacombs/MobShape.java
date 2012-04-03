@@ -4,7 +4,7 @@ package net.steeleyes.catacombs;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.CreatureType;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Wolf;
@@ -13,35 +13,35 @@ import org.bukkit.entity.Slime;
 
 public enum MobShape {
   // Standard creatures
-  ZOMBIE        (CreatureType.ZOMBIE),
-  SKELETON      (CreatureType.SKELETON),
-  CREEPER       (CreatureType.CREEPER),
-  PIG_ZOMBIE    (CreatureType.PIG_ZOMBIE),
-  SPIDER        (CreatureType.SPIDER),
-  CAVE_SPIDER   (CreatureType.CAVE_SPIDER),
-  BLAZE         (CreatureType.BLAZE),
-  WOLF          (CreatureType.WOLF),
-  SILVERFISH    (CreatureType.SILVERFISH),
-  ENDERMAN      (CreatureType.ENDERMAN),
-  GHAST         (CreatureType.GHAST),
-  GIANT         (CreatureType.GIANT),
-  SLIME         (CreatureType.SLIME),
-  CHICKEN       (CreatureType.CHICKEN),
-  COW           (CreatureType.COW),
-  SQUID         (CreatureType.SQUID),
-  SHEEP         (CreatureType.SHEEP),
-  PIG           (CreatureType.PIG),
+  ZOMBIE        (EntityType.ZOMBIE),
+  SKELETON      (EntityType.SKELETON),
+  CREEPER       (EntityType.CREEPER),
+  PIG_ZOMBIE    (EntityType.PIG_ZOMBIE),
+  SPIDER        (EntityType.SPIDER),
+  CAVE_SPIDER   (EntityType.CAVE_SPIDER),
+  BLAZE         (EntityType.BLAZE),
+  WOLF          (EntityType.WOLF),
+  SILVERFISH    (EntityType.SILVERFISH),
+  ENDERMAN      (EntityType.ENDERMAN),
+  GHAST         (EntityType.GHAST),
+  GIANT         (EntityType.GIANT),
+  SLIME         (EntityType.SLIME),
+  CHICKEN       (EntityType.CHICKEN),
+  COW           (EntityType.COW),
+  SQUID         (EntityType.SQUID),
+  SHEEP         (EntityType.SHEEP),
+  PIG           (EntityType.PIG),
   
   // Special creatures
-  POWEREDCREEPER(CreatureType.CREEPER);
+  POWEREDCREEPER(EntityType.CREEPER);
 
-  private CreatureType type;
+  private EntityType type;
   
-  private MobShape(CreatureType type) {
+  private MobShape(EntityType type) {
     this.type = type;  
   }
   
-  public CreatureType getType() {
+  public EntityType getType() {
     return type;
   }
     
@@ -70,7 +70,7 @@ public enum MobShape {
     return e;
   }
   
-  public static MobShape getType(CreatureType c) {
+  public static MobShape getType(EntityType c) {
     return getType(c.toString());
   }
   

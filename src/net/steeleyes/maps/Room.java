@@ -601,7 +601,10 @@ public class Room {
 
     if(cnf.OvenChance())
       objectRandom(Square.FURNACE);
-
+    
+    if(cnf.AnvilChance())
+      objectRandom(Square.ANVIL);
+    
     if(!special && cnf.PoolChance())
       poolRandom();
 

@@ -31,6 +31,7 @@ public interface IConfig {
   public  Boolean CorridorChance();
   public  Boolean ShroomChance();
   public  Boolean BenchChance();
+  public  Boolean AnvilChance();
   public  Boolean OvenChance();
   public  Boolean DoubleDoorChance();
   

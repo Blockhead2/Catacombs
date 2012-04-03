@@ -29,8 +29,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.Location;
 
-import org.bukkit.entity.CreatureType;
 import org.bukkit.entity.Enderman;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 
 import org.bukkit.entity.Monster;
@@ -232,7 +232,7 @@ public class CatEntityListener implements Listener {
         return;
       }
       
-      Boolean isSilverFish = (evt.getCreatureType() == CreatureType.SILVERFISH);
+      Boolean isSilverFish = (evt.getEntityType() == EntityType.SILVERFISH);
       
       int num_mobs = CatUtils.countCreatureNear(ent, cnf.MonsterRadius(), 2);
       //System.out.println("[Catacombs] spawn players="+num_players+" mobs="+num_mobs+" size="+plugin.monsters.size());
@@ -242,18 +242,18 @@ public class CatEntityListener implements Listener {
       }      
 
       //Location loc = evt.getLocation();
-      CatMob mob = new CatMob(plugin,evt.getCreatureType(),ent);
+      CatMob mob = new CatMob(plugin,evt.getEntityType(),ent);
       plugin.monsters.add(mob);
 
       //CatMob mob2 = new CatMob(CatCreature.CHICKEN,loc.getWorld(),loc);
       //plugin.monsters.add(mob2);
       //System.out.println("[Catacombs] "+plugin.monsters.size()+" "+ent);
     } else {
-      CreatureType t = evt.getCreatureType();
-      if(t == CreatureType.WOLF)
+      EntityType t = evt.getEntityType();
+      if(t == EntityType.WOLF)
         ((Wolf)ent).setAngry(true);
         
-      if(t == CreatureType.PIG_ZOMBIE)
+      if(t == EntityType.PIG_ZOMBIE)
         ((PigZombie)ent).setAngry(true);
     }
   }

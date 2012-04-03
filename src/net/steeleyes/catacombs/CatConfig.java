@@ -36,6 +36,7 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean UnderFill()              { return getSBoolean(ECatConfig.UnderFill.getStr());  }
   public  Boolean OverFill()               { return getSBoolean(ECatConfig.OverFill.getStr());  }
   public  Boolean ResetButton()            { return getSBoolean(ECatConfig.ResetButton.getStr());  }
+  public  Boolean RecallButton()           { return getSBoolean(ECatConfig.RecallButton.getStr());  }
   private String  majorBlock()             { return getSString(ECatConfig.majorBlock.getStr());  }
   private String  minorBlock()             { return getSString(ECatConfig.minorBlock.getStr());  }
   private String  floorBlock()             { return getSString(ECatConfig.floorBlock.getStr());  }

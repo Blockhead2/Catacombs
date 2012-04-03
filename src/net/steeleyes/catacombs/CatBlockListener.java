@@ -30,8 +30,6 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.CreatureSpawner;
-import org.bukkit.entity.CreatureType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -85,7 +83,7 @@ public class CatBlockListener implements Listener {
     Material mat = block.getType();
     if(plugin.debug) {
       Player player = event.getPlayer();
-      player.sendMessage("BREAK : " + mat+ " ("+block.getX()+","+block.getY()+","+block.getZ()+")");
+      player.sendMessage("BREAK : " + mat+ " ("+block.getX()+","+block.getY()+","+block.getZ());
     }
 
     if(plugin.cnf.isBreakable(block))

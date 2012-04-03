@@ -22,7 +22,6 @@ package net.steeleyes.catacombs;
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.ContainerBlock;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Dispenser;
 import org.bukkit.block.Chest;
@@ -37,6 +36,9 @@ import java.util.Arrays;
 import org.bukkit.Chunk;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.material.Bed;
+import org.bukkit.material.MaterialData;
 
 public class CatCuboid extends Cuboid {
   private Type type = Type.LEVEL;
@@ -256,8 +258,8 @@ public class CatCuboid extends Cuboid {
           if(blk.getType() == mat) {
             if(mat == Material.CHEST) {
               Object o = blk.getState();
-              if(o != null && o instanceof ContainerBlock) {
-                ContainerBlock cont = (ContainerBlock) o;
+              if(o != null && o instanceof InventoryHolder) {
+                InventoryHolder cont = (InventoryHolder) o;
                 cont.getInventory().clear();
               }
             }
@@ -274,10 +276,10 @@ public class CatCuboid extends Cuboid {
         Block b = world.getBlockAt(x,yl,z);
         World w = b.getWorld();
         Chunk chunk = w.getChunkAt(b.getLocation());
-        if (!w.isChunkLoaded(chunk))
-          w.loadChunk(chunk);
+        //if (!w.isChunkLoaded(chunk))
+        //  w.loadChunk(chunk);
         //else
-        //  w.refreshChunk(chunk.getX(), chunk.getZ());
+        //w.refreshChunk(chunk.getX(), chunk.getZ());
         for(int y=yl;y<=yh;y++) {
           Block blk = world.getBlockAt(x,y,z);
           if(blk.getType() == Material.TORCH) {
@@ -347,6 +349,47 @@ public class CatCuboid extends Cuboid {
       }
     }
   }  
+  
+  public void buildWindows(CatMat mat,int height) {
+    if(type == Type.HUT)
+      return;
+    
+    int x,z;
+    int y = yl+height;
+
+    x = xl;
+    for(z=zl+1;z<=zh-1;z++) {
+      Block blk = world.getBlockAt(x,y,z);
+      if(world.getBlockAt(x-1,y,z).getType() == Material.AIR &&
+         world.getBlockAt(x+1,y,z).getType() == Material.AIR  ) {
+        mat.setBlock(blk);
+      }
+    }
+    x = xh;
+    for(z=zl+1;z<=zh-1;z++) {
+      Block blk = world.getBlockAt(x,y,z);
+      if(world.getBlockAt(x-1,y,z).getType() == Material.AIR &&
+         world.getBlockAt(x+1,y,z).getType() == Material.AIR  ) {
+        mat.setBlock(blk);
+      }
+    }
+    z = zl;
+    for(x=xl+1;x<=xh-1;x++) {
+      Block blk = world.getBlockAt(x,y,z);
+      if(world.getBlockAt(x,y,z-1).getType() == Material.AIR &&
+         world.getBlockAt(x,y,z+1).getType() == Material.AIR  ) {
+        mat.setBlock(blk);
+      }
+    }
+    z = zh;
+    for(x=xl+1;x<=xh-1;x++) {
+      Block blk = world.getBlockAt(x,y,z);
+      if(world.getBlockAt(x,y,z-1).getType() == Material.AIR &&
+         world.getBlockAt(x,y,z+1).getType() == Material.AIR  ) {
+        mat.setBlock(blk);
+      }
+    }
+  }   
   
   public void closeDoors(Catacombs plugin) {
     //Boolean secretOn = !plugin.cnf.SecretDoorOff();
@@ -564,8 +607,8 @@ public class CatCuboid extends Cuboid {
           Block blk = world.getBlockAt(x,y,z);
           if(emptyChest) {
             Object o = blk.getState();
-            if(o != null && o instanceof ContainerBlock) {
-              ContainerBlock cont = (ContainerBlock) o;
+            if(o != null && o instanceof InventoryHolder) {
+              InventoryHolder cont = (InventoryHolder) o;
               cont.getInventory().clear();
             }
           }
@@ -575,15 +618,28 @@ public class CatCuboid extends Cuboid {
              before == Material.TRAP_DOOR ||
              before == Material.WATER ||
              before == Material.LAVA ||
-             before == Material.BED_BLOCK ||
              before == Material.RED_MUSHROOM ||
              before == Material.BROWN_MUSHROOM ||
              before == Material.REDSTONE_TORCH_ON ||
              before == Material.WOODEN_DOOR
              ) {
             handler.addHigh(blk,mat);
+          } else if(before == Material.BED_BLOCK) {
+            MaterialData md = blk.getState().getData();
+            if(md instanceof Bed) {
+              Bed bed = (Bed) md;
+              if(bed.isHeadOfBed()) {
+                Block foot = blk.getRelative(bed.getFacing().getOppositeFace());
+                foot.setType(Material.AIR);
+                blk.setType(Material.AIR);
+                handler.addLow(blk,mat);
+                handler.addLow(blk,mat);
+              }
+            }
           } else if(before == Material.CHEST) {
-            //handler.addHigh(blk,mat);
+            blk.setType(Material.AIR);
+            blk.breakNaturally();
+            handler.addLow(blk,mat);
           } else {
             handler.addLow(blk,mat);
           }

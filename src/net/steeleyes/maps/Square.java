@@ -41,6 +41,7 @@ public enum Square {
   O_FLOOR('`'),
   WINDOW('G'),
   BARS('I'),
+  HIGH_BARS('b'),
   DOOR('+'),
   UP('^'),
   DOWN('V'),

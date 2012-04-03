@@ -25,17 +25,20 @@ public class CatGear {
     PlayerInventory inv = player.getInventory();
     grave = player.getLocation();
     
-    if (inv.getBoots().getType() != Material.AIR)
+    if (inv.getBoots() != null && inv.getBoots().getType() != Material.AIR)
       feet = inv.getBoots().clone();
-    if (inv.getChestplate().getType() != Material.AIR)
+    if (inv.getChestplate() != null && inv.getChestplate().getType() != Material.AIR)
       chest = inv.getChestplate().clone();
-    if (inv.getLeggings().getType() != Material.AIR)
+    if (inv.getLeggings() != null && inv.getLeggings().getType() != Material.AIR)
       legs = inv.getLeggings().clone();
-    if (inv.getHelmet().getType() != Material.AIR)
+    if (inv.getHelmet() != null && inv.getHelmet().getType() != Material.AIR)
       head = inv.getHelmet().clone();
 
     for(int i=0;i<=35;i++) {
-      ItemStack it = inv.getItem(i).clone();
+      ItemStack it = null;
+      if(inv.getItem(i)!=null) {
+        it = inv.getItem(i).clone();        
+      }
       gear.add(it);
     }    
   }
@@ -62,13 +65,13 @@ public class CatGear {
 
   public void restoreGear() {
     PlayerInventory inv = player.getInventory();
-    if (head!=null && inv.getHelmet().getType() == Material.AIR)
+    if (head!=null && (inv.getHelmet() == null || inv.getHelmet().getType() == Material.AIR))
       inv.setHelmet(head);
-    if (chest!=null && inv.getChestplate().getType() == Material.AIR)
+    if (chest!=null && (inv.getChestplate() == null || inv.getChestplate().getType() == Material.AIR))
       inv.setChestplate(chest);
-    if (legs!=null && inv.getLeggings().getType() == Material.AIR)
+    if (legs!=null && (inv.getLeggings() == null || inv.getLeggings().getType() == Material.AIR))
       inv.setLeggings(legs);      
-    if (feet!=null && inv.getBoots().getType() == Material.AIR)
+    if (feet!=null && (inv.getBoots() == null || inv.getBoots().getType() == Material.AIR))
       inv.setBoots(feet);      
 
     for(int i=0;i<=35;i++) {

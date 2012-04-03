@@ -4,7 +4,7 @@ package net.steeleyes.catacombs;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.CreatureType;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Wolf;
@@ -13,37 +13,37 @@ import org.bukkit.entity.Slime;
 
 public enum CatCreature {
   // Standard creatures
-  ZOMBIE        (CreatureType.ZOMBIE,50),
-  SKELETON      (CreatureType.SKELETON,40),
-  CREEPER       (CreatureType.CREEPER,6),
-  PIG_ZOMBIE    (CreatureType.PIG_ZOMBIE,30),
-  SPIDER        (CreatureType.SPIDER,30),
-  CAVE_SPIDER   (CreatureType.CAVE_SPIDER,20),
-  BLAZE         (CreatureType.BLAZE,40),
-  WOLF          (CreatureType.WOLF,30),
-  SILVERFISH    (CreatureType.SILVERFISH,10),
-  ENDERMAN      (CreatureType.ENDERMAN,40),
-  GHAST         (CreatureType.GHAST,30),
-  GIANT         (CreatureType.GIANT,100),
-  SLIME         (CreatureType.SLIME,30),
-  CHICKEN       (CreatureType.CHICKEN,15),
-  COW           (CreatureType.COW,30),
-  SQUID         (CreatureType.SQUID,20),
-  SHEEP         (CreatureType.SHEEP,20),
-  PIG           (CreatureType.PIG,25),
+  ZOMBIE        (EntityType.ZOMBIE,50),
+  SKELETON      (EntityType.SKELETON,40),
+  CREEPER       (EntityType.CREEPER,6),
+  PIG_ZOMBIE    (EntityType.PIG_ZOMBIE,30),
+  SPIDER        (EntityType.SPIDER,30),
+  CAVE_SPIDER   (EntityType.CAVE_SPIDER,20),
+  BLAZE         (EntityType.BLAZE,40),
+  WOLF          (EntityType.WOLF,30),
+  SILVERFISH    (EntityType.SILVERFISH,10),
+  ENDERMAN      (EntityType.ENDERMAN,40),
+  GHAST         (EntityType.GHAST,30),
+  GIANT         (EntityType.GIANT,100),
+  SLIME         (EntityType.SLIME,30),
+  CHICKEN       (EntityType.CHICKEN,15),
+  COW           (EntityType.COW,30),
+  SQUID         (EntityType.SQUID,20),
+  SHEEP         (EntityType.SHEEP,20),
+  PIG           (EntityType.PIG,25),
   
   // Special creatures
-  POWEREDCREEPER(CreatureType.CREEPER,12);
+  POWEREDCREEPER(EntityType.CREEPER,12);
 
-  private CreatureType type;
+  private EntityType type;
   private int hps;
   
-  private CatCreature(CreatureType type, int hps) {
+  private CatCreature(EntityType type, int hps) {
     this.type = type;  
     this.hps = hps;
   }
   
-  public CreatureType getType() {
+  public EntityType getType() {
     return type;
   }
   
@@ -75,7 +75,7 @@ public enum CatCreature {
     return e;
   }
   
-  public static CatCreature getType(CreatureType c) {
+  public static CatCreature getType(EntityType c) {
     return getType(c.toString());
   }
   

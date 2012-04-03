@@ -29,7 +29,7 @@ public enum EConfig {
   CorridorW2Pct  (".Corridor.Width2Pct",            40),
   CorridorW3Pct  (".Corridor.Width3Pct",            10),
   HiddenPct      (".Archway.Type.HiddenPct",        10),
-  DoorPct        (".Archway.Type.DoorPct",          20),
+  DoorPct        (".Archway.Type.DoorPct",          30),
   WebDoorPct     (".Archway.Type.WebDoorPct",       10),
   TrapPct        (".Room.Clutter.TrapPct",          10),
   SandPct        (".Room.Clutter.SandPct",          10),
@@ -40,6 +40,7 @@ public enum EConfig {
   LavaPct        (".Room.Clutter.Pool.LavaPct",     30),
   ShroomPct      (".Room.Clutter.ShroomPct",        10),
   BenchPct       (".Room.Clutter.BenchPct",          3),
+  AnvilPct       (".Room.Clutter.AnvilPct",          3),
   EnchantPct     (".Room.Clutter.EnchantPct",        3),
   OvenPct        (".Room.Clutter.OvenPct",           2),
   DoubleDoorPct  (".Archway.DoubleWidthPct",        60);

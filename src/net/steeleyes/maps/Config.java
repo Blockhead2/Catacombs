@@ -57,6 +57,7 @@ public class Config implements IConfig {
   private Integer ShroomPct()        { return getSInt(EConfig.ShroomPct.getStr());  }
   private Integer BenchPct()         { return getSInt(EConfig.BenchPct.getStr());  }
   private Integer EnchantPct()       { return getSInt(EConfig.EnchantPct.getStr());  }
+  private Integer AnvilPct()         { return getSInt(EConfig.AnvilPct.getStr());  }
   private Integer OvenPct()          { return getSInt(EConfig.OvenPct.getStr());  }
   private Integer DoubleDoorPct()    { return getSInt(EConfig.DoubleDoorPct.getStr());  }
   
@@ -69,6 +70,7 @@ public class Config implements IConfig {
   public  Boolean CorridorChance()   { return Chance(CorridorPct()); }
   public  Boolean SpecialChance()    { return Chance(SpecialPct()); }
   public  Boolean ShroomChance()     { return Chance(ShroomPct()); }
+  public  Boolean AnvilChance()      { return Chance(AnvilPct()); }
   public  Boolean BenchChance()      { return Chance(BenchPct()); }
   public  Boolean EnchantChance()    { return Chance(EnchantPct()); }
   public  Boolean OvenChance()       { return Chance(OvenPct()); }

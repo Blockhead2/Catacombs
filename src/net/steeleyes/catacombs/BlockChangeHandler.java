@@ -24,12 +24,13 @@ import java.util.List;
 
 import org.bukkit.World;
 import org.bukkit.Material;
-import org.bukkit.block.ContainerBlock;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.CreatureSpawner;
+import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.InventoryHolder;
 
 
 public class BlockChangeHandler implements Runnable {  
@@ -54,8 +55,8 @@ public class BlockChangeHandler implements Runnable {
     else
       blk.setType(x.getMat());
     if(x.getItems() != null) {
-      if(blk.getState() instanceof ContainerBlock) {
-        ContainerBlock cont = (ContainerBlock) blk.getState();
+      if(blk.getState() instanceof InventoryHolder) {
+        InventoryHolder cont = (InventoryHolder) blk.getState();
         Inventory inv = cont.getInventory();
         for(ItemStack s: x.getItems()) {
           inv.addItem(s);
@@ -65,9 +66,9 @@ public class BlockChangeHandler implements Runnable {
         }
       }  
     }
-    if(x.getSpawner()!=null) {
+    if(x.getSpawner()!=null && blk.getState() instanceof CreatureSpawner) {
       CreatureSpawner spawner = (CreatureSpawner) blk.getState();
-      spawner.setCreatureTypeId(x.getSpawner());
+      spawner.setCreatureTypeByName(x.getSpawner());
     }
   }
   

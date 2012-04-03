@@ -335,14 +335,12 @@ public class CatLevel {
     return stairs_ok;
   }
 
-  private void renderTileSection(BlockChangeHandler handler,int xx,int y1,int y2, int zz, Material mat) {
+  private void renderTileSection(BlockChangeHandler handler,int xx,int y1,int y2, int zz,
+          Material mat,
+          CatMat major) {
     CatMat use = null;
-    if(cnf.majorMat().getMat() == mat) {
-      if(cnf.MinorChance()) {
-        use = cnf.minorMat();
-      } else {
-        use = cnf.majorMat();
-      }
+    if(major.getMat() == mat) {
+      use = (cnf.MinorChance())?cnf.minorMat():major;
     } else {
       use = new CatMat(mat);
     }
@@ -378,13 +376,12 @@ public class CatLevel {
     int room_h  = room_l+roomDepth-1;
     int roof_l  = room_h+1;
     int roof_h  = roof_l+roofDepth-1;
-    renderTileSection(handler,xx,floor_l,floor_h-1,zz,floor0);
-    renderTileSection(handler,xx,floor_h,floor_h,zz,floor1);
-    renderTileSection(handler,xx,room_l,room_l+1,zz,room0);
-    renderTileSection(handler,xx,room_l+2,room_h,zz,room1);
-    renderTileSection(handler,xx,roof_l,roof_l,zz,roof0);
-    renderTileSection(handler,xx,roof_l+1,roof_h,zz,roof1);
-    renderTileSection(handler,xx,room_l+2,room_h,zz,room1);
+    renderTileSection(handler,xx,floor_l,floor_h-1,zz,floor0,cnf.floorMat());
+    renderTileSection(handler,xx,floor_h,floor_h,zz,floor1,cnf.floorMat());
+    renderTileSection(handler,xx,room_l,room_l+1,zz,room0,cnf.majorMat());
+    renderTileSection(handler,xx,room_l+2,room_h,zz,room1,cnf.majorMat());
+    renderTileSection(handler,xx,roof_l,roof_l,zz,roof0,cnf.roofMat());
+    renderTileSection(handler,xx,roof_l+1,roof_h,zz,roof1,cnf.roofMat());
   }
 
   public void addLeveltoWorld (BlockChangeHandler handler) {
@@ -413,9 +410,9 @@ public class CatLevel {
     Boolean SquareHuts = false;
     
     // Extra cobblestone (major) when outside
-    Material ecob = (SquareHuts && cube.isHut())?cob:null;
     Material undr = (cnf.UnderFill())?cob:null;
     Material over = (cnf.OverFill() && cube.isLevel())?cob:null;
+    Material ecob = (SquareHuts && cube.isHut())?cob:over;
 
     // First pass - Place all the Blocks
     for(int x=0;x<g.sx();x++) {
@@ -430,6 +427,7 @@ public class CatLevel {
           case DOWNWALL:       renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,ecob,over); break;
           case BOTHWALL:       renderTile(handler,xx,top.y,zz,cob ,cob ,cob ,cob ,cob ,cob ); break;
           case WALL:
+          case HIGH_BARS:
           case WINDOW:
           case FIXEDWALL:      renderTile(handler,xx,top.y,zz,undr,undr,cob ,cob ,ecob,over); break;
           case WATER:
@@ -473,7 +471,9 @@ public class CatLevel {
                              else
                                renderTile(handler,xx,top.y,zz,undr,flr ,air ,air ,roo ,over);
                              break;
-          default:
+          default:           if(cnf.UnderFill() || cnf.OverFill())
+                               renderTile(handler,xx,top.y,zz,undr,undr,cob ,cob ,ecob,over);
+                             break;
         }
         
         if(s==Square.PRESSURE) {
@@ -513,7 +513,7 @@ public class CatLevel {
           if(s==Square.BIGCHEST) {
             CatLoot.bigChest(cnf,chest);
             handler.addHigh(world,xx,floor_h,zz,Material.GRASS);
-            if(cnf.ResetButton())
+            if(cnf.ResetButton() || cnf.RecallButton())
               handler.addLow(world,xx,room_l+1,zz,Material.STONE_BUTTON,getButtonCode(x,y));
           } else if (s == Square.MIDCHEST) {
             CatLoot.midChest(cnf,chest);
@@ -541,6 +541,9 @@ public class CatLevel {
         }
         if(s==Square.WINDOW) {
           handler.addHigh(world,xx,room_l+1,zz,Material.THIN_GLASS);
+        }
+        if(s==Square.HIGH_BARS) {
+          handler.addHigh(world,xx,room_l+1,zz,Material.IRON_FENCE);
         }
         if(s==Square.BARS) {
           handler.addHigh(world,xx,room_l,zz,Material.IRON_FENCE);
@@ -684,7 +687,11 @@ public class CatLevel {
     if(mat != null)
       cube.addGlow(mat,roofDepth);
   }
-
+  
+  public void buildWindows(Material mat) {
+    cube.buildWindows(new CatMat(mat),floorDepth+1);
+  }
+  
   public void enable(CatMat mat) {
     //cube.enable();
     if(mat != null)

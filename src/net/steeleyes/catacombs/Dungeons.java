@@ -189,7 +189,8 @@ public class Dungeons {
       Dungeon dung = dungeons.get(name);
       dung.suspend();
     }
-  }  
+  } 
+  
   public void enable(String name) {
     if(dungeons.containsKey(name)) {
       Dungeon dung = dungeons.get(name);

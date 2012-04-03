@@ -351,7 +351,7 @@ public class Dungeon {
   }
   
   public Boolean overlaps(Dungeon that) {
-    if(!world.equals(that.world))
+    if(world==null || that.world == null || !world.equals(that.world))
       return false;
     
     for(CatLevel a : levels) {
@@ -365,7 +365,7 @@ public class Dungeon {
   }  
   
   public Boolean isProtected(Block blk) {
-    if(!world.equals(blk.getWorld()))
+    if(world==null || blk == null || !world.equals(blk.getWorld()))
       return false;
     
     if(isEnabled == null || !isEnabled.getBoolean())
@@ -380,7 +380,7 @@ public class Dungeon {
   }
   
   public Boolean isSuspended(Block blk) {
-    if(!world.equals(blk.getWorld()))
+    if(world==null || blk == null || !world.equals(blk.getWorld()))
       return false;
 
     if(isEnabled.getBoolean())
@@ -395,7 +395,7 @@ public class Dungeon {
   }
   
   public Boolean isInRaw(Block blk) {
-    if(!world.equals(blk.getWorld()))
+    if(world==null || blk == null || !world.equals(blk.getWorld()))
       return false;
 
     for(CatLevel l : levels) {
@@ -503,6 +503,11 @@ public class Dungeon {
     }
   }
   
+  public void buildWindows(Material mat) {
+    for(CatLevel l : levels) {
+      l.buildWindows(mat);
+    }
+  }  
   public Boolean isEnabled() {
     return isEnabled.getBoolean();
   }
@@ -733,15 +738,15 @@ public class Dungeon {
         "#o.o#",
         " #+# "
       }));
-      name = "doors";
-      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
-        "#++##",
-        "#.:.#",
-        "+:V:+",
-        "+.:.+",
-        "#++##"
-
-      }));
+//      name = "doors";
+//      hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
+//        "#++##",
+//        "#.:.#",
+//        "+:V:+",
+//        "+.:.+",
+//        "#++##"
+//
+//      }));
       name = "tiny";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         " D ",

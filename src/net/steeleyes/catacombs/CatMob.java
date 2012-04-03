@@ -23,8 +23,8 @@ import java.util.Calendar;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Creature;
-import org.bukkit.entity.CreatureType;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -53,7 +53,7 @@ public class CatMob {
   
   private int tickId=0;
   
-  private CreatureType tmp_type;
+  private EntityType tmp_type;
   
   //private List<Object> targets; 
   //private List<CatAbility> running = new LinkedList<CatAbility>();
@@ -69,7 +69,7 @@ public class CatMob {
     common_init();
   }
   
-  public CatMob(Catacombs plugin,CreatureType c,LivingEntity e) {
+  public CatMob(Catacombs plugin,EntityType c,LivingEntity e) {
     this.plugin = plugin;
     name = c.toString();
     //this.cnf = plugin.cnf;

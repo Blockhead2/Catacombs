@@ -72,8 +72,12 @@ public class CatPlayerListener implements Listener{
     
     Block blk = event.getClickedBlock();
     if(blk.getType()==Material.STONE_BUTTON && plugin.dungeons.isInRaw(blk)) {
-      Dungeon dung = plugin.dungeons.which(blk);
-      plugin.Commands(null,new String[] {"reset",dung.getName()} );
+      if(plugin.cnf.ResetButton()) {
+        Dungeon dung = plugin.dungeons.which(blk);
+        plugin.Commands(null,new String[] {"reset",dung.getName()} );
+      } else if(plugin.cnf.RecallButton()) {
+        plugin.Commands(event.getPlayer(),new String[] {"recall"} );
+      }
     }
     
 //    if(plugin.debug && blk.getType()==Material.WEB && plugin.dungeons.isInRaw(blk)) {
