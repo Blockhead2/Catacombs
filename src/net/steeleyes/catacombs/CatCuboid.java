@@ -33,12 +33,14 @@ import org.bukkit.Location;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import org.bukkit.Chunk;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.Bed;
 import org.bukkit.material.MaterialData;
+import net.minecraft.server.EnumSkyBlock;
+//import net.minecraft.server.*;
+
 
 public class CatCuboid extends Cuboid {
   private Type type = Type.LEVEL;
@@ -273,32 +275,23 @@ public class CatCuboid extends Cuboid {
   public void removeTorch() {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
-        Block b = world.getBlockAt(x,yl,z);
-        World w = b.getWorld();
-        Chunk chunk = w.getChunkAt(b.getLocation());
-        //if (!w.isChunkLoaded(chunk))
-        //  w.loadChunk(chunk);
-        //else
-        //w.refreshChunk(chunk.getX(), chunk.getZ());
         for(int y=yl;y<=yh;y++) {
           Block blk = world.getBlockAt(x,y,z);
           if(blk.getType() == Material.TORCH) {
-            //blk.setTypeId(Material.AIR.getId(),true);
-                      
-            blk.setType(Material.AIR);
-          
-            //net.minecraft.server.Chunk c = ((CraftChunk) b.getChunk()).getHandle();
-            //c.initLighting(); 
-            //          w.refreshChunk(chunk.getX(), chunk.getZ());
-
-            //byte aaa = blk.getLightFromBlocks();
-            //byte bbb = blk.getLightLevel();
-//((CraftWorld)world).getHandle().a(net.minecraft.server.EnumSkyBlock.BLOCK, x, y, z, 0);
-        //((CraftWorld)world).getHandle().a(net.minecraft.server.EnumSkyBlock.SKY, x, y, z);
-        ((CraftWorld)w).getHandle().notify(x, y, z);
-                    //System.out.println("[Catacombs] light level "+aaa+" blk "+bbb);
-
+            blk.setTypeId(Material.AIR.getId());
           }
+        }
+      }
+    }
+    forceLightLevel(0);
+  }
+  
+  public void forceLightLevel(int level) {
+    net.minecraft.server.World w = ((CraftWorld) world).getHandle();
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        for(int y=yl;y<=yh;y++) {
+          w.a(EnumSkyBlock.BLOCK, x, y, z, level);
         }
       }
     }

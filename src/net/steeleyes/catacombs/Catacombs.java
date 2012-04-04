@@ -47,6 +47,8 @@ Release v2.1
 * Added configuration option for random anvils in dungeons.
 * Added work around for client side crash when chests in dungeons are deleted.
 * Fixed code so beds in dungeons are deleted correctly without dropping a bed.
+* Added work around for light levels not updating when the torches are removed
+  during a reset and no players are nearby.
 
 Release v2.0
 * Added an option to allow the button at the end to recall the presser rather
