@@ -862,12 +862,12 @@ public class Dungeon {
     if(!built)
       return;
     
-    List<Player> players = allPlayersInRaw();
     
     // Timed reset
     if(resetTime.getLong() > 0) {
       long now = System.currentTimeMillis();
       if(now > resetTime.getLong()) {
+        List<Player> players = allPlayersInRaw();
         System.out.println("[Catacombs] Timed reset of Dungeon '"+name+"' "+players);
         for(Player player: players) {
           player.sendMessage("Dungeon '"+name+"' timed reset");
@@ -889,6 +889,7 @@ public class Dungeon {
           //String when = (delta>60)?(delta/60)+" min(s)":delta+" sec(s)";
           String when = CatUtils.formatTime(delta*1000);
           //System.out.println("[Catacombs] Timed reset Dungeon("+name+") "+players+" in "+when);
+          List<Player> players = allPlayersInRaw();
           for(Player player: players) {
             player.sendMessage("Dungeon("+name+") will reset in "+when);
           }
@@ -898,8 +899,8 @@ public class Dungeon {
     }
 
     // Are any players in the dungeon
-    Boolean old_running = running;
-    running = players.size() > 0;
+    /*Boolean old_running = running;
+    running = players.size() > 0;*/
 //    if(old_running!=running) {
 //      if(running)
 //        System.out.println("[Catacombs] Activating Dungeon("+name+") "+players);
