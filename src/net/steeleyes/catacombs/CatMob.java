@@ -204,7 +204,7 @@ public class CatMob {
         //   attackers to encourage team work)
         for(Entity attacker : hate.attackers()) {
           giveExp(attacker, exp);
-          String bal = CatUtils.giveCash(plugin.cnf,attacker, cash);
+          String bal = plugin.giveCash(plugin.cnf,attacker, cash);
           if(bal != null) {
             ((Player)attacker).sendMessage(cash+" coins ("+bal+") "+this);
           }

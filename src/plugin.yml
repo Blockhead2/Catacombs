@@ -2,7 +2,7 @@ name: Catacombs
 main: net.steeleyes.catacombs.Catacombs
 version: 2.1
 depend:
-softdepend: [iConomy, BOSEconomy, Currency, MultiCurrency, Permissions, PermissionsEx, PermissionsBukkit]
+softdepend: [Permissions, PermissionsEx, PermissionsBukkit, Vault]
 commands:
     catacombs:
         description: Build catacombs

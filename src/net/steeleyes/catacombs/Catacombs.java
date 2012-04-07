@@ -27,11 +27,14 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.entity.Entity;
+
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 
 import net.steeleyes.maps.Direction;
 
-import com.nijikokun.catacombsregister.payment.Method;
-import com.nijikokun.catacombsregister.payment.Methods;
 import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.util.List;
@@ -411,7 +414,7 @@ public class Catacombs extends JavaPlugin {
   private final CatBlockListener   blockListener   = new CatBlockListener(this);
   private final CatEntityListener  entityListener  = new CatEntityListener(this);
   private final CatPlayerListener  playerListener  = new CatPlayerListener(this);
-  private final CatServerListener  serverListener  = new CatServerListener(this);
+  private Economy economy;
 
   @Override
   public void onLoad() {
@@ -444,7 +447,6 @@ public class Catacombs extends JavaPlugin {
       pm.registerEvents(blockListener, this);
       pm.registerEvents(entityListener, this);
       pm.registerEvents(playerListener, this);
-      pm.registerEvents(serverListener, this);
 
       handler = new BlockChangeHandler(this);
       this.getServer().getScheduler().scheduleSyncRepeatingTask(this,handler,40,20);
@@ -460,12 +462,27 @@ public class Catacombs extends JavaPlugin {
         dungeons.fixSecretDoors();
       }
       enabled = true;
+
+      if (!setupEconomy()) {
+        System.out.println("[" + info.getName() + "] No economy system found.");
+      }
     }
+  }
+
+  private boolean setupEconomy() {
+    if (getServer().getPluginManager().getPlugin("Vault") == null) {
+      return false;
+    }
+    RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+    if (rsp == null) {
+      return false;
+    }
+    economy = rsp.getProvider();
+    return economy != null;
   }
   
   @Override
   public void onDisable(){
-    Methods.reset();
     enabled = false;
   }
   
@@ -568,10 +585,9 @@ public class Catacombs extends JavaPlugin {
       } else if(cmd(p,args,"gold")) {
         if(p!=null) {
           String pname = p.getName();
-          Method meth = Methods.getMethod();
-          if(meth != null) {
-            double bal = meth.getAccount(pname).balance();
-            inform(p,"You have "+meth.format(bal)); 
+          if(economy != null) {
+            double bal = economy.getBalance(pname);
+            inform(p,"You have "+economy.format(bal)); 
           }
         }
         
@@ -1014,4 +1030,38 @@ public class Catacombs extends JavaPlugin {
       return null;
     }
   }
+
+  public String giveCash(CatConfig cnf, Entity ent, double gold) {
+    if(cnf == null || cnf.GoldOff())
+      return null;
+    String res = null;
+    if (ent instanceof Player) {
+      Player player = (Player) ent;
+      if (economy != null) {
+        double bal = economy.getBalance(player.getName());
+        res = economy.format(bal);
+      }
+    }
+    return res;
+  }
+
+  public Boolean takeCash(Entity ent, int gold, String reason) {
+    Boolean res = false;
+    if (ent instanceof Player) {
+      Player player = (Player) ent;
+      if (economy != null) {
+        if(economy.has(player.getName(), gold)) {
+          EconomyResponse resp = economy.withdrawPlayer(player.getName(), gold);
+          double bal = resp.balance;
+          player.sendMessage("It costs you "+gold+" "+reason+" ("+economy.format(bal)+")");
+          res = true;
+        } else {
+          double bal = economy.getBalance(player.getName());
+          player.sendMessage("Not enough money "+reason+" ("+economy.format(bal)+")");
+        }
+      }
+    }
+    return res;
+  }   
+  
 }

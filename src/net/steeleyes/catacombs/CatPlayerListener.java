@@ -116,7 +116,7 @@ public class CatPlayerListener implements Listener{
     //if(!plugin.cnf.AdvancedCombat()) return;
     Player player = evt.getPlayer();
     if(plugin.players.hasGear(player)) {
-      if(plugin.cnf.DeathKeepGear() && CatUtils.takeCash(player, plugin.cnf.DeathGearCost(),"to restore your equipment")) {
+      if(plugin.cnf.DeathKeepGear() && plugin.takeCash(player, plugin.cnf.DeathGearCost(),"to restore your equipment")) {
         plugin.players.restoreGear(player);
       } else {
         plugin.players.dropGear(player);

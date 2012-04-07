@@ -22,9 +22,6 @@ package net.steeleyes.catacombs;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import com.nijikokun.catacombsregister.payment.Method;
-import com.nijikokun.catacombsregister.payment.Method.MethodAccount;
-import com.nijikokun.catacombsregister.payment.Methods;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,6 +42,10 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
+
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+
 
 public class CatUtils {
   
@@ -124,43 +125,6 @@ public class CatUtils {
   public static List<String> getSStringList(FileConfiguration fcnf,String path) {
     return (List<String>) getSP(fcnf,path);
   } 
-  
-  public static String giveCash(CatConfig cnf,Entity ent, double gold) {
-    if(cnf == null || cnf.GoldOff())
-      return null;
-    String res = null;
-    if (ent instanceof Player) {
-      Player player = (Player) ent;
-      Method meth = Methods.getMethod();
-      if (meth != null) {
-        meth.getAccount(player.getName()).add(gold);
-        double bal = meth.getAccount(player.getName()).balance();
-        res = meth.format(bal);
-      }
-    }
-    return res;
-  }
-  
-  public static Boolean takeCash(Entity ent, int gold, String reason) {
-    Boolean res = false;
-    if (ent instanceof Player) {
-      Player player = (Player) ent;
-      Method meth = Methods.getMethod();
-      if (meth != null) {
-        MethodAccount acc = meth.getAccount(player.getName());
-        if(acc.hasEnough(gold)) {
-          acc.subtract(gold);
-          double bal = acc.balance();
-          player.sendMessage("It costs you "+gold+" "+reason+" ("+meth.format(bal)+")");
-          res = true;
-        } else {
-          double bal = acc.balance();
-          player.sendMessage("Not enough money "+reason+" ("+meth.format(bal)+")");
-        }
-      }
-    }
-    return res;
-  }   
   
   // Just a simple on surface check for the moment
   // ToDo: count under trees and shallow overhangs as surface too
