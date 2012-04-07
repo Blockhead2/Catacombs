@@ -487,7 +487,7 @@ public class Dungeon {
     return cnt;
   }  
   
-  public void reset(Catacombs plugin) {
+  public void reset() {
     allPlayersToTopProt();
     setBossKilled(false);
     for(CatLevel l : levels) {
@@ -872,7 +872,7 @@ public class Dungeon {
         for(Player player: players) {
           player.sendMessage("Dungeon '"+name+"' timed reset");
         }
-        reset(plugin);
+        reset();
         newResetTime();
       } else {
         long delta = (resetTime.getLong() - now + 500)/1000;
