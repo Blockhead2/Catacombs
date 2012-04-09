@@ -28,8 +28,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class CatConfig extends Config implements ICatConfig {
   
-  private List<CatMat> NaturalList = null;
-  private List<CatMat> BreakList = null;
+  private List<CatMat> NaturalList = new ArrayList<CatMat>();
+  private List<CatMat> BreakList = new ArrayList<CatMat>();
 
   public  Integer RadiusMax()              { return getSInt(ECatConfig.RadiusMax.getStr());  }
   public  String  HutType()                { return getSString(ECatConfig.HutType.getStr());  }

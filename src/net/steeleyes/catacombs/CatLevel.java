@@ -498,13 +498,11 @@ public class CatLevel {
         }
         if(s==Square.HIDDEN) {
           int small = (cnf.Chance(50))?1:0;
-          
-          handler.addHigh(world,xx,floor_h-2,zz,Material.AIR);
-          handler.addHigh(world,xx,floor_h-1,zz,Material.PISTON_STICKY_BASE,(byte)1);
+          handler.addHigh(world,xx,floor_h-2,zz,Material.REDSTONE_TORCH_ON);
+          handler.addHigh(world,xx,floor_h,zz,Material.PISTON_EXTENSION,(byte)9);
+          handler.addHigh(world,xx,floor_h-1,zz,Material.PISTON_STICKY_BASE,(byte)9);
           handler.addHigh(world,xx,room_l+(1-small),zz,major.getMat(),major.getCode());
           handler.addHigh(world,xx,room_l+small,zz,minor.getMat(),minor.getCode());
-          handler.addLow(world,xx,floor_h-2,zz,Material.REDSTONE_TORCH_ON);
-
         }
         if(s==Square.CHEST    || s==Square.MIDCHEST ||
            s==Square.BIGCHEST || s==Square.EMPTYCHEST) {

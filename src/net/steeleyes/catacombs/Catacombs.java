@@ -43,6 +43,11 @@ import org.bukkit.block.BlockFace;
 
 /**
  * 
+ * 
+Release v2.2
+* Recoded the way the secret doors are built in an attempt to resolve some
+  intermittent door problems a couple of users have had.
+ 
 Release v2.1
 * Added configuration option for random anvils in dungeons.
 * Added work around for client side crash when chests in dungeons are deleted.
