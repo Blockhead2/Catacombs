@@ -966,7 +966,7 @@ public class Catacombs extends JavaPlugin {
   
   public void resetDungeon(Player p,String dname) {
     Dungeon dung = dungeons.get(dname);
-    dung.reset(this);
+    dung.reset();
   }
   
   public void unprotDungeon(Player p,String dname) {
