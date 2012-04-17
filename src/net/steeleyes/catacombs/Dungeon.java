@@ -98,7 +98,7 @@ public class Dungeon {
       builder = rs.getString("pname");
       world = plugin.getServer().getWorld(wname);
       if(world==null) {
-        System.err.println("[Catacombs] World '"+wname+"' required for dungeon '"+name+"' can't be found");
+        System.out.println("[Catacombs] World '"+wname+"' required for dungeon '"+name+"' can't be found (skipping dungeon)");
       } else {
         major = CatMat.parseMaterial(rs.getString("major"));
         minor = CatMat.parseMaterial(rs.getString("minor"));
@@ -222,6 +222,10 @@ public class Dungeon {
   
   public World getWorld() {
     return world;
+  }
+
+  public void setWorld(World world) {
+    this.world = world;
   }
   
   @Override

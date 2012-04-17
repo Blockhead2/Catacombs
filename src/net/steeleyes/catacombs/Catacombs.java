@@ -47,6 +47,10 @@ import org.bukkit.block.BlockFace;
 Release v2.2
 * Recoded the way the secret doors are built in an attempt to resolve some
   intermittent door problems a couple of users have had.
+* Fixed code so that dungeons in worlds that aren't loaded on the server now
+  behave better
+* Added API calls so dungeons or all the dungeons in a world can be late loaded
+  (and unloaded) when the server is running.
  
 Release v2.1
 * Added configuration option for random anvils in dungeons.
@@ -674,11 +678,13 @@ public class Catacombs extends JavaPlugin {
         if(dung != null) {
           Location ploc = p.getLocation();
           Location eloc = dung.getBotLocation();
-          double dist = ploc.distance(eloc);
-          if(dist <= 4) {
-            gotoDungeon(p,dung.getName());
-          } else {
-            inform(p,"'"+dung.getName()+"' too far from the final chest"); 
+          if(ploc != null && eloc != null) {
+            double dist = ploc.distance(eloc);
+            if(dist <= 4) {
+              gotoDungeon(p,dung.getName());
+            } else {
+              inform(p,"'"+dung.getName()+"' too far from the final chest"); 
+            }
           }
         }
         
@@ -972,6 +978,19 @@ public class Catacombs extends JavaPlugin {
   public void unprotDungeon(Player p,String dname) {
     dungeons.remove(dname);
   }
+  
+  public void loadDungeon(String name) {
+    dungeons.loadDungeon(name);
+  }
+  public void unloadDungeon(String name) {
+    dungeons.unloadDungeon(name);
+  } 
+  public void loadWorld(String name) {
+    dungeons.loadWorld(name);
+  }
+  public void unloadWorld(String name) {
+    dungeons.unloadWorld(name);
+  } 
   
   public void inform(Player p,Exception e) {
     String msg = e.getMessage();

@@ -25,8 +25,6 @@ import org.bukkit.entity.Player;
 import com.sk89q.catacombs.wepif.PermissionsResolverManager;
 
 public class CatPermissions {
-  //public Object  permissionHandler;
-  //public Boolean enabled = false;
   
   private PermissionsResolverManager perm;
 
@@ -38,18 +36,6 @@ public class CatPermissions {
       System.out.println("[Catacombs] No permissions plugin found, will use player's Op flag");
     }
   }
-  
-//  public CatPermissions(Server server) {
-//    System.out.println("[Catacombs] Looking for Permissions plugin"); 
-//    Plugin test = server.getPluginManager().getPlugin("Permissions");
-//    if(test != null) {
-//      permissionHandler = (PermissionHandler) ((Permissions) test).getHandler();
-//      enabled = true;
-//      System.out.println("[Catacombs] Found and will use plugin "+test.getDescription().getFullName());
-//    } else {
-//      System.out.println("[Catacombs] Permission system not detected, defaulting to OP");
-//    }
-//  }
   
   private Boolean permission(Player player, String permission) {
     if(perm != null && player != null) {

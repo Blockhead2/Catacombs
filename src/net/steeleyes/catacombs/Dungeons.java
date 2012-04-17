@@ -26,25 +26,85 @@ import java.util.ArrayList;
 import java.util.Map.Entry;
 
 import java.sql.ResultSet;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 
 public class Dungeons {
   private final HashMap<String,Dungeon> dungeons = new HashMap<String,Dungeon>();
+  private Catacombs plugin;
+  private CatSQL sql;
 
   public Dungeons(Catacombs plugin,CatSQL sql) {
+    this.plugin = plugin;
+    this.sql = sql;
     if(sql!=null) {
       try {
         ResultSet rs = sql.query("SELECT did,version,dname,wname,pname,major,minor FROM dungeons");
         while(rs.next()) {
           Dungeon dung = new Dungeon(plugin,rs);
-          dungeons.put(dung.getName(),dung);
+          if(dung.getWorld()!=null)
+            dungeons.put(dung.getName(),dung);
         }
       } catch(Exception e) {
         System.err.println("[Catacombs] ERROR: "+e.getMessage());
       }
     }
   }
-
+  
+  public void loadDungeon(String name) {
+    if(sql!=null) {
+      try {
+        ResultSet rs = sql.query("SELECT did,version,dname,wname,pname,major,minor FROM dungeons WHERE dname='"+name+"'");
+        while(rs.next()) {
+          Dungeon dung = new Dungeon(plugin,rs);
+          if(dung.getWorld()!=null)
+            dungeons.put(dung.getName(),dung);
+        }
+      } catch(Exception e) {
+        System.err.println("[Catacombs] ERROR: "+e.getMessage());
+      }
+    }    
+  }
+  
+  public void unloadDungeon(String name) {
+    if(dungeons.containsKey(name)) {
+      Dungeon dung = dungeons.remove(name);
+      dung.setWorld(null);
+    } else {
+      System.err.println("[Catacombs] ERROR: No dungeon called '"+name+"' is loaded");      
+    }
+  }
+  
+  public void loadWorld(String name) {
+    if(sql!=null) {
+      try {
+        ResultSet rs = sql.query("SELECT did,version,dname,wname,pname,major,minor FROM dungeons WHERE wname='"+name+"'");
+        while(rs.next()) {
+          Dungeon dung = new Dungeon(plugin,rs);
+          if(dung.getWorld()!=null)
+            dungeons.put(dung.getName(),dung);
+        }
+      } catch(Exception e) {
+        System.err.println("[Catacombs] ERROR: "+e.getMessage());
+      }
+    }    
+  }
+  
+  public void unloadWorld(String name) {
+    List<String> remove = new ArrayList<String>();
+    for(Entry<String,Dungeon> e: dungeons.entrySet()) {
+      String dname = e.getKey();
+      Dungeon dung = e.getValue();
+      World world = dung.getWorld();
+      if(world!= null && world.getName().equals(name)) {
+        remove.add(dname);
+      }
+    }
+    for(String dname:remove) {
+      unloadDungeon(dname);
+    }
+  }
+  
 //  private void loadLegacySql(Catacombs plugin,CatSQL sql) {
 //    ResultSet rs = sql.query("SELECT dname,wname,pname,hut,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez,enable,num FROM levels");
 //    try {
