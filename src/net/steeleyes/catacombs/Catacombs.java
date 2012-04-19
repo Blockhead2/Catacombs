@@ -45,12 +45,26 @@ import org.bukkit.block.BlockFace;
  * 
  * 
 Release v2.2
-* Recoded the way the secret doors are built in an attempt to resolve some
-  intermittent door problems a couple of users have had.
+* Recoded the way the secret doors are built to resolve some intermittent door
+  problems a couple of users have had.
 * Fixed code so that dungeons in worlds that aren't loaded on the server now
-  behave better
+  don't crash with a null pointer exception.
 * Added API calls so dungeons or all the dungeons in a world can be late loaded
-  (and unloaded) when the server is running.
+  (and unloaded) when the server is already running.
+* Extended the loot specification to allow enchanted items to be added to chests.
+  Previously loot was specified using 3 fields separated by ':'
+  (e.g 'dirt:75:3-6' which means a 75% chance of 3-6 dirt blocks). Now any
+  additional fields after the first 3 will be taken as enchantments to add.
+  Each enchantment consists of 2 parts separated by a '/'
+    1) The enchantment type, this can be either the bukkit name (either case)
+       from here http://jd.bukkit.org/doxygen/db/d2b/Enchantment_8java_source.html
+       or the ID number (aka EID) http://www.minecraftwiki.net/wiki/Enchanting
+    2) The enchantment level.
+  No checks are made on the number of enchantments, or the maximum levels, or
+  the enchantment types or the item types, because I'm not here to deliberately
+  limit what you can and can't add to chests.
+  For example this is how to give a 100% chance of 1 diamond sword with
+  sharpness(5) and aspect of fire(2) on it 'diamond_sword:100:1:damage_all/5:fire_aspect/2'
  
 Release v2.1
 * Added configuration option for random anvils in dungeons.
@@ -719,6 +733,12 @@ public class Catacombs extends JavaPlugin {
 
       // DEBUG
       } else if(cmd(p,args,"debug")) {
+//        ItemStack stk = new ItemStack(Material.IRON_SWORD);
+//        stk.addEnchantment(Enchantment.DAMAGE_ALL,5);
+//        stk.addEnchantment(Enchantment.KNOCKBACK,2);
+//        stk.addEnchantment(Enchantment.FIRE_ASPECT,2);
+//        stk.addEnchantment(Enchantment.LOOT_BONUS_MOBS,3);
+//        p.getWorld().dropItem(p.getLocation(), stk);
         //Dungeon dung = dungeons.which(p.getLocation().getBlock());
         //dung.buildWindows(Material.IRON_FENCE);
       } else {

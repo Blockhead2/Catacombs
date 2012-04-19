@@ -23,6 +23,8 @@ package net.steeleyes.catacombs;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Inventory;
 
@@ -62,6 +64,23 @@ public class CatLoot {
             stk = new ItemStack(m,num,(short)code);
           } else {
             stk = (code>0)?new ItemStack(m,num,(short)0,(byte)code):new ItemStack(m,num);
+            for(int i=3;i<tmp.length;i++) {
+              String enc[] = tmp[i].split("/");
+              if(enc.length==2) {
+                try {
+                  int lvl = Integer.parseInt(enc[1]);
+                  Enchantment e = Enchantment.getByName(enc[0].toUpperCase());
+                  if(e==null) {
+                    e = new EnchantmentWrapper(Integer.parseInt(enc[0]));
+                  }
+                  stk.addUnsafeEnchantment(e, lvl);
+                } catch(Exception e) {
+                  System.err.println("[Catacombs] Badly formatted enchantment, found "+tmp[i]);
+                }
+              } else {
+                System.err.println("[Catacombs] Badly formatted enchantment (expecting one '/'), found "+tmp[i]);
+              }
+            }
           }
           inv.add(stk);
         }
