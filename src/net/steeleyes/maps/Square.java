@@ -53,6 +53,7 @@ public enum Square {
   FURNACE('f'),
   BOOKCASE('k'),
   BOOKCASE2('K'),
+  SIGNPOST('p'),
   ENCHANT('e'),
   TORCH('t'),
   O_TORCH('~'),

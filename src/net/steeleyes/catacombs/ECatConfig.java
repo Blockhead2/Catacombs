@@ -38,6 +38,7 @@ public enum ECatConfig {
     GroupRadius             ("Admin.Group.Radius", 50),
     GroupDepth              ("Admin.Group.Depth", 40),
     GroupHpFactor           ("Admin.Group.HpFactor", 0.5),
+    ClickIronDoor           ("Admin.ClickIronDoor", false),
     SpawnRadius             ("Admin.Spawn.Radius", 20),
     SpawnDepth              ("Admin.Spawn.Depth", 8),
     MonsterRadius           ("Admin.Spawn.Monster.Radius", 15),
@@ -58,7 +59,9 @@ public enum ECatConfig {
       "brown_mushroom",
       "web"
     )),     
-    
+    PlaceBlocks             ("Admin.Placeable", Arrays.asList(
+      "torch"
+    )),    
     RadiusMax    (".RadiusMax", 12),
     UnderFill    (".UnderFill", false),
     OverFill     (".OverFill", false),
@@ -69,6 +72,7 @@ public enum ECatConfig {
     minorBlock   (".Block.Minor", "mossy_cobblestone"),
     floorBlock   (".Block.Floor", "cobblestone"),
     roofBlock    (".Block.Roof", "cobblestone"),
+    IronDoorPct  (".Archway.IronDoorPct", 0),
     floorDepth   (".Depth.floor", 3),
     roomDepth    (".Depth.room", 3),
     roofDepth    (".Depth.roof", 1),
@@ -99,6 +103,7 @@ public enum ECatConfig {
     CaveSpiderPct(".Mob.Type.CaveSpiderPct",10),
     BlazePct     (".Mob.Type.BlazePct",0),
     CreeperPct   (".Mob.Type.CreeperPct",5),
+    EndermanPct  (".Mob.Type.EndermanPct",0),
     //SilverFishPct(".Mob.Type.SilverFishPct",5),
     GoldMin      (".Mob.Gold.Min", 1),
     GoldMax      (".Mob.Gold.Max", 10),

@@ -52,7 +52,7 @@ public class CatBlockListener implements Listener {
     }
     
     // Special feature to allow players to put torches in dungeons in worldguard zones
-    if(event.isCancelled() && mat==Material.TORCH && plugin.dungeons.isInRaw(block)) {
+    if(event.isCancelled() && plugin.cnf.isPlaceable(block) && plugin.dungeons.isInRaw(block)) {
       event.setCancelled(false);
       if(plugin.debug)
         System.out.println("[Catacombs] Allowing torch to be placed inside guarded dungeon");
@@ -67,7 +67,7 @@ public class CatBlockListener implements Listener {
     //  player.sendMessage("PLACE : " + mat+ " ("+block.getX()+","+block.getY()+","+block.getZ()+")");
     //}
 
-    if(mat == Material.TORCH)
+    if(plugin.cnf.isPlaceable(block))
       return;
 
     if(plugin.dungeons.isProtected(block))

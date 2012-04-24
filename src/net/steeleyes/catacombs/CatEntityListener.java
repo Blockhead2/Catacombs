@@ -255,6 +255,7 @@ public class CatEntityListener implements Listener {
         
       if(t == EntityType.PIG_ZOMBIE)
         ((PigZombie)ent).setAngry(true);
+    
     }
   }
 

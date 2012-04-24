@@ -390,7 +390,7 @@ public class CatCuboid extends Cuboid {
       for(int z=zl;z<=zh;z++) {
         for(int y=yl;y<=yh;y++) {
           Block blk = world.getBlockAt(x,y,z);
-          if(blk.getType() == Material.WOODEN_DOOR || blk.getType() == Material.IRON_DOOR) {
+          if(blk.getType() == Material.WOODEN_DOOR || blk.getType() == Material.IRON_DOOR_BLOCK) {
             byte data = blk.getData();
             if(data >= 4 && data < 8) {
               data = (byte)(data ^ 4);
@@ -503,7 +503,7 @@ public class CatCuboid extends Cuboid {
           Material mat = blk.getType();
           Block above = blk.getRelative(BlockFace.UP);
           if((mat == Material.WOODEN_DOOR && above.getType() == Material.WOODEN_DOOR) ||
-             (mat == Material.IRON_DOOR && above.getType() == Material.IRON_DOOR) ) {
+             (mat == Material.IRON_DOOR_BLOCK && above.getType() == Material.IRON_DOOR_BLOCK) ) {
             byte a = above.getData();
             byte b = blk.getData();
             byte new_a = getDoorUpperCode(blk);
@@ -614,6 +614,9 @@ public class CatCuboid extends Cuboid {
              before == Material.RED_MUSHROOM ||
              before == Material.BROWN_MUSHROOM ||
              before == Material.REDSTONE_TORCH_ON ||
+             before == Material.IRON_DOOR_BLOCK ||
+             before == Material.WALL_SIGN ||
+             before == Material.SIGN_POST ||
              before == Material.WOODEN_DOOR
              ) {
             handler.addHigh(blk,mat);

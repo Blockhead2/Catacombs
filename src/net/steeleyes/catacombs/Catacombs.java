@@ -44,6 +44,24 @@ import org.bukkit.block.BlockFace;
 /**
  * 
  * 
+
+Release v2.3
+* Changed the way book are created to allow different durability codes (this
+  allows BookWorm books to be given as chest loot).
+* Changed code to allow incomplete dungeons to be unplanned.
+* Add config option to allow some percentage of the dungeon doors to be iron
+  (this helps avoid the zombies making lots of noise banging on wooden doors).
+* Add admin option to allow players to open/close iron doors by clicking on them
+  in dungeons.
+* Added config list to allow control of the blocks players can place in a dungeon
+  (incase you want to allow players to place redstone torches (the bukkit name is
+   redstone_torch_on)
+* Add configuration to allow Endermen spawners to be created (although they won't
+  be angry when they spawn because currently there doesn't appear to be a mechanism
+  to allow this - unlike wolves and pigmen - which makes this feature not very
+  useful for the moment unless you want a load of passive Endermen).
+* Add signs around the dungeons to make the end and the dungeon depth clearer.
+
 Release v2.2
 * Recoded the way the secret doors are built to resolve some intermittent door
   problems a couple of users have had.
@@ -547,7 +565,7 @@ public class Catacombs extends JavaPlugin {
         scatterDungeon(p,args[1],depth,radius,dist);
         
       // UNPLAN ********************************************************  
-      } else if(cmd(p,args,"unplan","p")) {
+      } else if(cmd(p,args,"unplan","u")) {
         if(dungeons.exists(args[1]))
           dungeons.remove(args[1]);
                 
@@ -806,6 +824,13 @@ public class Catacombs extends JavaPlugin {
         if(t == 'D') {           // Built Dungeon
           if(!dungeons.isBuilt(arg)) {
             throw new Exception("'"+arg+"' is not a built dungeon");
+          }
+        } else if(t == 'u') {    // Planned Dungeon (ready to be build)
+          if(!dungeons.exists(arg)) {
+            throw new Exception("'"+arg+"' is not a planned dungeon");
+          }
+          if(dungeons.isBuilt(arg)) {
+            throw new Exception("'"+arg+"' has already been built");
           }
         } else if(t == 'p') {    // Planned Dungeon (ready to be build)
           if(!dungeons.exists(arg)) {

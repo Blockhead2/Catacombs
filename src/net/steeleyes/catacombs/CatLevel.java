@@ -55,6 +55,8 @@ public class CatLevel {
   private Boolean can_go_lower = false;
   private String map = "";
   
+  private String[] info=null;
+  
   private int lid=-1;
 
   public CatLevel(CatConfig cnf, Location pt) {
@@ -384,9 +386,11 @@ public class CatLevel {
     renderTileSection(handler,xx,roof_l+1,roof_h,zz,roof1,cnf.roofMat());
   }
 
-  public void addLeveltoWorld (BlockChangeHandler handler) {
+  public void addLeveltoWorld (BlockChangeHandler handler, String[] info) {
     if(level == null || world == null)
         return;
+    
+    this.info = info;
     Grid g = level.grid();
     int floor_l = top.y+1-levelDepth;
     int floor_h = floor_l+floorDepth-1;
@@ -454,6 +458,7 @@ public class CatLevel {
           case SOULSAND:
           case BED_F:
           case BED_H:
+          case SIGNPOST:
           case BIGCHEST:
           case MIDCHEST:
           case EMPTYCHEST:
@@ -513,6 +518,16 @@ public class CatLevel {
             handler.addHigh(world,xx,floor_h,zz,Material.GRASS);
             if(cnf.ResetButton() || cnf.RecallButton())
               handler.addLow(world,xx,room_l+1,zz,Material.STONE_BUTTON,getButtonCode(x,y));
+            BlockChange n = new BlockChange(world.getBlockAt(xx,room_l+2,zz),Material.WALL_SIGN,getLadderCode(x,y));
+            n.setLine(1,"End of dungeon");
+            
+            // These messages don't change as the config changes :(
+            if(cnf.ResetButton()) {
+              n.setLine(3,"press to reset");
+            } else if(cnf.RecallButton()) {
+              n.setLine(3,"press to leave");
+            }
+            handler.addLow(n);
           } else if (s == Square.MIDCHEST) {
             CatLoot.midChest(cnf,chest);
 
@@ -586,10 +601,11 @@ public class CatLevel {
         int zz = top.z-y+level.start().y;
         if(s==Square.DOOR) {
           //byte code = g.getDoorCode(x,y);
+          Material dt = cnf.DoorMaterial();
           byte lower = g.getDoorLowerCode(x,y);
           byte upper = g.getDoorUpperCode(x,y);
-          handler.addLow(world,xx,room_l,zz,Material.WOODEN_DOOR,lower);
-          handler.addLow(world,xx,room_l+1,zz,Material.WOODEN_DOOR,upper);
+          handler.addLow(world,xx,room_l,zz,dt,lower);
+          handler.addLow(world,xx,room_l+1,zz,dt,upper);
         }
         if(s==Square.UP) {
           byte code = getLadderCode(x,y);
@@ -622,6 +638,21 @@ public class CatLevel {
         if(s==Square.BED_F) {
           byte code = getBedCode(x,y);
           handler.addLow(world,xx,room_l,zz,Material.BED_BLOCK,code);
+        }
+        if(s==Square.SIGNPOST) {
+          //byte code = getBedCode(x,y);
+          byte code = getSignCode(x,y);
+          BlockChange n=null;
+          if(code==0) {
+            n = new BlockChange(world.getBlockAt(xx,room_l,zz),Material.SIGN_POST,(byte)1);
+          } else {
+            n = new BlockChange(world.getBlockAt(xx,room_l+1,zz),Material.WALL_SIGN,code);
+          }
+          if(info!=null) {
+            for(int i=0;i<4;i++)
+              n.setLine(i,info[i]);
+          }
+          handler.addLow(n);
         }
         if(s==Square.SPAWNER) {
           BlockChange n = new BlockChange(world.getBlockAt(xx,room_l,zz),Material.MOB_SPAWNER);
@@ -769,25 +800,38 @@ public class CatLevel {
     }
     return 0;
   }
+  public byte getSignCode(int x, int y) {
+    return getLadderCode(level.grid().getBackWallDir(x, y));
+  }  
   
   public byte getLadderCode(int x, int y) {
     if(cube.isHut())
       return 0;
     return getLadderCode(level.grid().getBackWallDir(x, y));
   }
+  
   public byte getButtonCode(int x, int y) {
-    return getLadderCode(level.grid().getBackWallDir(x, y));
+    return getButtonCode(level.grid().getBackWallDir(x, y));
   }
+  
   public byte getLadderCode(Direction dir) {
     switch(dir) {
+      case SOUTH: return 2;
       case NORTH: return 3;
       case EAST:  return 4;
-      case SOUTH: return 2;
       case WEST:  return 5;
     }
     return 0;
   }
-
+  public byte getButtonCode(Direction dir) {
+    switch(dir) {
+      case SOUTH: return 4;
+      case NORTH: return 3;
+      case EAST:  return 2;
+      case WEST:  return 1;
+    }
+    return 0;
+  }
   public byte getFurnaceCode(int x, int y) {
     Direction dir = level.grid().getFloorDir(x, y);
     switch(dir) {

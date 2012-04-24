@@ -32,6 +32,7 @@ public class BlockChange {
   private byte code=-1;
   private List<ItemStack> items = null;
   private String spawner = null;
+  private String[] line = null;
   
   public BlockChange(Block blk, Material mat) {
     this.blk = blk;
@@ -78,5 +79,24 @@ public class BlockChange {
     this.items = items;
   }
   
+  public Boolean hasLines() {
+    return line!=null;
+  }
+  
+  public void setLine(int i, String str) {
+    if(line==null) {
+      line = new String[4];
+    }
+    if(i>=0 && i<=3) {
+      line[i] = str;
+    }
+  }
+  
+  public String getLine(int i) {
+    if(line!=null && i>=0 && i<=3) {
+      return line[i];
+    }
+    return null;
+  } 
   
 }

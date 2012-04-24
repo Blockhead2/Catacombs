@@ -28,6 +28,7 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.block.Block;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -71,15 +72,26 @@ public class CatPlayerListener implements Listener{
       return;
     
     Block blk = event.getClickedBlock();
-    if(blk.getType()==Material.STONE_BUTTON && plugin.dungeons.isInRaw(blk)) {
-      if(plugin.cnf.ResetButton()) {
-        Dungeon dung = plugin.dungeons.which(blk);
-        plugin.Commands(null,new String[] {"reset",dung.getName()} );
-      } else if(plugin.cnf.RecallButton()) {
-        plugin.Commands(event.getPlayer(),new String[] {"recall"} );
+    if (plugin.dungeons.isInRaw(blk)) {
+      if (blk.getType() == Material.STONE_BUTTON) {
+        if (plugin.cnf.ResetButton()) {
+          Dungeon dung = plugin.dungeons.which(blk);
+          plugin.Commands(null, new String[]{"reset", dung.getName()});
+        } else if (plugin.cnf.RecallButton()) {
+          plugin.Commands(event.getPlayer(), new String[]{"recall"});
+        }
+      } else if(plugin.cnf.ClickIronDoor() && blk.getType() == Material.IRON_DOOR_BLOCK) {
+        Block below = blk.getRelative(BlockFace.DOWN);
+        if(below.getType() == Material.IRON_DOOR_BLOCK) {
+          below.setData((byte)(below.getData() ^ 4));
+        }
+        Block above = blk.getRelative(BlockFace.UP);
+        if(above.getType() == Material.IRON_DOOR_BLOCK) {
+          blk.setData((byte)(blk.getData() ^ 4)); // Set the lower block
+          //above.setData((byte)(above.getData() ^ 4));
+        }        
       }
     }
-    
 //    if(plugin.debug && blk.getType()==Material.WEB && plugin.dungeons.isInRaw(blk)) {
 //            
 //      Dungeon dung = plugin.dungeons.which(blk);

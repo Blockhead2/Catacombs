@@ -29,7 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.CreatureSpawner;
-import org.bukkit.entity.EntityType;
+import org.bukkit.block.Sign;
 import org.bukkit.inventory.InventoryHolder;
 
 
@@ -50,10 +50,15 @@ public class BlockChangeHandler implements Runnable {
 
   private void setBlock(BlockChange x) {
     Block blk = x.getBlk();   
-    if(x.getCode()>=0)
-      blk.setTypeIdAndData(x.getMat().getId(),x.getCode(),false);
-    else
-      blk.setType(x.getMat());
+    try {
+      if (x.getCode() >= 0) {
+        blk.setTypeIdAndData(x.getMat().getId(), x.getCode(), false);
+      } else {
+        blk.setType(x.getMat());
+      }
+    } catch (Exception e) {
+      System.err.println("[Catacombs] Problem setting block " + blk + " " + x.getMat() + " " + x.getCode());
+    }
     if(x.getItems() != null) {
       if(blk.getState() instanceof InventoryHolder) {
         InventoryHolder cont = (InventoryHolder) blk.getState();
@@ -69,6 +74,16 @@ public class BlockChangeHandler implements Runnable {
     if(x.getSpawner()!=null && blk.getState() instanceof CreatureSpawner) {
       CreatureSpawner spawner = (CreatureSpawner) blk.getState();
       spawner.setCreatureTypeByName(x.getSpawner());
+    }
+    if(x.hasLines() && blk.getState() instanceof Sign) {
+      Sign sign = (Sign) blk.getState();
+      for(int i=0;i<4;i++) {
+        String str = x.getLine(i);
+        if(str!=null) {
+          sign.setLine(i,str);
+        }
+      }
+      sign.update(true);
     }
   }
   

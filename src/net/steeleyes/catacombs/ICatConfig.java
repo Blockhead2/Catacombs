@@ -64,6 +64,8 @@ public interface ICatConfig extends IConfig {
   public  Integer DeathGearCost();
   public  Boolean DeathKeepGear();
   public  Double  DeathExpKept();
+  public  Boolean ClickIronDoor();
+
   //public  Boolean BossEnabled();
 
   public  String       Economy();
@@ -72,8 +74,10 @@ public interface ICatConfig extends IConfig {
   public  Double       Gold();
   public  Material     ShroomType();
   public  Material     AirType();
+  public  Material     DoorMaterial();
   public  Boolean      isNatural(Block b);
   public  Boolean      isBreakable(Block b);
+  public  Boolean      isPlaceable(Block b);
   
   public  List<String> TrapList();
   public  List<String> LootSmallList();

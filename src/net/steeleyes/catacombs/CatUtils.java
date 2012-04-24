@@ -62,7 +62,7 @@ public class CatUtils {
   public static Boolean isSolid(Block blk) {
     Material mat = blk.getType();
     return mat != Material.WOODEN_DOOR &&
-            mat != Material.IRON_DOOR &&
+            mat != Material.IRON_DOOR_BLOCK &&
             mat != Material.AIR &&
             mat != Material.TORCH &&
             mat != Material.WEB &&

@@ -464,6 +464,7 @@ public class Room {
       }
       grid.set(x,y,Square.UP);
       grid.set(dir.forwards_x(x),dir.forwards_y(y),Square.FIXEDFLOORUP);
+      placeSign(dir,x,y);
       grid.upWall(dir.backwards_x(x),dir.backwards_y(y));
       grid.upWall(dir.left_x(x),dir.left_y(y));
       grid.upWall(dir.right_x(x),dir.right_y(y));
@@ -539,6 +540,7 @@ public class Room {
       gen = from.gen+1;
       if(grid.get(wayin_x,wayin_y) == Square.DOWN) {
         grid.set(dir.backwards_x(wayin_x),dir.backwards_y(wayin_y),Square.FIXEDFLOORDOWN);
+        placeSign(dir.turn180(),wayin_x,wayin_y);
         from.chestDoubleRandom();
         if(cnf.Chance(40))
           from.objectRandom(Square.CAKE);
@@ -661,6 +663,7 @@ public class Room {
     }
     return false;
   }
+  
   private void allFloor(Square blk,int inset) {
     int px = size_x-inset*2;
     int py = size_y-inset*2;
@@ -675,6 +678,7 @@ public class Room {
       }
     }
   }
+  
   private Boolean trapRandom() {
     wallLoc loc;
     if(true) {
@@ -756,6 +760,7 @@ public class Room {
     }
     return false;
   }
+  
   private Boolean chestDoubleRandom() {
     int inset = 1;
 
@@ -783,6 +788,16 @@ public class Room {
       }
     }
     return false;
+  }
+  
+  private void placeSign(Direction dir,int x, int y) {
+    x = dir.forwards_x(x);
+    y = dir.forwards_y(y);
+    if(grid.get(dir.right_x(x),dir.right_y(y))==Square.FLOOR) {
+      grid.set(dir.right_x(x),dir.right_y(y),Square.SIGNPOST);
+    } else if(grid.get(dir.left_x(x),dir.left_y(y))==Square.FLOOR) {
+      grid.set(dir.left_x(x),dir.left_y(y),Square.SIGNPOST);      
+    }
   }
   
   private class wallLoc {

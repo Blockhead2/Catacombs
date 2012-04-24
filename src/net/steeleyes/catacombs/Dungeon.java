@@ -456,8 +456,17 @@ public class Dungeon {
   }
 
   public void render(BlockChangeHandler handler) {
+    int lvl = 0;
     for(CatLevel l : levels) {
-      l.addLeveltoWorld(handler);
+      String[] text = new String[4];
+      text[0] = name;
+      if(lvl==0) {
+        text[1] = "Levels:"+(levels.size()-1);
+      } else {
+        text[1] = "Level:"+lvl;
+      }
+      l.addLeveltoWorld(handler,text);
+      lvl++;
     }
     built = true;
   }
@@ -730,14 +739,14 @@ public class Dungeon {
         "#o.:.o#",
         "#t:V:t#",
         "#z.:.z#",
-        "#Z.t.Z#",
+        "#Zpt.Z#",
         "###+###"
       })); 
       name = "small";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         " #D# ",
         "#:V:#",
-        "#t:t#",
+        "#p:t#",
         "#o.o#",
         "#o.o#",
         " #+# "
@@ -755,7 +764,8 @@ public class Dungeon {
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
         " D ",
         "DVD",
-        "#:#"
+        "#:#",
+        "p  "
       }));
       name = "pit";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
@@ -773,7 +783,7 @@ public class Dungeon {
         "~Ga.....oG~",
         "`Gf.....:G`",
         "`#T....:VD`",
-        "``#otxtoD``",
+        "``#otxtpD``",
         "`~`##+##`~`",
         "```````````"
       }));
@@ -789,10 +799,10 @@ public class Dungeon {
         "#oo.zZ#Zz.oo#",
         "###+#####+###",
         "#...tfTat...#",
-        "#K..........#",
+        "#K.........p#",
         "#K........#+#",
         "#K.e......G:#",
-        "#K..t...t.BVD",
+        "#K..tp..t.BVD",
         " #GG##+##GGD "
       }));
       name = "large";
@@ -811,7 +821,7 @@ public class Dungeon {
         "`#Zztoo.x.oGt:VD`",
         "`#######+###+#D#`",
         "`#oo.oo.x.oo.oo#`",
-        "``#t....x....t#``",
+        "``#t...px....t#``",
         "```#GGG#+#GGG#```",
         "~``````~`~``````~"
       }));
@@ -825,7 +835,7 @@ public class Dungeon {
         "#t.......t#",
         "#....:....#",
         "#...:V:...#",
-        "#...t:t...#",
+        "#...t:t.p.#",
         "#####+#####"
       }));
     }

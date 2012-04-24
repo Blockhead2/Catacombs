@@ -30,6 +30,7 @@ public class CatConfig extends Config implements ICatConfig {
   
   private List<CatMat> NaturalList = new ArrayList<CatMat>();
   private List<CatMat> BreakList = new ArrayList<CatMat>();
+  private List<CatMat> PlaceList = new ArrayList<CatMat>();
 
   public  Integer RadiusMax()              { return getSInt(ECatConfig.RadiusMax.getStr());  }
   public  String  HutType()                { return getSString(ECatConfig.HutType.getStr());  }
@@ -53,7 +54,9 @@ public class CatConfig extends Config implements ICatConfig {
   private Integer PigmanPct()              { return getSInt(ECatConfig.PigmanPct.getStr());  }
   private Integer CaveSpiderPct()          { return getSInt(ECatConfig.CaveSpiderPct.getStr());  }
   private Integer BlazePct()               { return getSInt(ECatConfig.BlazePct.getStr());  }
+  private Integer EndermanPct()            { return getSInt(ECatConfig.EndermanPct.getStr());  }
   private Integer CreeperPct()             { return getSInt(ECatConfig.CreeperPct.getStr());  }
+  private Integer IronDoorPct()            { return getSInt(ECatConfig.IronDoorPct.getStr());  }
   //private Integer SilverFishPct()          { return getSInt(ECatConfig.SilverFishPct.getStr());  }
   private Double GoldMin()                 { return getSDouble(ECatConfig.GoldMin.getStr());  }
   private Double GoldMax()                 { return getSDouble(ECatConfig.GoldMax.getStr());  }
@@ -91,10 +94,12 @@ public class CatConfig extends Config implements ICatConfig {
   public  Integer DeathGearCost()          { return getSInt(ECatConfig.DeathGearCost.getStr());  }
   public  Boolean DeathKeepGear()          { return getSBoolean(ECatConfig.DeathKeepGear.getStr());  }
   public  Double  DeathExpKept()           { return getSDouble(ECatConfig.DeathExpKept.getStr());  }
+  public  Boolean ClickIronDoor()          { return getSBoolean(ECatConfig.ClickIronDoor.getStr());  }
   public  String  Economy()                { return getSString(ECatConfig.Economy.getStr());  }
   public  List<String> BannedCommands()    { return getSStringList(ECatConfig.BannedCommands.getStr());  }
   private List<String> NaturalBlocks()     { return getSStringList(ECatConfig.NaturalBlocks.getStr());  }
   private List<String> BreakBlocks()       { return getSStringList(ECatConfig.BreakBlocks.getStr());  }
+  private List<String> PlaceBlocks()       { return getSStringList(ECatConfig.PlaceBlocks.getStr());  }
   
   public  Boolean SmallEquipChance()       { return Chance(SmallEquipPct()); }
   public  Boolean MedSweepOre()            { return getSBoolean(ECatConfig.MedSweepOre.getStr()); }
@@ -184,6 +189,7 @@ public class CatConfig extends Config implements ICatConfig {
     CatMat.parseMaterial(minorBlock());
     NaturalList = cacheBlockMaterialList(NaturalBlocks());    
     BreakList = cacheBlockMaterialList(BreakBlocks());    
+    PlaceList = cacheBlockMaterialList(PlaceBlocks());    
   }
 
   @Override
@@ -221,6 +227,15 @@ public class CatConfig extends Config implements ICatConfig {
     return false;
   } 
   
+  public Boolean isPlaceable(Block blk) {
+    CatMat mat = new CatMat(blk);
+    for(CatMat i: PlaceList) {
+      if(mat.getMat() == i.getMat())
+        return true;
+    }
+    return false;
+  } 
+  
   public String SpawnerType() {
     int r = rnd.nextInt(100)+1;
 
@@ -247,6 +262,11 @@ public class CatConfig extends Config implements ICatConfig {
             CaveSpiderPct()+BlazePct()+
             CreeperPct())
       return "Creeper";
+    if(r<=SpiderPct()+SkeletonPct()+
+            WolfPct()+PigmanPct()+
+            CaveSpiderPct()+BlazePct()+
+            CreeperPct()+EndermanPct())
+      return "Enderman";
     return "Zombie";
   }
   
@@ -278,5 +298,10 @@ public class CatConfig extends Config implements ICatConfig {
     if(Chance(AirWebPct()))
       return Material.WEB;
     return Material.AIR;
+  }
+  public Material DoorMaterial() {
+    if(Chance(IronDoorPct()))
+      return Material.IRON_DOOR_BLOCK;
+    return Material.WOODEN_DOOR;
   }
 }

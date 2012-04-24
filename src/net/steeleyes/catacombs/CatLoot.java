@@ -60,7 +60,7 @@ public class CatLoot {
             num = cnf.nextInt(hi-lo+1)+lo;
           }
           ItemStack stk;
-          if(m == Material.POTION) {
+          if(m == Material.POTION || m==Material.BOOK) {
             stk = new ItemStack(m,num,(short)code);
           } else {
             stk = (code>0)?new ItemStack(m,num,(short)0,(byte)code):new ItemStack(m,num);
