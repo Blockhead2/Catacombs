@@ -36,10 +36,10 @@ public class Cuboid {
 
   public Boolean isIn(int x,int y,int z) {
     if(x<xl) return false;
-    if(z<zl) return false;
     if(x>xh) return false;
+    if(z<zl) return false;
     if(z>zh) return false;
-    if(y<yl) return false;
+    if(y<yl) return false;  // Check vertical last
     if(y>yh) return false;
     return true;
   }
@@ -47,11 +47,21 @@ public class Cuboid {
   public Boolean intersects(Cuboid that) {
     if(that.xl>this.xh) return false;
     if(that.xh<this.xl) return false;
-    if(that.yl>this.yh) return false;
-    if(that.yh<this.yl) return false;
     if(that.zl>this.zh) return false;
     if(that.zh<this.zl) return false;
+    if(that.yl>this.yh) return false; // Check vertical last
+    if(that.yh<this.yl) return false;
     return true;
+  }
+  
+  // Merge the cuboids to create a minimum cuboid that contains both.
+  public void union(Cuboid that) {
+    this.xl = Math.min(xl,that.xl);
+    this.yl = Math.min(yl,that.yl);
+    this.zl = Math.min(zl,that.zl);
+    this.xh = Math.max(xh,that.xh);
+    this.yh = Math.max(yh,that.yh);
+    this.zh = Math.max(zh,that.zh);    
   }
 
   @Override

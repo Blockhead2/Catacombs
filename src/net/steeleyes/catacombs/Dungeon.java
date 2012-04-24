@@ -43,8 +43,14 @@ import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.plugin.PluginManager;
 
-public class Dungeon {
+public class Dungeon implements Listener {
   private Catacombs plugin = null;
   private World world;
   private final ArrayList<CatLevel> levels = new ArrayList<CatLevel>();
@@ -74,6 +80,8 @@ public class Dungeon {
   
   private Boolean built = false;
   
+  private transient Cuboid bbox = null;
+  
   // New dungeon
   public Dungeon(Catacombs plugin,String name,World world){
     this.name = name;
@@ -85,6 +93,36 @@ public class Dungeon {
     this.floorMat = plugin.cnf.floorMat();
     this.roofMat  = plugin.cnf.roofMat();
     setup_huts();
+  }  
+  
+  public void render(BlockChangeHandler handler) {
+    int lvl = 0;
+    for(CatLevel l : levels) {
+      String[] text = new String[4];
+      text[0] = name;
+      if(lvl==0) {
+        text[1] = "Levels:"+(levels.size()-1);
+      } else {
+        text[1] = "Level:"+lvl;
+      }
+      l.addLeveltoWorld(handler,text);
+      lvl++;
+    }
+    built = true;
+    updateBBox();
+    registerListener();
+  }
+    
+  public void remove() {
+    plugin.sql.removeDungeon(did);
+    unregisterListener();
+  }
+  
+  public void unrender(Catacombs plugin,BlockChangeHandler handler) {
+    allPlayersToTop();
+    for(CatLevel l : levels) {
+      l.delete(plugin,handler);
+    }
   }  
   
   // Re-load saved dungeon
@@ -154,7 +192,8 @@ public class Dungeon {
           roofMat = CatMat.parseMaterial(roofFlg.getString());
         }
         setupFlagsLocations();  // Set default flags and locations
-
+        updateBBox();
+        registerListener();
       }
       //registerCubes(plugin.prot);
     } catch(Exception e) {
@@ -206,6 +245,26 @@ public class Dungeon {
       floorFlg = new CatFlag(CatFlag.Type.FLOOR,floorMat.toString());
     if(resetMin == null)
       resetMin = new CatFlag(CatFlag.Type.RESET_MIN,(long)0);
+  }
+  
+  private void updateBBox() {
+    for(CatLevel l:levels) {
+      Cuboid c = l.getCube();
+      if(bbox==null) {
+        bbox = new Cuboid(c.xl,c.yl,c.zl,c.xh,c.yh,c.zh);
+      } else {
+        bbox.union(c);
+      }
+    }
+  }
+  
+  private void registerListener() {
+    PluginManager pm = plugin.getServer().getPluginManager();
+    pm.registerEvents(this, plugin);
+  }
+  
+  private void unregisterListener() {
+    HandlerList.unregisterAll(this);
   }
     
   public Boolean isSuspended() {
@@ -355,6 +414,9 @@ public class Dungeon {
   }
   
   public Boolean overlaps(Dungeon that) {
+    assert(that!=null);
+    assert(world!=null);
+    assert(that.world!=null);
     if(world==null || that.world == null || !world.equals(that.world))
       return false;
     
@@ -369,6 +431,12 @@ public class Dungeon {
   }  
   
   public Boolean isProtected(Block blk) {
+    assert(bbox!=null);
+    assert(blk!=null);
+    assert(world!=null);
+    if(!bbox.isIn(blk.getX(), blk.getY(), blk.getZ())) // Do a rough check first
+      return false;
+    
     if(world==null || blk == null || !world.equals(blk.getWorld()))
       return false;
     
@@ -384,6 +452,12 @@ public class Dungeon {
   }
   
   public Boolean isSuspended(Block blk) {
+    assert(bbox!=null);
+    assert(blk!=null);
+    assert(world!=null);
+    if(!bbox.isIn(blk.getX(), blk.getY(), blk.getZ())) // Do a rough check first
+      return false;
+    
     if(world==null || blk == null || !world.equals(blk.getWorld()))
       return false;
 
@@ -399,6 +473,12 @@ public class Dungeon {
   }
   
   public Boolean isInRaw(Block blk) {
+    assert(bbox!=null);
+    assert(blk!=null);
+    assert(world!=null);
+    if(!bbox.isIn(blk.getX(), blk.getY(), blk.getZ())) // Do a rough check first
+      return false;
+ 
     if(world==null || blk == null || !world.equals(blk.getWorld()))
       return false;
 
@@ -455,29 +535,6 @@ public class Dungeon {
 
   }
 
-  public void render(BlockChangeHandler handler) {
-    int lvl = 0;
-    for(CatLevel l : levels) {
-      String[] text = new String[4];
-      text[0] = name;
-      if(lvl==0) {
-        text[1] = "Levels:"+(levels.size()-1);
-      } else {
-        text[1] = "Level:"+lvl;
-      }
-      l.addLeveltoWorld(handler,text);
-      lvl++;
-    }
-    built = true;
-  }
-  
-  public void delete(Catacombs plugin,BlockChangeHandler handler) {
-    allPlayersToTop();
-    for(CatLevel l : levels) {
-      l.delete(plugin,handler);
-    }
-  }
-  
   public void clearMonsters(Catacombs plugin) {
     for(CatLevel l : levels) {
       l.clearMonsters(plugin);
@@ -572,10 +629,7 @@ public class Dungeon {
         bossKilled.saveDB(plugin.sql, did);
     }
   }
-    
-  public void remove() {
-    plugin.sql.removeDungeon(did);
-  }
+
   
   public Location getSafePlace(Block blk) {
     Location loc = null;
@@ -926,5 +980,14 @@ public class Dungeon {
     
     // Dungeon ownership
         
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onBlockBreak(BlockBreakEvent event) {
+    Block blk = event.getBlock();
+    if(!isProtected(blk)) // Nothing to do with me
+      return;
+    
+    //System.out.println("[Catacombs] Dungeon "+name+" block break "+blk.getType());
   }
 }
