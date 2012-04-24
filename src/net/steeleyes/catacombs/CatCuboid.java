@@ -448,8 +448,8 @@ public class CatCuboid extends Cuboid {
         Location loc = ent.getLocation();
         Block blk = loc.getBlock();
         if(isIn(blk.getX(),blk.getY(),blk.getZ())) {
-          if(plugin.monsters != null)
-            plugin.monsters.remove((LivingEntity)ent);
+          //if(plugin.monsters != null)
+          //  plugin.monsters.remove((LivingEntity)ent);
           ent.remove();
         }
       }

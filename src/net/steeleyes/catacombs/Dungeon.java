@@ -43,11 +43,34 @@ import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.bukkit.block.BlockState;
+import org.bukkit.entity.Enderman;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.PigZombie;
+import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.PluginManager;
 
 public class Dungeon implements Listener {
@@ -432,20 +455,17 @@ public class Dungeon implements Listener {
   
   public Boolean isProtected(Block blk) {
     assert(bbox!=null);
-    assert(blk!=null);
-    assert(world!=null);
-    if(!bbox.isIn(blk.getX(), blk.getY(), blk.getZ())) // Do a rough check first
+    if(blk==null || world == null) {
       return false;
-    
-    if(world==null || blk == null || !world.equals(blk.getWorld()))
-      return false;
-    
-    if(isEnabled == null || !isEnabled.getBoolean())
-      return false;
-    
-    for(CatLevel l : levels) {
-      if(l.getCube().isInRaw(blk)) {
-        return true;
+    }
+    if(bbox.isIn(blk.getX(), blk.getY(), blk.getZ()) &&
+            world.equals(blk.getWorld()) &&
+            isEnabled != null &&
+            isEnabled.getBoolean()) {
+      for(CatLevel l : levels) {
+        if(l.getCube().isInRaw(blk)) {
+          return true;
+        }
       }
     }
     return false;
@@ -453,20 +473,17 @@ public class Dungeon implements Listener {
   
   public Boolean isSuspended(Block blk) {
     assert(bbox!=null);
-    assert(blk!=null);
-    assert(world!=null);
-    if(!bbox.isIn(blk.getX(), blk.getY(), blk.getZ())) // Do a rough check first
+    if(blk==null || world == null) {
       return false;
-    
-    if(world==null || blk == null || !world.equals(blk.getWorld()))
-      return false;
-
-    if(isEnabled.getBoolean())
-      return false;
- 
-    for(CatLevel l : levels) {
-      if(l.getCube().isInRaw(blk)) {
-        return true;
+    }
+    if(bbox.isIn(blk.getX(), blk.getY(), blk.getZ()) &&
+            world.equals(blk.getWorld()) &&
+            isEnabled != null &&
+            !isEnabled.getBoolean()) {
+      for(CatLevel l : levels) {
+        if(l.getCube().isInRaw(blk)) {
+          return true;
+        }
       }
     }
     return false;
@@ -474,17 +491,15 @@ public class Dungeon implements Listener {
   
   public Boolean isInRaw(Block blk) {
     assert(bbox!=null);
-    assert(blk!=null);
-    assert(world!=null);
-    if(!bbox.isIn(blk.getX(), blk.getY(), blk.getZ())) // Do a rough check first
+    if(blk==null || world == null) {
       return false;
- 
-    if(world==null || blk == null || !world.equals(blk.getWorld()))
-      return false;
-
-    for(CatLevel l : levels) {
-      if(l.getCube().isInRaw(blk)) {
-        return true;
+    }
+    if(bbox.isIn(blk.getX(), blk.getY(), blk.getZ()) &&
+            world.equals(blk.getWorld())) {
+      for(CatLevel l : levels) {
+        if(l.getCube().isInRaw(blk)) {
+          return true;
+        }
       }
     }
     return false;
@@ -982,12 +997,239 @@ public class Dungeon implements Listener {
         
   }
   
-  @EventHandler(priority = EventPriority.LOW)
-  public void onBlockBreak(BlockBreakEvent event) {
-    Block blk = event.getBlock();
-    if(!isProtected(blk)) // Nothing to do with me
-      return;
+  /////////////////////////////////////////////////////////////////////////////
+  //
+  //    BLOCK Events
+  //
+  /////////////////////////////////////////////////////////////////////////////
+  
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void onBlockPlace(BlockPlaceEvent event){
+    Block blk = event.getBlockPlaced();
     
-    //System.out.println("[Catacombs] Dungeon "+name+" block break "+blk.getType());
+    // Special feature to allow players to put torches in dungeons in worldguard zones
+    if(event.isCancelled()) {
+      if(isInRaw(blk) && plugin.cnf.isPlaceable(blk)) {
+        event.setCancelled(false);
+      }
+      return;
+    }
+    
+    if(isProtected(blk) && !plugin.cnf.isPlaceable(blk)) {
+      event.setCancelled(true);
+    }
   }
+
+  @EventHandler(priority = EventPriority.LOW)
+  public void onBlockBreak(BlockBreakEvent event){
+    Block blk = event.getBlock();
+    if(isProtected(blk) && !event.isCancelled() && !plugin.cnf.isBreakable(blk)) {
+      if(blk.getType() == Material.MOB_SPAWNER) {
+        if(plugin.cnf.ProtectSpawners()) {
+          Player player = event.getPlayer();
+          player.sendMessage("Put a torch on opposite sides to stop spawns");
+          event.setCancelled(true);
+        }     
+        return;        
+      }
+      event.setCancelled(true);   
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onBlockSpread(BlockSpreadEvent event){
+    Block blk = event.getBlock();
+    if(isInRaw(blk) && !event.isCancelled()) {
+      BlockState state = event.getNewState();
+      if(blk.getType() == Material.DIRT && state.getType() == Material.GRASS) {
+        event.setCancelled(true);
+      }   
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onBlockIgnite(BlockIgniteEvent event){
+    Block blk = event.getBlock();
+    if(isInRaw(blk) && !event.isCancelled()) {
+      event.setCancelled(true);
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onBlockBurn(BlockBurnEvent event){
+    Block blk = event.getBlock();
+    if(isInRaw(blk) && !event.isCancelled()) {
+      event.setCancelled(true);
+    }
+  }  
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onBlockDamage(BlockDamageEvent event) {
+    Block blk = event.getBlock();
+    if(!isInRaw(blk))
+      return;
+    CatUtils.toggleSecretDoor(blk);
+  }
+  
+  
+  /////////////////////////////////////////////////////////////////////////////
+  //
+  //    Player Events
+  //
+  /////////////////////////////////////////////////////////////////////////////
+   
+  @EventHandler(priority = EventPriority.LOW)
+  public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+    Block blk = event.getBlockClicked();
+    if (isProtected(blk) && !event.isCancelled()) {
+      event.setCancelled(true);
+    }
+  }
+
+  @EventHandler(priority = EventPriority.LOW)
+  public void onPlayerBucketFill(PlayerBucketFillEvent event) {
+    Block blk = event.getBlockClicked();
+    if (isProtected(blk) && !event.isCancelled()) {
+      event.setCancelled(true);
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
+    Player player = event.getPlayer();
+    Block blk = player.getLocation().getBlock();
+    if (isProtected(blk) && !event.isCancelled()) {
+      for(String cmd:plugin.cnf.BannedCommands()) {
+        if (event.getMessage().startsWith(cmd)) {
+          player.sendMessage("'"+cmd+"' is blocked in dungeons");
+          event.setCancelled(true);
+          return;
+        }
+      }
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onPlayerInteract(PlayerInteractEvent event) {
+    Block blk = event.getClickedBlock();
+    if (isInRaw(blk) && !event.isCancelled()) {
+      Material mat = blk.getType();
+      if (mat == Material.STONE_BUTTON) {
+        Block below = blk.getRelative(BlockFace.DOWN);
+        // ToDo: Check against dungeon end location instead
+        if(below.getType() == Material.CHEST) {
+          if (plugin.cnf.ResetButton()) {
+            plugin.Commands(null, new String[]{"reset", name});
+          } else if (plugin.cnf.RecallButton()) {
+            plugin.Commands(event.getPlayer(), new String[]{"recall"});
+          }
+        }
+      } else if(plugin.cnf.ClickIronDoor() && mat == Material.IRON_DOOR_BLOCK) {
+        Block below = blk.getRelative(BlockFace.DOWN);
+        if(below.getType() == Material.IRON_DOOR_BLOCK) {
+          below.setData((byte)(below.getData() ^ 4));
+        }
+        Block above = blk.getRelative(BlockFace.UP);
+        if(above.getType() == Material.IRON_DOOR_BLOCK) {
+          blk.setData((byte)(blk.getData() ^ 4)); // The lower block has open/closed bit
+        }        
+      }
+    }
+  } 
+  
+  /////////////////////////////////////////////////////////////////////////////
+  //
+  //    Entity Events
+  //
+  /////////////////////////////////////////////////////////////////////////////
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onEntityExplode(EntityExplodeEvent event){
+    List<Block> list = event.blockList();  
+    if(!event.isCancelled() && any_protected(list)) {
+      list.clear();
+    }
+  }
+  
+  private Boolean any_protected(List<Block> list) {
+    for(Block b : list) {
+      if(isProtected(b)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+    Block blk = event.getBlock();
+    Entity ent = event.getEntity();
+    if(isInRaw(blk) && !event.isCancelled() && ent instanceof Enderman) {
+      event.setCancelled(true);
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onEntityDamage(EntityDamageEvent evt) {
+    Entity ent = evt.getEntity();
+    Block blk = ent.getLocation().getBlock();
+    if(isInRaw(blk) && !evt.isCancelled()) {
+      if(plugin.cnf.NoPvPInDungeon() &&
+              ent instanceof Player &&
+              CatUtils.getDamager(evt) instanceof Player) {
+        evt.setCancelled(true);  
+      }
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onCreatureSpawn(CreatureSpawnEvent event) {
+    Block blk = event.getLocation().getBlock();
+    if(isInRaw(blk) && !event.isCancelled()) {
+      SpawnReason reason = event.getSpawnReason();
+      if(isEnabled!=null && !isEnabled.getBoolean()) {
+        event.setCancelled(true);
+      } else if(reason == SpawnReason.SPAWNER && blk.getLightLevel()>10) {
+        event.setCancelled(true);
+      }
+      LivingEntity ent = event.getEntity();
+      EntityType t = event.getEntityType();
+      if(t == EntityType.WOLF) {
+        ((Wolf)ent).setAngry(true);
+      } else if(t == EntityType.PIG_ZOMBIE) {
+        ((PigZombie)ent).setAngry(true);
+      }
+    }
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onEntityDeath(EntityDeathEvent event) {
+    LivingEntity damagee = event.getEntity();
+    Block blk = damagee.getLocation().getBlock();
+    if(isInRaw(blk)) { 
+      if(event instanceof PlayerDeathEvent) {
+        PlayerDeathEvent pde = (PlayerDeathEvent) event;
+        Player player = (Player) damagee;
+        if(plugin.cnf.DeathExpKept()>0) // Don't drop any exp if some will be retained.
+          pde.setDroppedExp(0);
+        int expLevel = player.getLevel();
+        pde.setNewLevel((int)(expLevel*plugin.cnf.DeathExpKept()));
+        if(plugin.cnf.DeathKeepGear()) {
+          plugin.players.saveGear(player);
+          pde.getDrops().clear(); // We'll handle the items, don't drop them yet
+        }
+      } else if(!plugin.cnf.GoldOff()) {
+        EntityDamageEvent ede = damagee.getLastDamageCause();
+        Entity damager = CatUtils.getDamager(ede);
+        if(damager instanceof Player) {
+          double gold = plugin.cnf.Gold();
+          String bal = CatUtils.giveCash(plugin.cnf,damager,gold);
+          if(bal!=null && gold > 0)
+            ((Player)damager).sendMessage(gold+" coins ("+bal+")");
+        }         
+      }
+    }    
+      
+  }  
+  
 }

@@ -44,8 +44,17 @@ import org.bukkit.block.BlockFace;
 /**
  * 
  * 
+ 
 Release v2.4
-*
+* Optimized the code that checks if blocks are inside dungeons. The code will
+  now check against a bounding cuboid for the entire dungeon before pushing down
+  to check all the levels. The order the coordinate checks are done in was also
+  optimized.
+* Recoded all the bukkit events so each dungeon gets notified of it's own events.
+  This simplifies the event code and makes it simpler to have different dungeons
+  handle the events in different ways.
+* Fixed an issue in the amount of experience retained when a player dies in a
+  dungeon caused by changes in bukkit.
 
 Release v2.3
 * Changed the way book are created to allow different durability codes (this
@@ -441,7 +450,7 @@ public class Catacombs extends JavaPlugin {
   private BlockChangeHandler    handler;
   private DungeonHandler        dhandler;
 
-  public  Monsters              monsters;
+  //public  Monsters              monsters;
   public  Players               players = new Players();
   //public  MobTypes              mobtypes;
 
@@ -451,17 +460,18 @@ public class Catacombs extends JavaPlugin {
   
   private File mapdir;
     
-  private final CatBlockListener   blockListener   = new CatBlockListener(this);
-  private final CatEntityListener  entityListener  = new CatEntityListener(this);
-  private final CatPlayerListener  playerListener  = new CatPlayerListener(this);
-  private final CatServerListener  serverListener  = new CatServerListener(this);
+  private final CatListener   listener   = new CatListener(this);
+//  private final CatBlockListener   blockListener   = new CatBlockListener(this);
+//  private final CatEntityListener  entityListener  = new CatEntityListener(this);
+//  private final CatPlayerListener  playerListener  = new CatPlayerListener(this);
+//  private final CatServerListener  serverListener  = new CatServerListener(this);
 
   @Override
   public void onLoad() {
     cnf = new CatConfig(getConfig());
     info = this.getDescription();
     //mobtypes = new MobTypes(getConfig());
-    monsters = new Monsters(this);
+    //monsters = new Monsters(this);
     
     mapdir = new File("plugins" + File.separator + info.getName() + File.separator + "maps");
     if(!mapdir.exists()){
@@ -484,10 +494,11 @@ public class Catacombs extends JavaPlugin {
       }
 
       PluginManager pm = this.getServer().getPluginManager();
-      pm.registerEvents(blockListener, this);
-      pm.registerEvents(entityListener, this);
-      pm.registerEvents(playerListener, this);
-      pm.registerEvents(serverListener, this);
+      pm.registerEvents(listener, this);
+//      pm.registerEvents(blockListener, this);
+//      pm.registerEvents(entityListener, this);
+//      pm.registerEvents(playerListener, this);
+//      pm.registerEvents(serverListener, this);
 
       handler = new BlockChangeHandler(this);
       this.getServer().getScheduler().scheduleSyncRepeatingTask(this,handler,40,20);

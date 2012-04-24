@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.LivingEntity;
@@ -161,6 +162,38 @@ public class CatUtils {
     }
     return res;
   }   
+  
+  public static Boolean toggleSecretDoor(Block blk) {
+    Boolean done = false;
+    Block piston = null;
+    for(int i=1;i<=3;i++) {
+      piston = blk.getRelative(BlockFace.DOWN,i);
+      if(piston.getType() == Material.PISTON_STICKY_BASE)
+        break;
+      piston = null;
+    }
+    if(piston == null || (piston.getData() & 7) != 1) // Piston needs to point up
+      return done;
+
+    Block power = piston.getRelative(BlockFace.DOWN,1);
+
+    if(power.getType() == Material.REDSTONE_TORCH_ON) {
+      Block upper_door = piston.getRelative(BlockFace.UP,3);
+      Material m = upper_door.getType();
+      byte code = upper_door.getData();
+      power.setTypeIdAndData(m.getId(),code,false);
+      upper_door.setType(Material.AIR);
+      done = true;
+    }  else {
+      Block upper_door = piston.getRelative(BlockFace.UP,3);
+      Material m = power.getType();
+      byte code = power.getData();
+      power.setType(Material.REDSTONE_TORCH_ON);
+      upper_door.setTypeIdAndData(m.getId(),code,false);
+      done = true;
+    }
+    return done;
+  }
   
   // Just a simple on surface check for the moment
   // ToDo: count under trees and shallow overhangs as surface too
