@@ -31,6 +31,7 @@ public enum ECatConfig {
     NoPvPInDungeon          ("Admin.NoPvPInDungeon", true),
     MobsSpawnOnlyUnderground("Admin.MobsSpawnOnlyUnderground", false),
     MobsSpawnOnlyInDungeons ("Admin.MobsSpawnOnlyInDungeons", false),
+    NoArmourInDungeon       ("Admin.NoArmourInDungeon", false),
     //BossEnabled             ("Admin.BossEnabled", false),
     Economy                 ("Admin.Economy", "any"),
     AdvancedCombat          ("Admin.AdvancedCombat", false),

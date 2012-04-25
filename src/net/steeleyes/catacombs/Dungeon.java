@@ -22,7 +22,6 @@ package net.steeleyes.catacombs;
 import java.util.ArrayList;
 import org.bukkit.World;
 import org.bukkit.Chunk;
-import org.bukkit.block.Block;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -43,10 +42,12 @@ import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Wolf;
@@ -67,10 +68,13 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
 
 public class Dungeon implements Listener {
@@ -732,6 +736,18 @@ public class Dungeon implements Listener {
     p.teleport(loc);
   }
 
+  public int getBlockDepth(Block blk) {
+    if(isInRaw(blk)) {
+      int cnt = 0;
+      for(CatLevel l : levels) {
+        CatCuboid c =  l.getCube();
+        if(c.isInRaw(blk))
+          return cnt;
+        cnt++;
+      }
+    }
+    return -1;
+  }
     
   public Boolean isBuilt() {
     return built;
@@ -1140,7 +1156,50 @@ public class Dungeon implements Listener {
         }        
       }
     }
-  } 
+  }
+
+  @EventHandler(priority = EventPriority.LOW)
+  public void onPlayerMove(PlayerMoveEvent event) {
+    Block after = event.getTo().getBlock();
+    if(plugin.cnf.NoArmourInDungeon() && !event.isCancelled()) {
+      Block before = event.getFrom().getBlock();
+      if(!before.equals(after) && isProtected(after)) {   // Player has move to a new block
+        Player player = event.getPlayer();
+        PlayerInventory inv = player.getInventory();
+        if(inv.getBoots() != null ||
+                inv.getChestplate()!=null ||
+                inv.getHelmet()!=null ||
+                inv.getLeggings()!=null) {
+          if(getBlockDepth(after)>0) {
+            teleportToTop(player);
+            player.sendMessage("You'll need to remove your armour");
+          }
+        }
+      }      
+    }
+  }
+  
+  /////////////////////////////////////////////////////////////////////////////
+  //
+  //    Inventiry Events
+  //
+  /////////////////////////////////////////////////////////////////////////////
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onInventoryClick(InventoryClickEvent event){
+    HumanEntity human = event.getWhoClicked();
+    Block blk = human.getLocation().getBlock();
+    if(isProtected(blk) && human instanceof Player && plugin.cnf.NoArmourInDungeon()) {
+      Player player = (Player) human;
+      if(isProtected(blk) && getBlockDepth(blk)>0) {
+        int slot = event.getSlot();
+        if(slot>=36 && slot<=39 && event.getCursor().getType()!=Material.AIR) {
+          event.setCancelled(true);
+          player.sendMessage("No armour in this dungeon");
+        }
+      }
+    }
+  }
   
   /////////////////////////////////////////////////////////////////////////////
   //

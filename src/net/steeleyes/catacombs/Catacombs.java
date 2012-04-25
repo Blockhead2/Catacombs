@@ -61,6 +61,8 @@ Release v2.4
   iron, to avoid the noise of zombies hitting them. '/cat iron <name>' converts
   a named dungeon. '/cat iron' converts the dungeon you are standing in.
   '/cat ironall' converts all loaded dungeons.
+* Added an option to allow admins to restrict dungeons so players can't enter
+  them in armour.
 
 Release v2.3
 * Changed the way book are created to allow different durability codes (this
