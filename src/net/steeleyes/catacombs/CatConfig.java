@@ -69,15 +69,9 @@ public class CatConfig extends Config implements ICatConfig {
   public  List<String> LootBigList()       { return getSStringList(ECatConfig.LootBigList.getStr());  }
  
   public  Boolean emptyChest()             { return getSBoolean(ECatConfig.emptyChest.getStr());  }
-  //public  Boolean MessyCreepers()          { return getSBoolean(ECatConfig.MessyCreepers.getStr());  }
-  //public  Boolean MessyEndermen()          { return getSBoolean(ECatConfig.MessyEndermen.getStr());  }
   public  Boolean ProtectSpawners()        { return getSBoolean(ECatConfig.ProtectSpawners.getStr());  }
-  //public  Boolean SecretDoorOff()          { return getSBoolean(ECatConfig.SecretDoorOff.getStr());  }
   public  Boolean SecretDoorOnlyInDungeon(){ return getSBoolean(ECatConfig.SecretDoorOnlyInDungeon.getStr());  }
   public  Boolean GoldOff()                { return getSBoolean(ECatConfig.GoldOff.getStr());  }
-  //public  Boolean CalmSpawns()             { return getSBoolean(ECatConfig.CalmSpawns.getStr());  }
-  //public  Boolean DungeonProtectOff()      { return getSBoolean(ECatConfig.DungeonProtectOff.getStr());  }
-  public  Boolean SaveDungeons()           { return getSBoolean(ECatConfig.SaveDungeons.getStr());  }
   public  Boolean NoPvPInDungeon()         { return getSBoolean(ECatConfig.NoPvPInDungeon.getStr());  }
   public  Boolean MobsSpawnOnlyUnderground(){ return getSBoolean(ECatConfig.MobsSpawnOnlyUnderground.getStr());  }
   public  Boolean MobsSpawnOnlyInDungeons(){ return getSBoolean(ECatConfig.MobsSpawnOnlyInDungeons.getStr());  }

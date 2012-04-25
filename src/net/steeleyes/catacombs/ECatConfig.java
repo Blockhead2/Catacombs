@@ -28,7 +28,6 @@ public enum ECatConfig {
     SecretDoorOnlyInDungeon ("Admin.SecretDoorOnlyInDungeon", true),
     GoldOff                 ("Admin.GoldOff", false),
     ProtectSpawners         ("Admin.ProtectSpawners", true),
-    SaveDungeons            ("Admin.SaveDungeons", true),
     NoPvPInDungeon          ("Admin.NoPvPInDungeon", true),
     MobsSpawnOnlyUnderground("Admin.MobsSpawnOnlyUnderground", false),
     MobsSpawnOnlyInDungeons ("Admin.MobsSpawnOnlyInDungeons", false),

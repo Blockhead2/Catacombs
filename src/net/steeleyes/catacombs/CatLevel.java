@@ -218,7 +218,7 @@ public class CatLevel {
   
   public Block getEndChestDoor() {
     Block blk = world.getBlockAt(bot.x,bot.y+floorDepth+1,bot.z);
-    assert(blk.getType()==Material.CHEST || blk.getType()==Material.TRAP_DOOR);
+    //assert(blk.getType()==Material.CHEST || blk.getType()==Material.TRAP_DOOR);
     return blk;
   }
   

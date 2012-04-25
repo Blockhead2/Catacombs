@@ -55,6 +55,8 @@ Release v2.4
   handle the events in different ways.
 * Fixed an issue in the amount of experience retained when a player dies in a
   dungeon caused by changes in bukkit.
+* Removed the SaveDungeon config attribute, as dungeons must be saved for correct
+  operation of the plugin.
 
 Release v2.3
 * Changed the way book are created to allow different durability codes (this
@@ -262,10 +264,6 @@ Release v0.9
 * Integrated lots of code related to boss mobs that will guard the final chest
   currently disabled while I run some more tests on it (due in v1.0)
 
- * 
- **/
-
-/**
 Release v0.8
 * Added arrow traps in random locations. Contents of the dispensers is configurable
 * Added configuration to totally fill the area above the ceiling with dungeon blocks
@@ -485,8 +483,7 @@ public class Catacombs extends JavaPlugin {
       //permissions = new CatPermissions(this.getServer());
       permissions = new CatPermissions(this);
 
-      if(cnf.SaveDungeons())
-        setupDatabase();  
+      setupDatabase();  
       dungeons = new Dungeons(this,sql); 
       if(cnf.noFlag("Admin.Patches.DoorFixDone")) {
         System.out.println("[" + info.getName() + "] Fixing Wooden/Iron doors (for MC 1.2.3 and above)");

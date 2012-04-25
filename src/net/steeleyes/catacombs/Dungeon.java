@@ -454,8 +454,7 @@ public class Dungeon implements Listener {
   }  
   
   public Boolean isProtected(Block blk) {
-    assert(bbox!=null);
-    if(blk==null || world == null) {
+    if(bbox == null || blk==null || world == null) {
       return false;
     }
     if(bbox.isIn(blk.getX(), blk.getY(), blk.getZ()) &&
@@ -472,8 +471,7 @@ public class Dungeon implements Listener {
   }
   
   public Boolean isSuspended(Block blk) {
-    assert(bbox!=null);
-    if(blk==null || world == null) {
+    if(bbox == null || blk==null || world == null) {
       return false;
     }
     if(bbox.isIn(blk.getX(), blk.getY(), blk.getZ()) &&
@@ -490,8 +488,7 @@ public class Dungeon implements Listener {
   }
   
   public Boolean isInRaw(Block blk) {
-    assert(bbox!=null);
-    if(blk==null || world == null) {
+    if(bbox == null || blk==null || world == null) {
       return false;
     }
     if(bbox.isIn(blk.getX(), blk.getY(), blk.getZ()) &&
@@ -834,7 +831,7 @@ public class Dungeon implements Listener {
         " D ",
         "DVD",
         "#:#",
-        "p  "
+        "p``"
       }));
       name = "pit";
       hut_list.put(name,new PrePlanned(name,PrePlanned.Type.HUT, new String[] {
