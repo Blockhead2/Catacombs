@@ -553,13 +553,21 @@ public class Dungeon implements Listener {
     }
   }
   
+  public int changeDoorsToIron() {
+    int cnt = 0;
+    for(CatLevel l : levels) {
+      cnt += l.changeDoorsToIron();
+    }
+    return cnt;
+  } 
+  
   public int fixSecretDoors() {
     int cnt = 0;
     for(CatLevel l : levels) {
       cnt += l.fixSecretDoors();
     }
     return cnt;
-  } 
+  }
   
   public int fixDoors() {
     int cnt = 0;

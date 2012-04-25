@@ -57,6 +57,10 @@ Release v2.4
   dungeon caused by changes in bukkit.
 * Removed the SaveDungeon config attribute, as dungeons must be saved for correct
   operation of the plugin.
+* Added command to allow existing dungeon doors to be converted from wood to
+  iron, to avoid the noise of zombies hitting them. '/cat iron <name>' converts
+  a named dungeon. '/cat iron' converts the dungeon you are standing in.
+  '/cat ironall' converts all loaded dungeons.
 
 Release v2.3
 * Changed the way book are created to allow different durability codes (this
@@ -713,6 +717,21 @@ public class Catacombs extends JavaPlugin {
       } else if(cmd(p,args,"end","D")) {
         gotoDungeonEnd(p,args[1]);
         inform(p,"Goto end "+args[1]); 
+        
+      // IRON  ********************************************************
+      } else if(cmd(p,args,"ironall")) {
+        int cnt = dungeons.changeDoorsToIron();
+        inform(p,"Converted "+cnt+" dungeons to have iron doors"); 
+      } else if(cmd(p,args,"iron")) {
+        Dungeon dung = getDungeon(p);
+        if(dung!=null) {
+          dung.changeDoorsToIron();
+          inform(p,dung.getName()+" now has iron doors"); 
+        } 
+      } else if(cmd(p,args,"iron","D")) {
+        Dungeon dung = dungeons.get(args[1]);
+        dung.changeDoorsToIron();
+        inform(p,args[1]+" now has iron doors"); 
         
       // RECALL ********************************************************  
       } else if(cmd(p,args,"recall")) {

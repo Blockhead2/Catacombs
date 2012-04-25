@@ -520,6 +520,27 @@ public class CatCuboid extends Cuboid {
     return cnt;
   }
   
+  public int changeDoorsToIron() {
+    int cnt = 0;
+    for(int x=xl;x<=xh;x++) {
+      for(int z=zl;z<=zh;z++) {
+        for(int y=yl;y<=yh;y++) {
+          Block blk = world.getBlockAt(x,y,z);
+          Material mat = blk.getType();
+          Block above = blk.getRelative(BlockFace.UP);
+          if(mat == Material.WOODEN_DOOR && above.getType() == Material.WOODEN_DOOR) {
+            byte blk_b = blk.getData();
+            byte above_b = above.getData();
+            blk.setTypeIdAndData(Material.IRON_DOOR_BLOCK.getId(), blk_b, false);
+            above.setTypeIdAndData(Material.IRON_DOOR_BLOCK.getId(), above_b, false);
+            cnt++;
+          }
+        }
+      }
+    }
+    return cnt;
+  }
+  
   private byte getDoorLowerCode(Block blk) {
     Block e = blk.getRelative(BlockFace.EAST);
     Block w = blk.getRelative(BlockFace.WEST);

@@ -281,6 +281,7 @@ public class Dungeons {
       }
     }
   } 
+  
   public void fixDoors() {
     for(Entry<String,Dungeon> e: dungeons.entrySet()) {
       Dungeon dung = e.getValue();
@@ -290,6 +291,20 @@ public class Dungeons {
       }
     }
   }  
+  
+  public int changeDoorsToIron() {
+    int num=0;
+    for(Entry<String,Dungeon> e: dungeons.entrySet()) {
+      Dungeon dung = e.getValue();
+      int cnt = dung.changeDoorsToIron();
+      if(cnt>0) {
+        System.out.println("[Catacombs]   '"+dung.getName()+"' converted "+cnt+" doors to iron");
+      }
+      num++;
+    }
+    return num;
+  }   
+  
   public List<String> getNames() {
     List<String> list = new ArrayList<String>(dungeons.keySet());
     Collections.sort(list);

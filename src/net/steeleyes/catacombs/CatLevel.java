@@ -705,6 +705,10 @@ public class CatLevel {
     return cube.fixSecretDoors();
   }
   
+  public int changeDoorsToIron() {
+    return cube.changeDoorsToIron();
+  }
+  
   public int fixDoors() {
     return cube.fixDoors();
   }
