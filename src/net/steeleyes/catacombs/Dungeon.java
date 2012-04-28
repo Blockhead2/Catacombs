@@ -1163,7 +1163,7 @@ public class Dungeon implements Listener {
     Block after = event.getTo().getBlock();
     if(plugin.cnf.NoArmourInDungeon() && !event.isCancelled()) {
       Block before = event.getFrom().getBlock();
-      if(!before.equals(after) && isProtected(after)) {   // Player has move to a new block
+      if(!before.equals(after) && isProtected(after)) {   // Player has moved to a new block
         Player player = event.getPlayer();
         PlayerInventory inv = player.getInventory();
         if(inv.getBoots() != null ||
@@ -1181,7 +1181,7 @@ public class Dungeon implements Listener {
   
   /////////////////////////////////////////////////////////////////////////////
   //
-  //    Inventiry Events
+  //    Inventory Events
   //
   /////////////////////////////////////////////////////////////////////////////
   
@@ -1189,14 +1189,15 @@ public class Dungeon implements Listener {
   public void onInventoryClick(InventoryClickEvent event){
     HumanEntity human = event.getWhoClicked();
     Block blk = human.getLocation().getBlock();
-    if(isProtected(blk) && human instanceof Player && plugin.cnf.NoArmourInDungeon()) {
+    if(isProtected(blk) &&
+            human instanceof Player &&
+            plugin.cnf.NoArmourInDungeon() &&
+            getBlockDepth(blk)>0) {
       Player player = (Player) human;
-      if(isProtected(blk) && getBlockDepth(blk)>0) {
-        int slot = event.getSlot();
-        if(slot>=36 && slot<=39 && event.getCursor().getType()!=Material.AIR) {
-          event.setCancelled(true);
-          player.sendMessage("No armour in this dungeon");
-        }
+      int slot = event.getSlot();
+      if(slot>=36 && slot<=39 && event.getCursor().getType()!=Material.AIR) {
+        event.setCancelled(true);
+        player.sendMessage("No armour in this dungeon");
       }
     }
   }
