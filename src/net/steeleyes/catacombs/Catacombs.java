@@ -30,8 +30,8 @@ import org.bukkit.command.CommandSender;
 
 import net.steeleyes.maps.Direction;
 
-import com.nijikokun.catacombsregister.payment.Method;
-import com.nijikokun.catacombsregister.payment.Methods;
+//import com.nijikokun.catacombsregister.payment.Method;
+//import com.nijikokun.catacombsregister.payment.Methods;
 import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.util.List;
@@ -39,7 +39,10 @@ import java.util.List;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.block.BlockFace;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 /**
  * 
@@ -448,7 +451,6 @@ Release v0.3
 
 public class Catacombs extends JavaPlugin {
   public  CatConfig             cnf;
-  private CatPermissions        permissions;
   public  Dungeons              dungeons;
   public  CatSQL                sql=null;
   private BlockChangeHandler    handler;
@@ -463,6 +465,9 @@ public class Catacombs extends JavaPlugin {
   private Boolean               enabled= false;
   
   private File mapdir;
+  
+  public static Permission permission = null;
+  public static Economy economy = null;
     
   private final CatListener   listener   = new CatListener(this);
 //  private final CatBlockListener   blockListener   = new CatBlockListener(this);
@@ -486,10 +491,11 @@ public class Catacombs extends JavaPlugin {
   @Override
   public void onEnable(){
     if(!enabled) {
-      //permissions = new CatPermissions(this.getServer());
-      permissions = new CatPermissions(this);
 
-      setupDatabase();  
+      setupPermissions();
+      setupEconomy();
+      setupDatabase();
+
       dungeons = new Dungeons(this,sql); 
       if(cnf.noFlag("Admin.Patches.DoorFixDone")) {
         System.out.println("[" + info.getName() + "] Fixing Wooden/Iron doors (for MC 1.2.3 and above)");
@@ -522,7 +528,6 @@ public class Catacombs extends JavaPlugin {
   
   @Override
   public void onDisable(){
-    Methods.reset();
     enabled = false;
   }
   
@@ -537,7 +542,42 @@ public class Catacombs extends JavaPlugin {
       sql.Convert2(this);
     }
   }  
+  
+  private boolean setupPermissions() {
+    RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+    if (permissionProvider != null) {
+      permission = permissionProvider.getProvider();
+    }
+    return (permission != null);
+  }
 
+//  private boolean setupChat() {
+//    RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+//    if (chatProvider != null) {
+//      chat = chatProvider.getProvider();
+//    }
+//
+//    return (chat != null);
+//  }
+
+  private boolean setupEconomy() {
+    RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+    if (economyProvider != null) {
+      economy = economyProvider.getProvider();
+    }
+
+    return (economy != null);
+  }
+  
+  public Boolean hasPermission(Player player,String perm) {
+    if(permission != null) {
+      return permission.has(player, "achieve.admin") || permission.has(player, perm);
+    }
+    if(player != null)
+      return player.isOp();
+    return false;
+  }
+  
   @Override
   public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
     if(sender instanceof Player) {
@@ -625,10 +665,9 @@ public class Catacombs extends JavaPlugin {
       } else if(cmd(p,args,"gold")) {
         if(p!=null) {
           String pname = p.getName();
-          Method meth = Methods.getMethod();
-          if(meth != null) {
-            double bal = meth.getAccount(pname).balance();
-            inform(p,"You have "+meth.format(bal)); 
+          if(economy != null) {
+            double bal = economy.getBalance(pname);
+            inform(p,"You have "+economy.format(bal)); 
           }
         }
         
@@ -843,7 +882,7 @@ public class Catacombs extends JavaPlugin {
 
   private Boolean cmd(Player player,String [] args,String s,String arg_types) throws IllegalAccessException,Exception {
     if(args[0].equalsIgnoreCase(s)) {
-      if(!permissions.hasPermission(player, "catacombs."+s)) {
+      if(!hasPermission(player, "catacombs."+s)) {
         throw new IllegalAccessException("You don't have permission for /cat "+s);
       }
       if(args.length != arg_types.length()+1) {

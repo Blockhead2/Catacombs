@@ -22,9 +22,9 @@ package net.steeleyes.catacombs;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import com.nijikokun.catacombsregister.payment.Method;
-import com.nijikokun.catacombsregister.payment.Method.MethodAccount;
-import com.nijikokun.catacombsregister.payment.Methods;
+//import com.nijikokun.catacombsregister.payment.Method;
+//import com.nijikokun.catacombsregister.payment.Method.MethodAccount;
+//import com.nijikokun.catacombsregister.payment.Methods;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -130,33 +131,35 @@ public class CatUtils {
     if(cnf == null || cnf.GoldOff())
       return null;
     String res = null;
-    if (ent instanceof Player) {
+    if (ent instanceof Player && Catacombs.economy != null) {
       Player player = (Player) ent;
-      Method meth = Methods.getMethod();
-      if (meth != null) {
-        meth.getAccount(player.getName()).add(gold);
-        double bal = meth.getAccount(player.getName()).balance();
-        res = meth.format(bal);
+      EconomyResponse resp = Catacombs.economy.depositPlayer(player.getName(), gold);
+      if(!resp.transactionSuccess()) {
+        System.err.println("[Catacombs] Problem giving cash to "+player.getName());
+        res = " error";
+      } else {
+        double bal = Catacombs.economy.getBalance(player.getName());
+        res = Catacombs.economy.format(bal);
       }
     }
     return res;
   }
   
   public static Boolean takeCash(Entity ent, int gold, String reason) {
+    if(gold == 0) {
+      return true;
+    }
     Boolean res = false;
     if (ent instanceof Player) {
       Player player = (Player) ent;
-      Method meth = Methods.getMethod();
-      if (meth != null) {
-        MethodAccount acc = meth.getAccount(player.getName());
-        if(acc.hasEnough(gold)) {
-          acc.subtract(gold);
-          double bal = acc.balance();
-          player.sendMessage("It costs you "+gold+" "+reason+" ("+meth.format(bal)+")");
+      if(Catacombs.economy != null) {
+        EconomyResponse resp = Catacombs.economy.withdrawPlayer(player.getName(), gold);
+        double bal = Catacombs.economy.getBalance(player.getName());
+        if(resp.transactionSuccess()) {
+          player.sendMessage("It costs you "+gold+" "+reason+" ("+Catacombs.economy.format(bal)+")");
           res = true;
         } else {
-          double bal = acc.balance();
-          player.sendMessage("Not enough money "+reason+" ("+meth.format(bal)+")");
+          player.sendMessage("Not enough money "+reason+" ("+Catacombs.economy.format(bal)+")");
         }
       }
     }
