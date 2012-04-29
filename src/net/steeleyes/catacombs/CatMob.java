@@ -32,7 +32,6 @@ import org.bukkit.event.entity.EntityTargetEvent;
 
 public class CatMob {
   private Catacombs plugin;
-  //private CatConfig cnf;
   
   private LivingEntity ent;
   private String name;
@@ -57,7 +56,6 @@ public class CatMob {
   
   //private List<Object> targets; 
   //private List<CatAbility> running = new LinkedList<CatAbility>();
-  
   
   public CatMob(Catacombs plugin,MobType type, World world, Location loc) {
     this.plugin = plugin;
@@ -96,14 +94,14 @@ public class CatMob {
     name = name.substring(0,1).toUpperCase()+name.substring(1).toLowerCase();
 
     ent.setHealth(ent.getMaxHealth()); // Make sure the entity has plenty of hits for us to work with
-    int num = CatUtils.countPlayerNear(ent, plugin.cnf.GroupRadius(), plugin.cnf.GroupDepth());
+    int num = CatUtils.countPlayerNear(ent, plugin.getCnf().GroupRadius(), plugin.getCnf().GroupDepth());
     level = (num<1)?1:num;
     cash = 4+level*2;
     exp = 4+level*2;
     //damage = 3;
-    max_hps = (int)(type.getHps()+plugin.cnf.GroupHpFactor()*type.getHps()*(level-1));
+    max_hps = (int)(type.getHps()+plugin.getCnf().GroupHpFactor()*type.getHps()*(level-1));
     hps = max_hps;
-    hate = new HateTable(plugin.cnf,ent,this.toString());
+    hate = new HateTable(plugin.getCnf(),ent,this.toString());
     
 //    tickId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin,
 //            new Runnable() {
@@ -199,12 +197,12 @@ public class CatMob {
   
   public void death(EntityDeathEvent evt) {
     if(ent != null) {
-      if(!plugin.cnf.GoldOff() && type.getShape() != MobShape.SILVERFISH) {
+      if(!plugin.getCnf().GoldOff() && type.getShape() != MobShape.SILVERFISH) {
         // "Share" cash and exp (simply give the cash and exp to all
         //   attackers to encourage team work)
         for(Entity attacker : hate.attackers()) {
           giveExp(attacker, exp);
-          String bal = CatUtils.giveCash(plugin.cnf,attacker, cash);
+          String bal = CatUtils.giveCash(plugin.getCnf(),attacker, cash);
           if(bal != null) {
             ((Player)attacker).sendMessage(cash+" coins ("+bal+") "+this);
           }

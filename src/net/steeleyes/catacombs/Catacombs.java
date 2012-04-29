@@ -48,10 +48,12 @@ import org.bukkit.plugin.RegisteredServiceProvider;
  
 Release v2.4
 * Changed code to use Vault rather than WEPIF (for permissions) and Register
-  (for economy). This significantly simplifies the code and it's maintenance.
-  Installing Vault is optional. If you don't install Vault then Catacombs will
-  fall back on ops.txt to see if a player has Op permission. If you don't
-  install Vault then no cash will be given for killing monsters inside dungeons.
+  (for economy). This significantly simplifies the code, it's maintenance and
+  should also make Catacombs easier to setup. Installing Vault is optional, it's
+  not required. If you don't install Vault then Catacombs will simply
+  fall back on ops.txt to see if a player has Op permission, and also no cash
+  will be given for killing monsters inside dungeons. Other than that everything
+  should function fine.
 * Optimized the code that checks if blocks are inside dungeons. The code will
   now check against a bounding cuboid for the entire dungeon before pushing down
   to check all the levels. The order the coordinate checks are done in was also
@@ -453,36 +455,30 @@ Release v0.3
  */
 
 public class Catacombs extends JavaPlugin {
-  public  CatConfig             cnf;
-  public  Dungeons              dungeons;
-  public  CatSQL                sql=null;
+  private CatConfig             cnf;
+  private Dungeons              dungeons;
+  private CatSQL                sql=null;
   private BlockChangeHandler    handler;
   private DungeonHandler        dhandler;
 
-  //public  Monsters              monsters;
-  public  Players               players = new Players();
-  //public  MobTypes              mobtypes;
+  private Players               players = new Players();
+  private MobTypes              mobtypes;
 
-  public  PluginDescriptionFile info;
-  public  Boolean               debug=false;
+  private PluginDescriptionFile info;
   private Boolean               enabled= false;
   
   private File mapdir;
   
-  public static Permission permission = null;
-  public static Economy economy = null;
+  private static Permission permission = null;
+  private static Economy economy = null;
     
   private final CatListener   listener   = new CatListener(this);
-//  private final CatBlockListener   blockListener   = new CatBlockListener(this);
-//  private final CatEntityListener  entityListener  = new CatEntityListener(this);
-//  private final CatPlayerListener  playerListener  = new CatPlayerListener(this);
-//  private final CatServerListener  serverListener  = new CatServerListener(this);
 
   @Override
   public void onLoad() {
     cnf = new CatConfig(getConfig());
     info = this.getDescription();
-    //mobtypes = new MobTypes(getConfig());
+    mobtypes = new MobTypes(getConfig());
     //monsters = new Monsters(this);
     
     mapdir = new File("plugins" + File.separator + info.getName() + File.separator + "maps");
@@ -507,10 +503,6 @@ public class Catacombs extends JavaPlugin {
 
       PluginManager pm = this.getServer().getPluginManager();
       pm.registerEvents(listener, this);
-//      pm.registerEvents(blockListener, this);
-//      pm.registerEvents(entityListener, this);
-//      pm.registerEvents(playerListener, this);
-//      pm.registerEvents(serverListener, this);
 
       handler = new BlockChangeHandler(this);
       this.getServer().getScheduler().scheduleSyncRepeatingTask(this,handler,40,20);
@@ -593,6 +585,34 @@ public class Catacombs extends JavaPlugin {
       return player.isOp();
     return false;
   }
+
+  public CatSQL getSql() {
+    return sql;
+  }
+
+  public Dungeons getDungeons() {
+    return dungeons;
+  }
+
+  public Players getPlayers() {
+    return players;
+  }
+
+  public PluginDescriptionFile getInfo() {
+    return info;
+  }
+
+  public static Economy getEconomy() {
+    return economy;
+  }
+
+  public static Permission getPermission() {
+    return permission;
+  }
+
+  public CatConfig getCnf() {
+    return cnf;
+  }
   
   @Override
   public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
@@ -604,18 +624,6 @@ public class Catacombs extends JavaPlugin {
   }
 
   public Boolean Commands(Player p,String [] args) {
-    if(false && debug) {
-      if(p==null) {
-        System.out.println("[Catacombs] Command sent from console");
-      } else {
-        System.out.println("[Catacombs] Command sent by player("+p.getName()+")");
-      }
-      System.out.println("[Catacombs] number of arguments="+args.length);
-      int i=1;
-      for(String s:args) {
-        System.out.println("[Catacombs]   argument "+i+" is '"+s+"'");
-      }
-    }
     try {
       if(args.length <1) {
         help(p);
@@ -819,7 +827,6 @@ public class Catacombs extends JavaPlugin {
         
       // TEST  
       } else if(cmd(p,args,"test")) {
-        debug = !debug;
         //Location loc = p.getLocation();
         //Block blk = loc.getBlock();
         //Block surface = p.getWorld().getHighestBlockAt(loc);
@@ -1074,7 +1081,6 @@ public class Catacombs extends JavaPlugin {
     Dungeon dung = dungeons.get(dname);
     if(!dung.teleportToTop(p))
       inform(p,"Can't teleport to start of this dungeon");
-
   }
   
   public void gotoDungeonEnd(Player p,String dname) {

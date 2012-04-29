@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -128,15 +129,16 @@ public class CatUtils {
     if(cnf == null || cnf.GoldOff())
       return null;
     String res = null;
-    if (ent instanceof Player && Catacombs.economy != null) {
+    Economy economy = Catacombs.getEconomy();
+    if (ent instanceof Player && economy != null) {
       Player player = (Player) ent;
-      EconomyResponse resp = Catacombs.economy.depositPlayer(player.getName(), gold);
+      EconomyResponse resp = Catacombs.getEconomy().depositPlayer(player.getName(), gold);
       if(!resp.transactionSuccess()) {
         System.err.println("[Catacombs] Problem giving cash to "+player.getName());
         res = " error";
       } else {
-        double bal = Catacombs.economy.getBalance(player.getName());
-        res = Catacombs.economy.format(bal);
+        double bal = economy.getBalance(player.getName());
+        res = economy.format(bal);
       }
     }
     return res;
@@ -149,14 +151,15 @@ public class CatUtils {
     Boolean res = false;
     if (ent instanceof Player) {
       Player player = (Player) ent;
-      if(Catacombs.economy != null) {
-        EconomyResponse resp = Catacombs.economy.withdrawPlayer(player.getName(), gold);
-        double bal = Catacombs.economy.getBalance(player.getName());
+      Economy economy = Catacombs.getEconomy();
+      if(economy != null) {
+        EconomyResponse resp = economy.withdrawPlayer(player.getName(), gold);
+        double bal = economy.getBalance(player.getName());
         if(resp.transactionSuccess()) {
-          player.sendMessage("It costs you "+gold+" "+reason+" ("+Catacombs.economy.format(bal)+")");
+          player.sendMessage("It costs you "+gold+" "+reason+" ("+economy.format(bal)+")");
           res = true;
         } else {
-          player.sendMessage("Not enough money "+reason+" ("+Catacombs.economy.format(bal)+")");
+          player.sendMessage("Not enough money "+reason+" ("+economy.format(bal)+")");
         }
       }
     }

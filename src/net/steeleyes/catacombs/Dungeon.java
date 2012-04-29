@@ -92,8 +92,6 @@ public class Dungeon implements Listener {
   private int     resetWarnings = 0;
   
   private int         did=-1;
-  //private List<CatFlag> flags = new ArrayList<CatFlag>();
-  //private List<CatLocation> locations = new ArrayList<CatLocation>();
   private CatFlag     bossKilled = null;
   private CatFlag     isEnabled = null;
   private CatFlag     resetTime = null;
@@ -113,12 +111,11 @@ public class Dungeon implements Listener {
   public Dungeon(Catacombs plugin,String name,World world){
     this.name = name;
     this.plugin = plugin;
-    //this.cnf = cnf;
     this.world = world;
-    this.major    = plugin.cnf.majorMat();
-    this.minor    = plugin.cnf.minorMat();
-    this.floorMat = plugin.cnf.floorMat();
-    this.roofMat  = plugin.cnf.roofMat();
+    this.major    = plugin.getCnf().majorMat();
+    this.minor    = plugin.getCnf().minorMat();
+    this.floorMat = plugin.getCnf().floorMat();
+    this.roofMat  = plugin.getCnf().roofMat();
     setup_huts();
   }  
   
@@ -141,7 +138,7 @@ public class Dungeon implements Listener {
   }
     
   public void remove() {
-    plugin.sql.removeDungeon(did);
+    plugin.getSql().removeDungeon(did);
     unregisterListener();
   }
   
@@ -169,12 +166,12 @@ public class Dungeon implements Listener {
         minor = CatMat.parseMaterial(rs.getString("minor"));
         //enable = (rs.getInt("enable")!=0);
         
-        ResultSet rs2 = plugin.sql.query("SELECT lid,type,room,roof,floor,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez FROM levels2 WHERE did="+did+" ORDER BY yh DESC;");
+        ResultSet rs2 = plugin.getSql().query("SELECT lid,type,room,roof,floor,xl,yl,zl,xh,yh,zh,sx,sy,sz,ex,ey,ez FROM levels2 WHERE did="+did+" ORDER BY yh DESC;");
         while(rs2.next()) {
           CatLevel clevel = new CatLevel(plugin,rs2,world,false); // ToDo: Remove legacy version of this
           add(clevel);
         }
-        ResultSet rs3 = plugin.sql.query("SELECT fid,type,val FROM flags WHERE did="+did+";");
+        ResultSet rs3 = plugin.getSql().query("SELECT fid,type,val FROM flags WHERE did="+did+";");
         while(rs3.next()) {
           CatFlag flag = new CatFlag(plugin,rs3);
           if (flag.matches(CatFlag.Type.BOSS_KILLED)) {
@@ -197,7 +194,7 @@ public class Dungeon implements Listener {
             System.err.println("[Catacombs] ERROR: unrecognised dungeon flag="+flag);
           }
         }
-        ResultSet rs4 = plugin.sql.query("SELECT xid,type,x,y,z FROM locations WHERE did="+did+";");
+        ResultSet rs4 = plugin.getSql().query("SELECT xid,type,x,y,z FROM locations WHERE did="+did+";");
         while(rs4.next()) {
           CatLocation loc = new CatLocation(plugin,rs4);
           if (loc.matches(CatLocation.Type.END_CHEST)) {
@@ -210,12 +207,12 @@ public class Dungeon implements Listener {
         // New defaults
         if(floorFlg == null) {
           floorFlg = new CatFlag(CatFlag.Type.FLOOR,major.toString());
-          floorFlg.saveDB(plugin.sql, did);
+          floorFlg.saveDB(plugin.getSql(), did);
           floorMat = CatMat.parseMaterial(floorFlg.getString());
         }
         if(roofFlg == null) {
           roofFlg = new CatFlag(CatFlag.Type.ROOF,major.toString());
-          roofFlg.saveDB(plugin.sql, did);
+          roofFlg.saveDB(plugin.getSql(), did);
           roofMat = CatMat.parseMaterial(roofFlg.getString());
         }
         setupFlagsLocations();  // Set default flags and locations
@@ -230,24 +227,24 @@ public class Dungeon implements Listener {
   
   public void saveDB() {
     if(did<=0) {    
-      plugin.sql.command("INSERT INTO dungeons"+
+      plugin.getSql().command("INSERT INTO dungeons"+
         "(version,dname,wname,pname,major,minor) VALUES"+
-        "('"+plugin.info.getVersion()+"','"+name+"','"+world.getName()+"','"+builder+"','"+major+"','"+minor+"');");
+        "('"+plugin.getInfo().getVersion()+"','"+name+"','"+world.getName()+"','"+builder+"','"+major+"','"+minor+"');");
       if(did<=0)
-        did = plugin.sql.getLastId();
+        did = plugin.getSql().getLastId();
 
       for(CatLevel l: levels) {
-        l.saveDB(plugin.sql,did);
+        l.saveDB(plugin.getSql(),did);
       }
       setupFlagsLocations();
-      resetMin.saveDB(plugin.sql, did);
-      resetMax.saveDB(plugin.sql, did);
-      resetTime.saveDB(plugin.sql, did);
-      bossKilled.saveDB(plugin.sql, did);
-      isEnabled.saveDB(plugin.sql, did);
-      endChest.saveDB(plugin.sql, did);
-      roofFlg.saveDB(plugin.sql, did);
-      floorFlg.saveDB(plugin.sql, did);
+      resetMin.saveDB(plugin.getSql(), did);
+      resetMax.saveDB(plugin.getSql(), did);
+      resetTime.saveDB(plugin.getSql(), did);
+      bossKilled.saveDB(plugin.getSql(), did);
+      isEnabled.saveDB(plugin.getSql(), did);
+      endChest.saveDB(plugin.getSql(), did);
+      roofFlg.saveDB(plugin.getSql(), did);
+      floorFlg.saveDB(plugin.getSql(), did);
     } else {
       System.err.println("[Catacombs] INTERNAL ERROR: Dungeon .db updates not implemented yet");
     }
@@ -518,7 +515,7 @@ public class Dungeon implements Listener {
     builder = p.getName();
     levels.clear();
     
-    CatLevel level = new CatLevel(plugin.cnf,world,x,y,z,getHut(plugin.cnf.HutType()),dir);
+    CatLevel level = new CatLevel(plugin.getCnf(),world,x,y,z,getHut(plugin.getCnf().HutType()),dir);
     levels.add(level);
     if(level.getBuild_ok() && maxLevels >0) {
       CatLevel from = level;
@@ -532,7 +529,7 @@ public class Dungeon implements Listener {
         } else {
           tmp_dir = Direction.ANY;
         }
-        CatLevel lvl = new CatLevel(plugin.cnf,world,from.getBot(),tmp_dir);
+        CatLevel lvl = new CatLevel(plugin.getCnf(),world,from.getBot(),tmp_dir);
         if(lvl.getBuild_ok()) {
           from.stealDirection(lvl);
           levels.add(lvl);
@@ -591,7 +588,7 @@ public class Dungeon implements Listener {
   
   public void suspend() {
     isEnabled.setBoolean(false);
-    isEnabled.saveDB(plugin.sql, did);
+    isEnabled.saveDB(plugin.getSql(), did);
     for(CatLevel l : levels) {
       l.suspend(plugin,roofMat);
     }
@@ -608,7 +605,7 @@ public class Dungeon implements Listener {
   
   public void enable() {
     isEnabled.setBoolean(true);
-    isEnabled.saveDB(plugin.sql, did);
+    isEnabled.saveDB(plugin.getSql(), did);
     for(CatLevel l : levels) {
       l.enable(roofMat);
     }
@@ -629,8 +626,8 @@ public class Dungeon implements Listener {
     }
     resetMax.setLong(hi);
     resetMin.setLong(lo);
-    resetMax.saveDB(plugin.sql, did);
-    resetMin.saveDB(plugin.sql, did);
+    resetMax.saveDB(plugin.getSql(), did);
+    resetMin.saveDB(plugin.getSql(), did);
     newResetTime();
   }
   
@@ -650,7 +647,7 @@ public class Dungeon implements Listener {
       if(did <= 0)
         System.err.println("[Catacombs] INTERNAL ERROR: Attempt to set bossKilled on dungeon with no dungeon id "+name);
       else
-        bossKilled.saveDB(plugin.sql, did);
+        bossKilled.saveDB(plugin.getSql(), did);
     }
   }
 
@@ -755,7 +752,7 @@ public class Dungeon implements Listener {
 
   public Boolean isNatural() {
     for (CatLevel l : levels) {
-      if(l.getCube().isLevel() && !l.getCube().isNatural(plugin.cnf)) {
+      if(l.getCube().isLevel() && !l.getCube().isNatural(plugin.getCnf())) {
         return false;
       }
     }
@@ -944,7 +941,7 @@ public class Dungeon implements Listener {
   private void newResetTime() {
     if(resetMax.getLong()==0) {
       resetTime.setLong((long)0);
-      resetTime.saveDB(plugin.sql, did);
+      resetTime.saveDB(plugin.getSql(), did);
     } else {
       long now = System.currentTimeMillis();
       int hi = (int)(resetMax.getLong()/1000);
@@ -953,9 +950,9 @@ public class Dungeon implements Listener {
       if(hi==lo)
         n = lo*1000;
       else
-        n = (long)(plugin.cnf.nextInt(hi-lo)+lo)*1000;
+        n = (long)(plugin.getCnf().nextInt(hi-lo)+lo)*1000;
       resetTime.setLong(now + n);
-      resetTime.saveDB(plugin.sql, did);
+      resetTime.saveDB(plugin.getSql(), did);
       System.out.println("[Catacombs] Next reset ("+name+") "+CatUtils.formatTime(n));
     } 
     resetWarnings = 0;
@@ -1030,13 +1027,13 @@ public class Dungeon implements Listener {
     
     // Special feature to allow players to put torches in dungeons in worldguard zones
     if(event.isCancelled()) {
-      if(isInRaw(blk) && plugin.cnf.isPlaceable(blk)) {
+      if(isInRaw(blk) && plugin.getCnf().isPlaceable(blk)) {
         event.setCancelled(false);
       }
       return;
     }
     
-    if(isProtected(blk) && !plugin.cnf.isPlaceable(blk)) {
+    if(isProtected(blk) && !plugin.getCnf().isPlaceable(blk)) {
       event.setCancelled(true);
     }
   }
@@ -1044,9 +1041,9 @@ public class Dungeon implements Listener {
   @EventHandler(priority = EventPriority.LOW)
   public void onBlockBreak(BlockBreakEvent event){
     Block blk = event.getBlock();
-    if(isProtected(blk) && !event.isCancelled() && !plugin.cnf.isBreakable(blk)) {
+    if(isProtected(blk) && !event.isCancelled() && !plugin.getCnf().isBreakable(blk)) {
       if(blk.getType() == Material.MOB_SPAWNER) {
-        if(plugin.cnf.ProtectSpawners()) {
+        if(plugin.getCnf().ProtectSpawners()) {
           Player player = event.getPlayer();
           player.sendMessage("Put a torch on opposite sides to stop spawns");
           event.setCancelled(true);
@@ -1120,7 +1117,7 @@ public class Dungeon implements Listener {
     Player player = event.getPlayer();
     Block blk = player.getLocation().getBlock();
     if (isProtected(blk) && !event.isCancelled()) {
-      for(String cmd:plugin.cnf.BannedCommands()) {
+      for(String cmd:plugin.getCnf().BannedCommands()) {
         if (event.getMessage().startsWith(cmd)) {
           player.sendMessage("'"+cmd+"' is blocked in dungeons");
           event.setCancelled(true);
@@ -1139,13 +1136,13 @@ public class Dungeon implements Listener {
         Block below = blk.getRelative(BlockFace.DOWN);
         // ToDo: Check against dungeon end location instead
         if(below.getType() == Material.CHEST) {
-          if (plugin.cnf.ResetButton()) {
+          if (plugin.getCnf().ResetButton()) {
             plugin.Commands(null, new String[]{"reset", name});
-          } else if (plugin.cnf.RecallButton()) {
+          } else if (plugin.getCnf().RecallButton()) {
             plugin.Commands(event.getPlayer(), new String[]{"recall"});
           }
         }
-      } else if(plugin.cnf.ClickIronDoor() && mat == Material.IRON_DOOR_BLOCK) {
+      } else if(plugin.getCnf().ClickIronDoor() && mat == Material.IRON_DOOR_BLOCK) {
         Block below = blk.getRelative(BlockFace.DOWN);
         if(below.getType() == Material.IRON_DOOR_BLOCK) {
           below.setData((byte)(below.getData() ^ 4));
@@ -1161,7 +1158,7 @@ public class Dungeon implements Listener {
   @EventHandler(priority = EventPriority.LOW)
   public void onPlayerMove(PlayerMoveEvent event) {
     Block after = event.getTo().getBlock();
-    if(plugin.cnf.NoArmourInDungeon() && !event.isCancelled()) {
+    if(plugin.getCnf().NoArmourInDungeon() && !event.isCancelled()) {
       Block before = event.getFrom().getBlock();
       if(!before.equals(after) && isProtected(after)) {   // Player has moved to a new block
         Player player = event.getPlayer();
@@ -1191,7 +1188,7 @@ public class Dungeon implements Listener {
     Block blk = human.getLocation().getBlock();
     if(isProtected(blk) &&
             human instanceof Player &&
-            plugin.cnf.NoArmourInDungeon() &&
+            plugin.getCnf().NoArmourInDungeon() &&
             getBlockDepth(blk)>0) {
       Player player = (Player) human;
       int slot = event.getSlot();
@@ -1239,7 +1236,7 @@ public class Dungeon implements Listener {
     Entity ent = evt.getEntity();
     Block blk = ent.getLocation().getBlock();
     if(isInRaw(blk) && !evt.isCancelled()) {
-      if(plugin.cnf.NoPvPInDungeon() &&
+      if(plugin.getCnf().NoPvPInDungeon() &&
               ent instanceof Player &&
               CatUtils.getDamager(evt) instanceof Player) {
         evt.setCancelled(true);  
@@ -1275,20 +1272,20 @@ public class Dungeon implements Listener {
       if(event instanceof PlayerDeathEvent) {
         PlayerDeathEvent pde = (PlayerDeathEvent) event;
         Player player = (Player) damagee;
-        if(plugin.cnf.DeathExpKept()>0) // Don't drop any exp if some will be retained.
+        if(plugin.getCnf().DeathExpKept()>0) // Don't drop any exp if some will be retained.
           pde.setDroppedExp(0);
         int expLevel = player.getLevel();
-        pde.setNewLevel((int)(expLevel*plugin.cnf.DeathExpKept()));
-        if(plugin.cnf.DeathKeepGear()) {
-          plugin.players.saveGear(player);
+        pde.setNewLevel((int)(expLevel*plugin.getCnf().DeathExpKept()));
+        if(plugin.getCnf().DeathKeepGear()) {
+          plugin.getPlayers().saveGear(player);
           pde.getDrops().clear(); // We'll handle the items, don't drop them yet
         }
-      } else if(!plugin.cnf.GoldOff()) {
+      } else if(!plugin.getCnf().GoldOff()) {
         EntityDamageEvent ede = damagee.getLastDamageCause();
         Entity damager = CatUtils.getDamager(ede);
         if(damager instanceof Player) {
-          double gold = plugin.cnf.Gold();
-          String bal = CatUtils.giveCash(plugin.cnf,damager,gold);
+          double gold = plugin.getCnf().Gold();
+          String bal = CatUtils.giveCash(plugin.getCnf(),damager,gold);
           if(bal!=null && gold > 0)
             ((Player)damager).sendMessage(gold+" coins ("+bal+")");
         }         

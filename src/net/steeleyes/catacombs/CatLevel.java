@@ -102,7 +102,7 @@ public class CatLevel {
   public CatLevel(Catacombs plugin, ResultSet lvl, World world, Boolean enable) throws Exception {
     build_ok = true;
     can_go_lower = true;
-    this.cnf = plugin.cnf;
+    this.cnf = plugin.getCnf();
     this.world  = world;
     lid = lvl.getInt("lid");
 

@@ -28,7 +28,7 @@ public class DungeonHandler implements Runnable {
   
   @Override
   public void run() {
-    for(Dungeon dung: plugin.dungeons.all()) {
+    for(Dungeon dung: plugin.getDungeons().all()) {
       dung.maintain();
     }
   }

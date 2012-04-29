@@ -33,7 +33,6 @@ import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 
 public class CatListener implements Listener {
   private Catacombs plugin;
-  //private Methods Methods = null;
 
   public CatListener(final Catacombs plugin) {
     this.plugin = plugin;
@@ -48,7 +47,7 @@ public class CatListener implements Listener {
   @EventHandler(priority = EventPriority.LOW)
   public void onBlockDamage(BlockDamageEvent event) {
     Block blk = event.getBlock();
-    if(!plugin.cnf.SecretDoorOnlyInDungeon() && !plugin.dungeons.isInRaw(blk)) {
+    if(!plugin.getCnf().SecretDoorOnlyInDungeon() && !plugin.getDungeons().isInRaw(blk)) {
       // Toggle secret doors outside dungeons if the option is false
       CatUtils.toggleSecretDoor(blk);
     }
@@ -63,11 +62,12 @@ public class CatListener implements Listener {
   @EventHandler(priority = EventPriority.LOW)
   public void onPlayerRespawn(PlayerRespawnEvent evt) {
     Player player = evt.getPlayer();
-    if(plugin.players.hasGear(player)) {
-      if(plugin.cnf.DeathKeepGear() && CatUtils.takeCash(player, plugin.cnf.DeathGearCost(),"to restore your equipment")) {
-        plugin.players.restoreGear(player);
+    if(plugin.getPlayers().hasGear(player)) {
+      if(plugin.getCnf().DeathKeepGear() &&
+              CatUtils.takeCash(player, plugin.getCnf().DeathGearCost(),"to restore your equipment")) {
+        plugin.getPlayers().restoreGear(player);
       } else {
-        plugin.players.dropGear(player);
+        plugin.getPlayers().dropGear(player);
       }
     }
   }
@@ -87,7 +87,7 @@ public class CatListener implements Listener {
     Block blk = evt.getLocation().getBlock();
     Boolean isMonster = evt.getEntity() instanceof Monster;
       
-    if(plugin.cnf.MobsSpawnOnlyUnderground() &&
+    if(plugin.getCnf().MobsSpawnOnlyUnderground() &&
        isMonster &&
        reason == SpawnReason.NATURAL &&
        CatUtils.onSurface(blk)) {
@@ -95,8 +95,8 @@ public class CatListener implements Listener {
       return;
     }    
     
-    if(plugin.dungeons.getDungeon(blk) == null) { // Not in dungeon
-      if(plugin.cnf.MobsSpawnOnlyInDungeons() && isMonster)
+    if(plugin.getDungeons().getDungeon(blk) == null) { // Not in dungeon
+      if(plugin.getCnf().MobsSpawnOnlyInDungeons() && isMonster)
         evt.setCancelled(true);
       return;
     }
