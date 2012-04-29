@@ -22,9 +22,6 @@ package net.steeleyes.catacombs;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-//import com.nijikokun.catacombsregister.payment.Method;
-//import com.nijikokun.catacombsregister.payment.Method.MethodAccount;
-//import com.nijikokun.catacombsregister.payment.Methods;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

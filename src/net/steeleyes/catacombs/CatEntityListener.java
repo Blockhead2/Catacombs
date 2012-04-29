@@ -19,38 +19,8 @@
 */
 package net.steeleyes.catacombs;
 
-//import org.bukkit.entity.Player;
-//import org.bukkit.event.entity.EntityDeathEvent;
-//import org.bukkit.event.entity.EntityExplodeEvent;
-//import org.bukkit.event.entity.EntityDamageEvent;
-//import org.bukkit.event.entity.CreatureSpawnEvent;
-//import java.util.List;
-//import org.bukkit.block.Block;
-//import org.bukkit.entity.Entity;
-//import org.bukkit.Location;
-//
-//import org.bukkit.entity.Enderman;
-//import org.bukkit.entity.EntityType;
-//import org.bukkit.entity.LivingEntity;
-//
-//import org.bukkit.entity.Monster;
-//import org.bukkit.entity.PigZombie;
-//import org.bukkit.entity.Wolf;
-//import org.bukkit.event.EventHandler;
-//import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-//import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
-//import org.bukkit.event.entity.EntityChangeBlockEvent;
-//import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-//import org.bukkit.event.entity.EntityTargetEvent;
-//import org.bukkit.event.entity.PlayerDeathEvent;
+public class CatEntityListener {
 
-public class CatEntityListener implements Listener {
-//  private static Catacombs plugin;
-//
-//  public CatEntityListener(Catacombs instance) {
-//    plugin = instance;
-//  }
 
 //  @EventHandler(priority = EventPriority.LOW)
 //  public void onEntityDeath(EntityDeathEvent evt) {
@@ -259,39 +229,8 @@ public class CatEntityListener implements Listener {
 //    }
 //  }
 
-//  @EventHandler(priority = EventPriority.LOW)
-//  public void onEntityExplode(EntityExplodeEvent eEvent){
-//    if(eEvent.isCancelled())
-//      return;
-//   
-//    Location loc = eEvent.getLocation();
-//    Block blk = loc.getBlock();
-//    List<Block> list = eEvent.blockList();
-//
-//    if(plugin.dungeons.isProtected(blk) || any_protected(list)) {
-//      list.clear();
-//    }
-//  }
-//  
-//  private Boolean any_protected(List<Block> list) {
-//    for(Block b : list) {
-//      if(plugin.dungeons.isProtected(b)) {
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
 
-//  @EventHandler(priority = EventPriority.LOW)
-//  public void onEntityChangeBlock(EntityChangeBlockEvent eEvent) {
-//    if(eEvent.isCancelled())
-//      return;
-//
-//    Block blk = eEvent.getBlock();
-//    if(eEvent.getEntity() instanceof Enderman && plugin.dungeons.isInRaw(blk)) {
-//      //System.out.println("[Catacombs] Enderman EntityChangeBlockEvent cancelled");
-//      eEvent.setCancelled(true);
-//    }
-//  }
+
+
 
 }

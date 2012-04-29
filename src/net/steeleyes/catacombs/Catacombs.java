@@ -30,8 +30,6 @@ import org.bukkit.command.CommandSender;
 
 import net.steeleyes.maps.Direction;
 
-//import com.nijikokun.catacombsregister.payment.Method;
-//import com.nijikokun.catacombsregister.payment.Methods;
 import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.util.List;
@@ -49,6 +47,11 @@ import org.bukkit.plugin.RegisteredServiceProvider;
  * 
  
 Release v2.4
+* Changed code to use Vault rather than WEPIF (for permissions) and Register
+  (for economy). This significantly simplifies the code and it's maintenance.
+  Installing Vault is optional. If you don't install Vault then Catacombs will
+  fall back on ops.txt to see if a player has Op permission. If you don't
+  install Vault then no cash will be given for killing monsters inside dungeons.
 * Optimized the code that checks if blocks are inside dungeons. The code will
   now check against a bounding cuboid for the entire dungeon before pushing down
   to check all the levels. The order the coordinate checks are done in was also
@@ -544,9 +547,16 @@ public class Catacombs extends JavaPlugin {
   }  
   
   private boolean setupPermissions() {
+    if (getServer().getPluginManager().getPlugin("Vault") == null) {
+      System.out.println("[Catacombs] Vault not found, 'ops.txt' will be used for permissions");
+      return false;
+    }
     RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
     if (permissionProvider != null) {
       permission = permissionProvider.getProvider();
+      if(permission != null) {
+        System.out.println("[Catacombs] Found permission system '"+permission.getName()+"'");
+      }
     }
     return (permission != null);
   }
@@ -561,11 +571,17 @@ public class Catacombs extends JavaPlugin {
 //  }
 
   private boolean setupEconomy() {
+    if (getServer().getPluginManager().getPlugin("Vault") == null) {
+      System.out.println("[Catacombs] Vault not found, no cash will be given for kills");
+      return false;
+    }
     RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
     if (economyProvider != null) {
       economy = economyProvider.getProvider();
+      if (economy != null) {
+        System.out.println("[Catacombs] Found economy system '" + economy.getName() + "'");
+      }
     }
-
     return (economy != null);
   }
   

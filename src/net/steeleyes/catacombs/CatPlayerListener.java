@@ -20,70 +20,17 @@
 package net.steeleyes.catacombs;
 
 
-//import org.bukkit.entity.Player;
-//import org.bukkit.block.Block;
-//import org.bukkit.event.EventHandler;
-//import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-//import org.bukkit.event.player.PlayerBedEnterEvent;
-//import org.bukkit.event.player.PlayerChangedWorldEvent;
-//import org.bukkit.event.player.PlayerFishEvent;
-//import org.bukkit.event.player.PlayerKickEvent;
-//import org.bukkit.event.player.PlayerPortalEvent;
-//import org.bukkit.event.player.PlayerQuitEvent;
-//import org.bukkit.event.player.PlayerTeleportEvent;
 
-public class CatPlayerListener implements Listener{
-//  private static Catacombs plugin;
-//
-//  public CatPlayerListener(Catacombs instance) {
-//    plugin = instance;
-//  }
 
-//  @EventHandler(priority = EventPriority.HIGHEST)
-//  public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
-//    if (event.isCancelled())
-//      return;
-//    Player player = event.getPlayer();
-//    Block blk = player.getLocation().getBlock();
-//    World w = blk.getWorld();
-//    if(plugin.dungeons.isProtected(blk)) {
-//      for(String cmd:plugin.cnf.BannedCommands()) {
-//        if (event.getMessage().startsWith(cmd)) {
-//          player.sendMessage("'"+cmd+"' is blocked in dungeons");
-//          event.setCancelled(true);
-//          return;
-//        }
-//      }
-//    }
-//  }
+public class CatPlayerListener {
+
   
 //  @EventHandler(priority = EventPriority.LOW)
 //  public void onPlayerInteract(PlayerInteractEvent event) {
 //    if (event.isCancelled())
 //      return;
 //    
-//    Block blk = event.getClickedBlock();
-//    if (plugin.dungeons.isInRaw(blk)) {
-//      if (blk.getType() == Material.STONE_BUTTON) {
-//        if (plugin.cnf.ResetButton()) {
-//          Dungeon dung = plugin.dungeons.which(blk);
-//          plugin.Commands(null, new String[]{"reset", dung.getName()});
-//        } else if (plugin.cnf.RecallButton()) {
-//          plugin.Commands(event.getPlayer(), new String[]{"recall"});
-//        }
-//      } else if(plugin.cnf.ClickIronDoor() && blk.getType() == Material.IRON_DOOR_BLOCK) {
-//        Block below = blk.getRelative(BlockFace.DOWN);
-//        if(below.getType() == Material.IRON_DOOR_BLOCK) {
-//          below.setData((byte)(below.getData() ^ 4));
-//        }
-//        Block above = blk.getRelative(BlockFace.UP);
-//        if(above.getType() == Material.IRON_DOOR_BLOCK) {
-//          blk.setData((byte)(blk.getData() ^ 4)); // Set the lower block
-//          //above.setData((byte)(above.getData() ^ 4));
-//        }        
-//      }
-//    }
+
 ////    if(plugin.debug && blk.getType()==Material.WEB && plugin.dungeons.isInRaw(blk)) {
 ////            
 ////      Dungeon dung = plugin.dungeons.which(blk);
@@ -115,50 +62,9 @@ public class CatPlayerListener implements Listener{
 //    }
 //  }
   
-//  @EventHandler(priority = EventPriority.LOW)
-//  public void onPlayerRespawn(PlayerRespawnEvent evt) {
-//    //if(!plugin.cnf.AdvancedCombat()) return;
-//    Player player = evt.getPlayer();
-//    if(plugin.players.hasGear(player)) {
-//      if(plugin.cnf.DeathKeepGear() && CatUtils.takeCash(player, plugin.cnf.DeathGearCost(),"to restore your equipment")) {
-//        plugin.players.restoreGear(player);
-//      } else {
-//        plugin.players.dropGear(player);
-//      }
-//    }
-//  }
   
-//  @EventHandler(priority = EventPriority.LOW)
-//  public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
-//    if (event.isCancelled())
-//      return;
-//    
-//    Block block = event.getBlockClicked();
-//    if(plugin.dungeons.isProtected(block)) {
-//      event.setCancelled(true);
-//    }
-//  }
-//
-//  @EventHandler(priority = EventPriority.LOW)
-//  public void onPlayerBucketFill(PlayerBucketFillEvent event) {
-//    if (event.isCancelled())
-//      return;
-//    
-//    Block block = event.getBlockClicked();
-//    if(plugin.dungeons.isProtected(block)) {
-//      event.setCancelled(true);
-//    }
-//  }
   
-//  @EventHandler(priority = EventPriority.LOW)
-//  public void onPlayerJoin(PlayerJoinEvent evt) {
-//    
-//  }
-//  
-//  @EventHandler(priority = EventPriority.LOW)
-//  public void onItemHeldChange(PlayerItemHeldEvent evt) {
-//    
-//  }
+
   
 //  @EventHandler(priority = EventPriority.LOW)
 //  public void onPlayerPortal(PlayerPortalEvent evt) {
@@ -178,10 +84,6 @@ public class CatPlayerListener implements Listener{
 //    plugin.monsters.removeThreat(evt.getPlayer());
 //  }
 //  
-//  //@Override
-//  //public void onPlayerBedLeave(PlayerBedLeaveEvent evt) {
-//  // 
-//  //}  
 //  
 //  @EventHandler(priority = EventPriority.LOW)
 //  public void onPlayerKick(PlayerKickEvent evt) {

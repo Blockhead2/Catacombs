@@ -55,8 +55,8 @@ public class HateTable {
     for(Entry<LivingEntity,Integer> e : CatUtils.sortByValue(threats)) {
       int threat = e.getValue();
       LivingEntity ent = e.getKey();
-      String name = (ent instanceof Player)?((Player)ent).getName():ent.toString();
-      str += name+"("+threat+") ";
+      String x = (ent instanceof Player)?((Player)ent).getName():ent.toString();
+      str += x+"("+threat+") ";
     }
     return str;
   }

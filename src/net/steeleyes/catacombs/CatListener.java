@@ -27,12 +27,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-//import com.nijikokun.catacombsregister.payment.Methods;
 import org.bukkit.entity.Monster;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
-import org.bukkit.event.server.PluginDisableEvent;
-import org.bukkit.event.server.PluginEnableEvent;
 
 public class CatListener implements Listener {
   private Catacombs plugin;
