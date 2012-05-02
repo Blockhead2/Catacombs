@@ -111,7 +111,9 @@ public enum ECatConfig {
     SmallEquipPct(".Loot.Small.LeatherEquipPct", 10),
     MedSweepOre  (".Loot.Medium.SweepOre", true),
     MedEquipPct  (".Loot.Medium.EquipPct", 100),
+    MedSmallPct  (".Loot.Medium.SmallPct", 100),
     BigEquipPct  (".Loot.Big.EquipPct", 100),
+    BigSmallPct  (".Loot.Big.SmallPct", 100),
     
     LootSmallList(".Loot.Small.List", Arrays.asList(
       "leather:10:1-6",

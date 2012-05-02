@@ -19,18 +19,7 @@
 */
 package net.steeleyes.catacombs;
 
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.entity.Player;
-import org.bukkit.World;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-
 import net.steeleyes.maps.Direction;
-
-import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.util.List;
 
@@ -39,8 +28,17 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * 
@@ -54,6 +52,14 @@ Release v2.4
   fall back on ops.txt to see if a player has Op permission, and also no cash
   will be given for killing monsters inside dungeons. Other than that everything
   should function fine.
+* Changed the way flints are created to allow different durability codes (this
+  allows SuperCapes to be given as chest loot).
+* Fixed a bug associated with building dungeons that end above level 128.
+* Change the way dispensers, furnaces etc are destroyed to match the way chests
+  are destroyed to help work around some intermittent client side crashes.
+* Added new configuration options to control the chances of finding small chest
+  loot in the medium and big chests, and also an option to empty out the less
+  significant half of the double (end of level) chests.
 * Optimized the code that checks if blocks are inside dungeons. The code will
   now check against a bounding cuboid for the entire dungeon before pushing down
   to check all the levels. The order the coordinate checks are done in was also
@@ -167,7 +173,7 @@ Release v1.5
   are protected by other plugins (like worldguard)
 * Updated my permissions handler to use sk89q's WEPIF permissions handler code.
   Hopefully this will improve integration with permissions handlers in general.
-* Changed player death options so they function in dungeons even without the
+* Changed player regionMobDeath options so they function in dungeons even without the
   AdvancedCombat option being set.
 * Updated the Event code to the new bukkit style. This makes the following admin
   configurations options now obsolete (because there is no time to be saved by not
@@ -231,7 +237,7 @@ Release v1.2
 * Fixed an AdvancedCombat bug there healers were able to heal dead players.
 * Added taunt and aggro reducing moves to AdvancedCombat
 * Sorted out some item durability balances for AdvancedCombat
-* Fixed threat transfer bug on player death
+* Fixed threat transfer bug on player regionMobDeath
 * Added some more special rooms and fixed a couple of minor mapping bugs
 * Added silverfish spawners (disabled them - don't have enough bukkit hooks yet)
 * Removed legacy support for old MySQL databases (people have had plenty of
@@ -462,7 +468,7 @@ public class Catacombs extends JavaPlugin {
   private DungeonHandler        dhandler;
 
   private Players               players = new Players();
-  private MobTypes              mobtypes;
+  private MobTypes              mobtypes = null;
 
   private PluginDescriptionFile info;
   private Boolean               enabled= false;
@@ -478,8 +484,7 @@ public class Catacombs extends JavaPlugin {
   public void onLoad() {
     cnf = new CatConfig(getConfig());
     info = this.getDescription();
-    mobtypes = new MobTypes(getConfig());
-    //monsters = new Monsters(this);
+    //mobtypes = new MobTypes();
     
     mapdir = new File("plugins" + File.separator + info.getName() + File.separator + "maps");
     if(!mapdir.exists()){
@@ -578,12 +583,14 @@ public class Catacombs extends JavaPlugin {
   }
   
   public Boolean hasPermission(Player player,String perm) {
+    if(player == null) // Console has all permissions
+      return true;
+    
     if(permission != null) {
       return permission.has(player, "achieve.admin") || permission.has(player, perm);
     }
-    if(player != null)
-      return player.isOp();
-    return false;
+
+    return player.isOp();
   }
 
   public CatSQL getSql() {
@@ -612,6 +619,10 @@ public class Catacombs extends JavaPlugin {
 
   public CatConfig getCnf() {
     return cnf;
+  }
+
+  public MobTypes getMobtypes() {
+    return mobtypes;
   }
   
   @Override

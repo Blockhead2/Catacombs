@@ -25,7 +25,10 @@ public enum MobShape {
   ENDERMAN      (EntityType.ENDERMAN),
   GHAST         (EntityType.GHAST),
   GIANT         (EntityType.GIANT),
-  SLIME         (EntityType.SLIME),
+  SLIME1        (EntityType.SLIME),
+  SLIME2        (EntityType.SLIME),
+  SLIME3        (EntityType.SLIME),
+  SLIME4        (EntityType.SLIME),
   CHICKEN       (EntityType.CHICKEN),
   COW           (EntityType.COW),
   SQUID         (EntityType.SQUID),
@@ -61,8 +64,17 @@ public enum MobShape {
       case POWEREDCREEPER:
         ((Creeper) e).setPowered(true);
         break;
-      case SLIME:
+      case SLIME1:
+        ((Slime) e).setSize(1);
+        break;
+      case SLIME2:
         ((Slime) e).setSize(2);
+        break;
+      case SLIME3:
+        ((Slime) e).setSize(3);
+        break;
+      case SLIME4:
+        ((Slime) e).setSize(4);
         break;
       default:
         break;

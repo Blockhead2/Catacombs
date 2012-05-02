@@ -77,8 +77,10 @@ public interface ICatConfig extends IConfig {
 
   public  Boolean SmallEquipChance();
   public  Boolean MedEquipChance();
+  public  Boolean MedSmallChance();
   public  Boolean MedSweepOre();
   public  Boolean BigEquipChance();
+  public  Boolean BigSmallChance();
   public  Boolean MinorChance();
 
   public  CatMat majorMat();

@@ -37,6 +37,7 @@ public class CatLoot {
       inv.addItem(i);
     }  
   }
+  
   static public void fillChest(CatConfig cnf, List<ItemStack> inv, List<String> list) {
     for(String loot : list) {
       String tmp[] = loot.split(":");
@@ -60,7 +61,7 @@ public class CatLoot {
             num = cnf.nextInt(hi-lo+1)+lo;
           }
           ItemStack stk;
-          if(m == Material.POTION || m==Material.BOOK) {
+          if(m == Material.POTION || m==Material.BOOK || m==Material.FLINT) {
             stk = new ItemStack(m,num,(short)code);
           } else {
             stk = (code>0)?new ItemStack(m,num,(short)0,(byte)code):new ItemStack(m,num);
@@ -87,18 +88,21 @@ public class CatLoot {
       }
     }   
   }  
+  
   static public void smallChest(CatConfig cnf,Inventory inv) {   
     if(cnf.SmallEquipChance())
       inv.addItem(leather_equipment(cnf));
     
     fillChest(cnf,inv,cnf.LootSmallList());
   }
+  
   static public void smallChest(CatConfig cnf,List<ItemStack> items) {   
     if(cnf.SmallEquipChance())
       items.add(leather_equipment(cnf));
     
     fillChest(cnf,items,cnf.LootSmallList());
   }
+  
   static public void midChest(CatConfig cnf,Inventory inv) {
     if(cnf.MedEquipChance()) {
       if(cnf.Chance(90)) {
@@ -111,9 +115,12 @@ public class CatLoot {
       }
     }
     fillChest(cnf,inv,cnf.LootMediumList());
-
-    smallChest(cnf,inv);
+    
+    if(cnf.MedSmallChance()) {
+      smallChest(cnf,inv);      
+    }
   }
+  
   static public void midChest(CatConfig cnf,List<ItemStack> inv) {
     if(cnf.MedEquipChance()) {
       if(cnf.Chance(90)) {
@@ -127,24 +134,35 @@ public class CatLoot {
     }
     fillChest(cnf,inv,cnf.LootMediumList());
 
-    smallChest(cnf,inv);
+    if(cnf.MedSmallChance()) {
+      smallChest(cnf,inv);
+    }
   }
+  
   static public void bigChest(CatConfig cnf,Inventory inv) {
 
     if(cnf.BigEquipChance())
       inv.addItem(diamond_equipment(cnf));
 
     fillChest(cnf,inv,cnf.LootBigList());
-    smallChest(cnf,inv);
+    
+    if(cnf.BigSmallChance()) {
+      smallChest(cnf,inv);
+    }
   }
+  
   static public void bigChest(CatConfig cnf,List<ItemStack> inv) {
 
     if(cnf.BigEquipChance())
       inv.add(diamond_equipment(cnf));
 
     fillChest(cnf,inv,cnf.LootBigList());
-    smallChest(cnf,inv);
-  }  
+    
+    if(cnf.BigSmallChance()) {
+      smallChest(cnf,inv);
+    }
+  } 
+  
   static private ItemStack leather_equipment(CatConfig cnf) {
     ItemStack is = null;
     switch (cnf.nextInt(6)+1) {
@@ -157,6 +175,7 @@ public class CatLoot {
     }   
     return is;
   }
+  
   static private ItemStack iron_equipment(CatConfig cnf) {
     ItemStack is = null;
     switch (cnf.nextInt(12)+1) {

@@ -77,7 +77,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
 
-public class Dungeon implements Listener {
+public class Dungeon extends Region implements Listener {
   private Catacombs plugin = null;
   private World world;
   private final ArrayList<CatLevel> levels = new ArrayList<CatLevel>();
@@ -105,6 +105,9 @@ public class Dungeon implements Listener {
   
   private Boolean built = false;
   
+  private Mob boss = null;
+  
+  private transient Clan clan = null;
   private transient Cuboid bbox = null;
   
   // New dungeon
@@ -116,37 +119,8 @@ public class Dungeon implements Listener {
     this.minor    = plugin.getCnf().minorMat();
     this.floorMat = plugin.getCnf().floorMat();
     this.roofMat  = plugin.getCnf().roofMat();
+    clan = new Clan(plugin,this);
     setup_huts();
-  }  
-  
-  public void render(BlockChangeHandler handler) {
-    int lvl = 0;
-    for(CatLevel l : levels) {
-      String[] text = new String[4];
-      text[0] = name;
-      if(lvl==0) {
-        text[1] = "Levels:"+(levels.size()-1);
-      } else {
-        text[1] = "Level:"+lvl;
-      }
-      l.addLeveltoWorld(handler,text);
-      lvl++;
-    }
-    built = true;
-    updateBBox();
-    registerListener();
-  }
-    
-  public void remove() {
-    plugin.getSql().removeDungeon(did);
-    unregisterListener();
-  }
-  
-  public void unrender(Catacombs plugin,BlockChangeHandler handler) {
-    allPlayersToTop();
-    for(CatLevel l : levels) {
-      l.delete(plugin,handler);
-    }
   }  
   
   // Re-load saved dungeon
@@ -159,6 +133,7 @@ public class Dungeon implements Listener {
       String wname = rs.getString("wname");
       builder = rs.getString("pname");
       world = plugin.getServer().getWorld(wname);
+      clan = new Clan(plugin,this);
       if(world==null) {
         System.out.println("[Catacombs] World '"+wname+"' required for dungeon '"+name+"' can't be found (skipping dungeon)");
       } else {
@@ -219,11 +194,40 @@ public class Dungeon implements Listener {
         updateBBox();
         registerListener();
       }
-      //registerCubes(plugin.prot);
     } catch(Exception e) {
       System.err.println("[Catacombs] ERROR: "+e.getMessage());
     }
   }
+  
+  public void render(BlockChangeHandler handler) {
+    int lvl = 0;
+    for(CatLevel l : levels) {
+      String[] text = new String[4];
+      text[0] = name;
+      if(lvl==0) {
+        text[1] = "Levels:"+(levels.size()-1);
+      } else {
+        text[1] = "Level:"+lvl;
+      }
+      l.addLeveltoWorld(handler,text);
+      lvl++;
+    }
+    built = true;
+    updateBBox();
+    registerListener();
+  }
+    
+  public void remove() {
+    plugin.getSql().removeDungeon(did);
+    unregisterListener();
+  }
+  
+  public void unrender(Catacombs plugin,BlockChangeHandler handler) {
+    allPlayersToTop();
+    for(CatLevel l : levels) {
+      l.delete(plugin,handler);
+    }
+  }  
   
   public void saveDB() {
     if(did<=0) {    
@@ -309,6 +313,16 @@ public class Dungeon implements Listener {
 
   public void setWorld(World world) {
     this.world = world;
+  }
+  
+  @Override
+  public void regionMobDeath(LivingEntity ent) {
+    if(boss != null && ent.equals(boss.getEnt())) {
+      System.out.println("Boss death in dungeon "+name+" "+ent);
+      boss = null;
+    } else {
+      System.out.println("Monster death in dungeon "+name+" "+ent);  
+    }
   }
   
   @Override
@@ -673,7 +687,7 @@ public class Dungeon implements Listener {
   
   public CatLevel getLowest(CatCuboid.Type type) {
     CatLevel lvl = null;
-    int lowest = 128;
+    int lowest = world.getMaxHeight()+1;
     for(CatLevel l : levels) {
       if(l.getCube().getType() == type && l.getCube().yl<lowest) {
         lowest = l.getCube().yl;
@@ -1151,7 +1165,18 @@ public class Dungeon implements Listener {
         if(above.getType() == Material.IRON_DOOR_BLOCK) {
           blk.setData((byte)(blk.getData() ^ 4)); // The lower block has open/closed bit
         }        
+//      } else if(mat == Material.GOLD_BLOCK) {
+//        MobTypes types = plugin.getMobtypes();
+//        MobType z = types.get("Zombie");
+//        if(z != null) {
+//          Location loc = getSafePlace(blk);
+//          Mob mob = clan.spawnMob(z,loc,true);
+//          if(boss == null) {
+//            boss = mob;
+//          }
+//        }
       }
+
     }
   }
 

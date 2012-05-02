@@ -21,7 +21,6 @@ package net.steeleyes.catacombs;
 
 import java.util.List;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 //  ZOMBIE        (CreatureType.ZOMBIE,50),
 //  SKELETON      (CreatureType.SKELETON,40),
@@ -68,12 +67,14 @@ public class MobType {
     return name+" "+shape+" "+hps+" "+abilities+" "+loot;
   }
   
-  public LivingEntity spawn(World world, Location loc) {
-    return shape.spawn(world,loc);
+  public LivingEntity spawn(Location loc) {
+    return shape.spawn(loc.getWorld(),loc);
   }
+  
   public LivingEntity spawn(LivingEntity e) {
     return shape.spawn(e);
   }
+  
   public List<CatAbility> getAbilities() {
     return abilities;
   }

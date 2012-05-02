@@ -782,7 +782,7 @@ public class Room {
         }
         if(grid.okForChest(px1, py1) && grid.okForChest(px2, py2)) {
           grid.set(px1,py1,Square.MIDCHEST);
-          grid.set(px2,py2,Square.CHEST);
+          grid.set(px2,py2,(cnf.MedHalfEmpty())?Square.EMPTYCHEST:Square.CHEST);
           return true;
         }
       }

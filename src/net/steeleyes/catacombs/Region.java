@@ -17,23 +17,12 @@
  * @copyright Copyright (C) 2011
  * @license GNU GPL <http://www.gnu.org/licenses/>
 */
-package net.steeleyes.maps;
+package net.steeleyes.catacombs;
 
-public interface IConfig {
-  public  Boolean MedHalfEmpty();
-  public  Boolean SandChance();
-  public  Boolean ChestChance();
-  public  Boolean SpawnerChance();
-  public  Boolean EnchantChance();
-  public  Boolean TrapChance();
-  public  Boolean PoolChance();
-  public  Boolean FullPoolChance();
-  public  Boolean SpecialChance();
-  public  Boolean CorridorChance();
-  public  Boolean ShroomChance();
-  public  Boolean BenchChance();
-  public  Boolean AnvilChance();
-  public  Boolean OvenChance();
-  public  Boolean DoubleDoorChance();
+import org.bukkit.entity.LivingEntity;
+
+public abstract class Region {
   
+  public void regionMobDeath(LivingEntity ent) {
+  }
 }

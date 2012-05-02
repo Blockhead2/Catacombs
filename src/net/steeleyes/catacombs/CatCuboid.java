@@ -619,8 +619,8 @@ public class CatCuboid extends Cuboid {
       for(int z=zl;z<=zh;z++) {
         for(int y=yl;y<=yh;y++) {
           Block blk = world.getBlockAt(x,y,z);
+          Object o = blk.getState();
           if(emptyChest) {
-            Object o = blk.getState();
             if(o != null && o instanceof InventoryHolder) {
               InventoryHolder cont = (InventoryHolder) o;
               cont.getInventory().clear();
@@ -638,6 +638,7 @@ public class CatCuboid extends Cuboid {
              before == Material.IRON_DOOR_BLOCK ||
              before == Material.WALL_SIGN ||
              before == Material.SIGN_POST ||
+             before == Material.VINE ||
              before == Material.WOODEN_DOOR
              ) {
             handler.addHigh(blk,mat);
@@ -653,7 +654,7 @@ public class CatCuboid extends Cuboid {
                 handler.addLow(blk,mat);
               }
             }
-          } else if(before == Material.CHEST) {
+          } else if(o != null && o instanceof InventoryHolder) {
             blk.setType(Material.AIR);
             blk.breakNaturally();
             handler.addLow(blk,mat);

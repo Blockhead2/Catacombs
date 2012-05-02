@@ -62,7 +62,9 @@ public class CatConfig extends Config implements ICatConfig {
   private Double GoldMax()                 { return getSDouble(ECatConfig.GoldMax.getStr());  }
   private Integer SmallEquipPct()          { return getSInt(ECatConfig.SmallEquipPct.getStr());  }
   private Integer MedEquipPct()            { return getSInt(ECatConfig.MedEquipPct.getStr());  }
+  private Integer MedSmallPct()            { return getSInt(ECatConfig.MedSmallPct.getStr());  }
   private Integer BigEquipPct()            { return getSInt(ECatConfig.BigEquipPct.getStr());  }
+  private Integer BigSmallPct()            { return getSInt(ECatConfig.BigSmallPct.getStr());  }
   public  List<String> TrapList()          { return getSStringList(ECatConfig.TrapList.getStr());  }
   public  List<String> LootSmallList()     { return getSStringList(ECatConfig.LootSmallList.getStr());  }
   public  List<String> LootMediumList()    { return getSStringList(ECatConfig.LootMediumList.getStr());  }
@@ -99,7 +101,9 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean SmallEquipChance()       { return Chance(SmallEquipPct()); }
   public  Boolean MedSweepOre()            { return getSBoolean(ECatConfig.MedSweepOre.getStr()); }
   public  Boolean MedEquipChance()         { return Chance(MedEquipPct()); }
+  public  Boolean MedSmallChance()         { return Chance(MedSmallPct()); }
   public  Boolean BigEquipChance()         { return Chance(BigEquipPct()); }
+  public  Boolean BigSmallChance()         { return Chance(BigSmallPct()); }
   public  Boolean MinorChance()            { return Chance(MossyPct()); }
 
   public  CatMat majorMat()                { return CatMat.parseMaterial(majorBlock());  } 

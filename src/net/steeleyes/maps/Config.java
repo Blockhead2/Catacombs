@@ -60,7 +60,8 @@ public class Config implements IConfig {
   private Integer AnvilPct()         { return getSInt(EConfig.AnvilPct.getStr());  }
   private Integer OvenPct()          { return getSInt(EConfig.OvenPct.getStr());  }
   private Integer DoubleDoorPct()    { return getSInt(EConfig.DoubleDoorPct.getStr());  }
-  
+
+  public  Boolean MedHalfEmpty()     { return getSBoolean(EConfig.MedHalfEmpty.getStr());  }
   public  Boolean SandChance()       { return Chance(SandPct()); }
   public  Boolean ChestChance()      { return Chance(ChestPct()); }
   public  Boolean SpawnerChance()    { return Chance(SpawnerPct()); }

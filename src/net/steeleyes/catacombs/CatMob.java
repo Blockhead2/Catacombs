@@ -20,6 +20,7 @@ along with Catacombs.  If not, see <http://www.gnu.org/licenses/>.
 package net.steeleyes.catacombs;
 
 import java.util.Calendar;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Creature;
@@ -61,9 +62,8 @@ public class CatMob {
     this.plugin = plugin;
     //this.cnf = plugin.cnf;
     this.type = type;
-    ent = type.spawn(world,loc);
+    ent = type.spawn(loc);
     name = type.getName();
-
     common_init();
   }
   
@@ -213,7 +213,8 @@ public class CatMob {
       
       // ToDo: end dungeon if it's the final boss
       if(tickId>0) {
-        plugin.getServer().getScheduler().cancelTask(tickId);
+        //plugin.getServer().getScheduler().cancelTask(tickId);
+        Bukkit.getServer().getScheduler().cancelTask(tickId);
         tickId = 0;
       }
       hate=null;
