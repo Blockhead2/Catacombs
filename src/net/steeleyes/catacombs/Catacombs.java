@@ -60,6 +60,7 @@ Release v2.4
 * Added new configuration options to control the chances of finding small chest
   loot in the medium and big chests, and also an option to empty out the less
   significant half of the double (end of level) chests.
+* Change code so players don't need recall permission to use the recall button.
 * Optimized the code that checks if blocks are inside dungeons. The code will
   now check against a bounding cuboid for the entire dungeon before pushing down
   to check all the levels. The order the coordinate checks are done in was also

@@ -1153,7 +1153,8 @@ public class Dungeon extends Region implements Listener {
           if (plugin.getCnf().ResetButton()) {
             plugin.Commands(null, new String[]{"reset", name});
           } else if (plugin.getCnf().RecallButton()) {
-            plugin.Commands(event.getPlayer(), new String[]{"recall"});
+            teleportToTop(event.getPlayer());
+            //plugin.Commands(event.getPlayer(), new String[]{"recall"});
           }
         }
       } else if(plugin.getCnf().ClickIronDoor() && mat == Material.IRON_DOOR_BLOCK) {
