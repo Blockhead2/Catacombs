@@ -74,6 +74,8 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
 
@@ -1130,9 +1132,10 @@ public class Dungeon extends Region implements Listener {
   public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
     Player player = event.getPlayer();
     Block blk = player.getLocation().getBlock();
-    if (isProtected(blk) && !event.isCancelled()) {
+    if (isProtected(blk) && !event.isCancelled() &&
+            !plugin.hasPermission(player, "catacombs.admin")) {
       for(String cmd:plugin.getCnf().BannedCommands()) {
-        if (event.getMessage().startsWith(cmd)) {
+        if (event.getMessage().equals(cmd)) {
           player.sendMessage("'"+cmd+"' is blocked in dungeons");
           event.setCancelled(true);
           return;
@@ -1202,6 +1205,23 @@ public class Dungeon extends Region implements Listener {
     }
   }
   
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void onPlayerTeleport(PlayerTeleportEvent event) {
+    Player player = event.getPlayer();
+    if(event.getCause() == TeleportCause.COMMAND) {
+      Block from = event.getFrom().getBlock();
+      Block to = event.getTo().getBlock();
+      if(plugin.getCnf().NoTeleportIn() && isProtected(to) &&
+              !plugin.hasPermission(player, "catacombs.admin")) {
+        player.sendMessage("Teleporting to a place inside a dungeon is disabled");
+        event.setCancelled(true);
+      } else if(plugin.getCnf().NoTeleportOut() && isProtected(from) &&
+              !plugin.hasPermission(player, "catacombs.admin")) {
+        player.sendMessage("Teleporting to a place outside a dungeon is disabled");
+        event.setCancelled(true);
+      }
+    }
+  }
   /////////////////////////////////////////////////////////////////////////////
   //
   //    Inventory Events
@@ -1295,7 +1315,7 @@ public class Dungeon extends Region implements Listener {
     LivingEntity damagee = event.getEntity();
     Block blk = damagee.getLocation().getBlock();
     if(isInRaw(blk)) { 
-      if(event instanceof PlayerDeathEvent) {
+      if(event instanceof PlayerDeathEvent) {  // Player death
         PlayerDeathEvent pde = (PlayerDeathEvent) event;
         Player player = (Player) damagee;
         if(plugin.getCnf().DeathExpKept()>0) // Don't drop any exp if some will be retained.
@@ -1306,15 +1326,22 @@ public class Dungeon extends Region implements Listener {
           plugin.getPlayers().saveGear(player);
           pde.getDrops().clear(); // We'll handle the items, don't drop them yet
         }
-      } else if(!plugin.getCnf().GoldOff()) {
-        EntityDamageEvent ede = damagee.getLastDamageCause();
-        Entity damager = CatUtils.getDamager(ede);
-        if(damager instanceof Player) {
-          double gold = plugin.getCnf().Gold();
-          String bal = CatUtils.giveCash(plugin.getCnf(),damager,gold);
-          if(bal!=null && gold > 0)
-            ((Player)damager).sendMessage(gold+" coins ("+bal+")");
-        }         
+      } else {  // Monster death
+        if(plugin.getCnf().MobDropReductionChance()) {
+          System.out.println("[Catacombs] Mob drop loot is cancelled");
+          event.getDrops().clear();
+        }
+        if (!plugin.getCnf().GoldOff()) {
+          EntityDamageEvent ede = damagee.getLastDamageCause();
+          Entity damager = CatUtils.getDamager(ede);
+          if (damager instanceof Player) {
+            double gold = plugin.getCnf().Gold();
+            String bal = CatUtils.giveCash(plugin.getCnf(), damager, gold);
+            if (bal != null && gold > 0) {
+              ((Player) damager).sendMessage(gold + " coins (" + bal + ")");
+            }
+          }
+        }      
       }
     }    
       

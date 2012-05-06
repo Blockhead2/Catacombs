@@ -42,7 +42,23 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * 
- * 
+ *
+Release v2.5
+* Added a configuration to allow admins to reduce the amount of normal and special
+  loot that monsters drop in dungeons (MobDropReductionPct: 0 is the default).
+* Changed it so Admins can use the blocked commands in dungeons even when the
+  dungeons aren't suspended.
+* Changed the code so the whole command is checked against the blocked commands
+  list (not just the start of the command).
+* Fixed a bug when using ID numbers for materials rather than the bukkit names.
+* Added an option to the config file for Slime spawners. However the spawners
+  don't generate any slimes so you'll have to wait for other changes before this
+  is useful.
+* Added configurations to allow admins to block players teleporting to locations
+  inside enabled dungeons (e.g /back) and/or to teleport out of enabled dungeons
+  (e.g /home). These configurations allow extra control in addition to the
+  BannedCommands list. The catacombs 'goto', 'end' and recall commands still
+  work (they have their own permissions).
  
 Release v2.4
 * Changed code to use Vault rather than WEPIF (for permissions) and Register
@@ -322,7 +338,7 @@ Release v0.7
   - Changed reset/enable/suspend/goto/end commands so they default to the dungeon
     you are in if a dungeon name isn't given.
   - Changed '/cat list' so it lists the dungeons in alphabetical order.
-  - Changed code so unrender and reset commands teleport any players inside the dungeon
+  - Changed code so delete and reset commands teleport any players inside the dungeon
     up into the relative safety of the hut first (not the surface as before)
   - Added checks to make sure dungeons can't be build that intersect
   - Added checks to ensure dungeons are still all natural when you build them
@@ -404,7 +420,7 @@ Release v0.5
     The raw map for each level is now also saved to the database which means that
     in future releases I'll be able to restore webs and mob spawners when
     a dungeon is reset.
-  - Part fixed the unrender dungeon option. This now works without crashing the client
+  - Part fixed the delete dungeon option. This now works without crashing the client
     by avoiding deleting the chests.
   - Replaced my cash for monsters scheme with 'Register' (Nijikokun) which provides
     support for multiple economy plugins (iConomy4/5/6, EssentialsEco,
@@ -439,7 +455,7 @@ Release v0.4
   - Added code to kick players to the surface if they are in a dungeon being
     reset or deleted.
   - Getting strange client side crashes with bukkit 1185 when deleting dungeons, this
-    feature (unrender) has been disabled for the moment.
+    feature (delete) has been disabled for the moment.
  
 Release v0.3
   - Added Soul Sand into the floor in some rooms to slow movement down
@@ -453,7 +469,7 @@ Release v0.3
     clears torches, refills the chests. Chests in the hut are left unchanged, other
     chests are cleared before being restocked. Mushrooms, spawners and webs aren't
     restocked if they have been destroyed.
-  - Added some extra tidy up during dungeon unrender. One up shot of this is the
+  - Added some extra tidy up during dungeon delete. One up shot of this is the
     trap door in the top hut is now destroyed correctly.
   - Changed block place,damage,break routines to integrate better with other plugins
  *
@@ -588,7 +604,7 @@ public class Catacombs extends JavaPlugin {
       return true;
     
     if(permission != null) {
-      return permission.has(player, "achieve.admin") || permission.has(player, perm);
+      return permission.has(player, "catacombs.admin") || permission.has(player, perm);
     }
 
     return player.isOp();

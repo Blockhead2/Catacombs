@@ -55,12 +55,14 @@ public class CatConfig extends Config implements ICatConfig {
   private Integer CaveSpiderPct()          { return getSInt(ECatConfig.CaveSpiderPct.getStr());  }
   private Integer BlazePct()               { return getSInt(ECatConfig.BlazePct.getStr());  }
   private Integer EndermanPct()            { return getSInt(ECatConfig.EndermanPct.getStr());  }
+  private Integer SlimePct()               { return getSInt(ECatConfig.SlimePct.getStr());  }
   private Integer CreeperPct()             { return getSInt(ECatConfig.CreeperPct.getStr());  }
   private Integer IronDoorPct()            { return getSInt(ECatConfig.IronDoorPct.getStr());  }
   //private Integer SilverFishPct()          { return getSInt(ECatConfig.SilverFishPct.getStr());  }
   private Double GoldMin()                 { return getSDouble(ECatConfig.GoldMin.getStr());  }
   private Double GoldMax()                 { return getSDouble(ECatConfig.GoldMax.getStr());  }
   private Integer SmallEquipPct()          { return getSInt(ECatConfig.SmallEquipPct.getStr());  }
+  private Integer MobDropReductionPct()    { return getSInt(ECatConfig.MobDropReductionPct.getStr());  }
   private Integer MedEquipPct()            { return getSInt(ECatConfig.MedEquipPct.getStr());  }
   private Integer MedSmallPct()            { return getSInt(ECatConfig.MedSmallPct.getStr());  }
   private Integer BigEquipPct()            { return getSInt(ECatConfig.BigEquipPct.getStr());  }
@@ -71,6 +73,8 @@ public class CatConfig extends Config implements ICatConfig {
   public  List<String> LootBigList()       { return getSStringList(ECatConfig.LootBigList.getStr());  }
  
   public  Boolean emptyChest()             { return getSBoolean(ECatConfig.emptyChest.getStr());  }
+  public  Boolean NoTeleportIn()           { return getSBoolean(ECatConfig.NoTeleportIn.getStr());  }
+  public  Boolean NoTeleportOut()          { return getSBoolean(ECatConfig.NoTeleportOut.getStr());  }
   public  Boolean ProtectSpawners()        { return getSBoolean(ECatConfig.ProtectSpawners.getStr());  }
   public  Boolean SecretDoorOnlyInDungeon(){ return getSBoolean(ECatConfig.SecretDoorOnlyInDungeon.getStr());  }
   public  Boolean GoldOff()                { return getSBoolean(ECatConfig.GoldOff.getStr());  }
@@ -99,6 +103,7 @@ public class CatConfig extends Config implements ICatConfig {
   private List<String> PlaceBlocks()       { return getSStringList(ECatConfig.PlaceBlocks.getStr());  }
   
   public  Boolean SmallEquipChance()       { return Chance(SmallEquipPct()); }
+  public  Boolean MobDropReductionChance() { return Chance(MobDropReductionPct()); }
   public  Boolean MedSweepOre()            { return getSBoolean(ECatConfig.MedSweepOre.getStr()); }
   public  Boolean MedEquipChance()         { return Chance(MedEquipPct()); }
   public  Boolean MedSmallChance()         { return Chance(MedSmallPct()); }
@@ -266,6 +271,12 @@ public class CatConfig extends Config implements ICatConfig {
             CaveSpiderPct()+BlazePct()+
             CreeperPct()+EndermanPct())
       return "Enderman";
+    if(r<=SpiderPct()+SkeletonPct()+
+            WolfPct()+PigmanPct()+
+            CaveSpiderPct()+BlazePct()+
+            CreeperPct()+EndermanPct() +
+            SlimePct())
+      return "Slime";
     return "Zombie";
   }
   

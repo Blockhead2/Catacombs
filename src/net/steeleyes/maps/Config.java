@@ -282,8 +282,13 @@ public class Config implements IConfig {
   }
   @SuppressWarnings("unchecked")
   protected String getSString(String path) {
-    return (String) getSP(path);
+    Object o = getSP(path);
+    if(o instanceof String) {
+      return (String) o;
+    }
+    return o.toString();
   }
+  
   @SuppressWarnings("unchecked")
   protected List<Boolean> getSBooleanList(String path) {
     return (List<Boolean>) getSP(path);

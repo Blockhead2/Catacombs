@@ -66,6 +66,8 @@ public interface ICatConfig extends IConfig {
   public  Material     ShroomType();
   public  Material     AirType();
   public  Material     DoorMaterial();
+  public  Boolean      NoTeleportIn();
+  public  Boolean      NoTeleportOut();
   public  Boolean      isNatural(Block b);
   public  Boolean      isBreakable(Block b);
   public  Boolean      isPlaceable(Block b);
@@ -76,6 +78,7 @@ public interface ICatConfig extends IConfig {
   public  List<String> LootBigList();
 
   public  Boolean SmallEquipChance();
+  public  Boolean MobDropReductionChance();
   public  Boolean MedEquipChance();
   public  Boolean MedSmallChance();
   public  Boolean MedSweepOre();
