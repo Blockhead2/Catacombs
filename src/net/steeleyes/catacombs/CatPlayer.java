@@ -19,10 +19,12 @@ along with Catacombs.  If not, see <http://www.gnu.org/licenses/>.
  */
 package net.steeleyes.catacombs;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class CatPlayer {
   Player player;
+  Location respawn = null;
   // Hit timer
   // Doing splash threat?
   // threat weapon? how much threat
@@ -35,4 +37,13 @@ public class CatPlayer {
   public Player getPlayer() {
     return player;
   }
+
+  public Location getRespawn() {
+    return respawn;
+  }
+
+  public void setRespawn(Location respawn) {
+    this.respawn = respawn;
+  }
+  
 }

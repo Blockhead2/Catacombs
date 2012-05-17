@@ -2,7 +2,7 @@ name: Catacombs
 main: net.steeleyes.catacombs.Catacombs
 version: 2.5
 depend:
-softdepend: [Vault]
+softdepend: [Vault Multiverse]
 commands:
     catacombs:
         description: Build catacombs

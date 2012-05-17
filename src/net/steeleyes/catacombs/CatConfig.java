@@ -80,6 +80,7 @@ public class CatConfig extends Config implements ICatConfig {
   public  Boolean GoldOff()                { return getSBoolean(ECatConfig.GoldOff.getStr());  }
   public  Boolean NoArmourInDungeon()      { return getSBoolean(ECatConfig.NoArmourInDungeon.getStr());  }
   public  Boolean NoPvPInDungeon()         { return getSBoolean(ECatConfig.NoPvPInDungeon.getStr());  }
+  public  Boolean RespawnInHut()           { return getSBoolean(ECatConfig.RespawnInHut.getStr());  }
   public  Boolean MobsSpawnOnlyUnderground(){ return getSBoolean(ECatConfig.MobsSpawnOnlyUnderground.getStr());  }
   public  Boolean MobsSpawnOnlyInDungeons(){ return getSBoolean(ECatConfig.MobsSpawnOnlyInDungeons.getStr());  }
   //public  Boolean BossEnabled()            { return getSBoolean(ECatConfig.BossEnabled.getStr());  }
@@ -201,6 +202,7 @@ public class CatConfig extends Config implements ICatConfig {
     super.setStyle(style);
     NaturalList = cacheBlockMaterialList(NaturalBlocks());    
     BreakList = cacheBlockMaterialList(BreakBlocks());    
+    PlaceList = cacheBlockMaterialList(PlaceBlocks());    
   }
   
   private List<CatMat> cacheBlockMaterialList(List<String> in) {

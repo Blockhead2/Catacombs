@@ -29,6 +29,7 @@ public enum ECatConfig {
     GoldOff                 ("Admin.GoldOff", false),
     ProtectSpawners         ("Admin.ProtectSpawners", true),
     NoPvPInDungeon          ("Admin.NoPvPInDungeon", true),
+    RespawnInHut            ("Admin.RespawnInHut", false),
     MobsSpawnOnlyUnderground("Admin.MobsSpawnOnlyUnderground", false),
     MobsSpawnOnlyInDungeons ("Admin.MobsSpawnOnlyInDungeons", false),
     NoArmourInDungeon       ("Admin.NoArmourInDungeon", false),

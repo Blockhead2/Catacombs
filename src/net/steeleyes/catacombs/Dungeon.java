@@ -201,7 +201,7 @@ public class Dungeon extends Region implements Listener {
     }
   }
   
-  public void render(BlockChangeHandler handler) {
+  public void render(BlockChangeHandler handler) throws Exception {
     int lvl = 0;
     for(CatLevel l : levels) {
       String[] text = new String[4];
@@ -1325,6 +1325,9 @@ public class Dungeon extends Region implements Listener {
         if(plugin.getCnf().DeathKeepGear()) {
           plugin.getPlayers().saveGear(player);
           pde.getDrops().clear(); // We'll handle the items, don't drop them yet
+        }
+        if(plugin.getCnf().RespawnInHut()) {
+          plugin.getPlayers().setRespawn(player,getTopLocation());
         }
       } else {  // Monster death
         if(plugin.getCnf().MobDropReductionChance()) {

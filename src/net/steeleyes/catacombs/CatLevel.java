@@ -386,7 +386,7 @@ public class CatLevel {
     renderTileSection(handler,xx,roof_l+1,roof_h,zz,roof1,cnf.roofMat());
   }
 
-  public void addLeveltoWorld (BlockChangeHandler handler, String[] info) {
+  public void addLeveltoWorld (BlockChangeHandler handler, String[] info) throws Exception {
     if(level == null || world == null)
         return;
     
@@ -403,7 +403,18 @@ public class CatLevel {
     CatMat minor    = cnf.minorMat();
     CatMat floorBlk = cnf.floorMat();
     CatMat roofBlk  = cnf.roofMat();
-
+    if(major==null) {
+      throw new Exception("Invalid major material.");
+    }
+    if(minor==null) {
+      throw new Exception("Invalid minor material.");
+    }
+    if(floorBlk==null) {
+      throw new Exception("Invalid floorBlk material.");
+    }
+    if(roofBlk==null) {
+      throw new Exception("Invalid roofBlk material.");
+    }
     // Short hand names to help a bit with code formatting
     Material cob = major.getMat();
     Material flr = floorBlk.getMat();
@@ -433,7 +444,7 @@ public class CatLevel {
           case WALL:
           case HIGH_BARS:
           case WINDOW:
-          case FIXEDWALL:      renderTile(handler,xx,top.y,zz,undr,undr,cob ,cob ,ecob,over); break;
+          case FIXEDWALL:      renderTile(handler,xx,top.y,zz,undr,cob ,cob ,cob ,ecob,over); break;
           case WATER:
           case LAVA:           Material liq = (s==Square.LAVA)?Material.STATIONARY_LAVA:Material.STATIONARY_WATER;
                                renderTile(handler,xx,top.y,zz,flr ,liq ,air ,air ,roo ,over);  break;

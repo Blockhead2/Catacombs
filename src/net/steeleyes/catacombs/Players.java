@@ -21,12 +21,13 @@ package net.steeleyes.catacombs;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class Players {
-  public  Map<Player,CatPlayer>       players = new HashMap<Player,CatPlayer>();
+  public final Map<Player,CatPlayer> players = new HashMap<Player,CatPlayer>();
   
-  public  Map<Player,CatGear> gear = new HashMap<Player,CatGear>();
+  public final Map<Player,CatGear> gear = new HashMap<Player,CatGear>();
   
   public Boolean isManaged(Player p) {
     return players.containsKey(p);
@@ -57,6 +58,24 @@ public class Players {
     }
   }
   
+  public void setRespawn(Player player,Location loc) {
+    if(players.containsKey(player)) {
+      CatPlayer cp = players.get(player);
+      cp.setRespawn(loc);
+    } else {
+      CatPlayer cp = new CatPlayer(player);
+      players.put(player,cp);
+      cp.setRespawn(loc);
+    }
+  }
+  
+  public Location getRespawn(Player player) {
+    if(players.containsKey(player)) {
+      return players.get(player).getRespawn();
+    }
+    return null;
+  }
+  
   public void add(CatPlayer cp) {
     players.put(cp.getPlayer(),cp); 
   }
@@ -64,6 +83,7 @@ public class Players {
   public void remove(Player player) {
     players.remove(player);
   }  
+  
   public CatPlayer get(Player player) {
     return players.get(player);
   }

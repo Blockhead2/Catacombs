@@ -59,6 +59,16 @@ Release v2.5
   (e.g /home). These configurations allow extra control in addition to the
   BannedCommands list. The catacombs 'goto', 'end' and recall commands still
   work (they have their own permissions).
+* Fixed an issue with lava or water leaking out if the sides of special rooms
+  when under fill isn't being used and the dungeon is built through air.
+* Added configuration to allow players who die in a dungeon to respawn in the
+  hut above it.
+* Added a '/cat load <world>' command to force dungeons to be loaded (or reloaded)
+  in worlds that are dynamically loaded long after startup.
+* Added code to automatically load and unload dungeons when worlds are
+  dynamically loaded and unloaded.
+* Fixed an issue with the cached list of placeable blocks not refreshing after
+  a change of style.
  
 Release v2.4
 * Changed code to use Vault rather than WEPIF (for permissions) and Register
@@ -600,14 +610,24 @@ public class Catacombs extends JavaPlugin {
   }
   
   public Boolean hasPermission(Player player,String perm) {
-    if(player == null) // Console has all permissions
+    //System.out.println("[Catacombs] DEBUG: Check permissions Player("+((player==null)?player:player.getName())+") node("+perm+")");
+    if(player == null) { // Console has all permissions
+      //System.out.println("[Catacombs] DEBUG:   Console commands allowed"); 
       return true;
-    
-    if(permission != null) {
-      return permission.has(player, "catacombs.admin") || permission.has(player, perm);
     }
-
-    return player.isOp();
+    if(permission != null) {
+      Boolean admin = permission.has(player, "catacombs.admin");
+      //System.out.println("[Catacombs] DEBUG:   is catacombs admin? "+admin); 
+      if(admin) return true;
+      Boolean node = permission.has(player, perm);
+      //System.out.println("[Catacombs] DEBUG:   has node '"+perm+"'? "+node); 
+      return node;
+    } else {
+      //System.out.println("[Catacombs] DEBUG:   No permission system active"); 
+    }
+    Boolean op = player.isOp();
+    //System.out.println("[Catacombs] DEBUG:   is Op? "+op); 
+    return op;
   }
 
   public CatSQL getSql() {
@@ -852,7 +872,12 @@ public class Catacombs extends JavaPlugin {
       } else if(cmd(p,args,"reload")) {
         cnf = new CatConfig(getConfig());
         inform(p,"config reloaded");
-        
+
+      // LOAD  
+      } else if(cmd(p,args,"load","s")) {
+        int cnt = loadWorld(args[1]);
+        inform(p,cnt+" dungeon(s) loaded/reloaded in "+args[1]);
+                
       // TEST  
       } else if(cmd(p,args,"test")) {
         //Location loc = p.getLocation();
@@ -1076,26 +1101,30 @@ public class Catacombs extends JavaPlugin {
   
   public void buildDungeon(Player p,String dname) {
     if(dungeons.exists(dname)) {
-      Dungeon dung = dungeons.get(dname);
-      if(dung.isBuilt()) {
-        inform(p,"Dungeon "+dname+" has already been built");
-        return;
+      try {
+        Dungeon dung = dungeons.get(dname);
+        if(dung.isBuilt()) {
+          inform(p,"Dungeon "+dname+" has already been built");
+          return;
+        }
+        if(!dung.isNatural()) {
+          inform(p,"Loaction of '"+dname+"' is no longer solid-natural (replan)");
+          return;
+        }
+        Dungeon overlap = dungeons.getOverlap(dung);
+        if(overlap!=null) {
+          inform(p,"'"+dname+"' overlaps dungeon '"+overlap.getName()+"'(replan or remove it)");
+          return;
+        }
+        inform(p,"Building "+dname);
+        dung.setupFlagsLocations();
+        dung.saveDB();
+        dung.render(handler);
+        dung.saveMap(mapdir + File.separator + dname + ".map");
+        handler.add(p);
+      } catch (Exception e) {
+        inform(p,"Can't build '"+dname+"'. Check the console for errors");
       }
-      if(!dung.isNatural()) {
-        inform(p,"Loaction of '"+dname+"' is no longer solid-natural (replan)");
-        return;
-      }
-      Dungeon overlap = dungeons.getOverlap(dung);
-      if(overlap!=null) {
-        inform(p,"'"+dname+"' overlaps dungeon '"+overlap.getName()+"'(replan or remove it)");
-        return;
-      }
-      inform(p,"Building "+dname);
-      dung.setupFlagsLocations();
-      dung.saveDB();
-      dung.render(handler);
-      dung.saveMap(mapdir + File.separator + dname + ".map");
-      handler.add(p);
     } else {
       inform(p,"Dungeon "+dname+" doesn't exist");
     }
@@ -1150,8 +1179,8 @@ public class Catacombs extends JavaPlugin {
   public void unloadDungeon(String name) {
     dungeons.unloadDungeon(name);
   } 
-  public void loadWorld(String name) {
-    dungeons.loadWorld(name);
+  public int loadWorld(String name) {
+    return dungeons.loadWorld(name);
   }
   public void unloadWorld(String name) {
     dungeons.unloadWorld(name);

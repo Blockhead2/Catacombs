@@ -75,19 +75,26 @@ public class Dungeons {
     }
   }
   
-  public void loadWorld(String name) {
+  public int loadWorld(String name) {
+    int cnt = 0;
     if(sql!=null) {
       try {
         ResultSet rs = sql.query("SELECT did,version,dname,wname,pname,major,minor FROM dungeons WHERE wname='"+name+"'");
         while(rs.next()) {
           Dungeon dung = new Dungeon(plugin,rs);
-          if(dung.getWorld()!=null)
-            dungeons.put(dung.getName(),dung);
+          if(dung.getWorld()!=null) {
+            String dname = dung.getName();
+            //if(!dungeons.containsKey(dname)) {
+              dungeons.put(dname,dung);
+              cnt++;
+            //}
+          }
         }
       } catch(Exception e) {
         System.err.println("[Catacombs] ERROR: "+e.getMessage());
       }
-    }    
+    }   
+    return cnt;
   }
   
   public void unloadWorld(String name) {

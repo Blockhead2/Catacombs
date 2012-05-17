@@ -20,6 +20,7 @@
 
 package net.steeleyes.catacombs;
 
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,6 +31,8 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.entity.Monster;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 
 public class CatListener implements Listener {
   private Catacombs plugin;
@@ -59,7 +62,7 @@ public class CatListener implements Listener {
   //
   /////////////////////////////////////////////////////////////////////////////
     
-  @EventHandler(priority = EventPriority.LOW)
+  @EventHandler(priority = EventPriority.HIGHEST)
   public void onPlayerRespawn(PlayerRespawnEvent evt) {
     Player player = evt.getPlayer();
     if(plugin.getPlayers().hasGear(player)) {
@@ -69,6 +72,12 @@ public class CatListener implements Listener {
       } else {
         plugin.getPlayers().dropGear(player);
       }
+    }
+    Location loc = plugin.getPlayers().getRespawn(player);
+    if(loc != null) {
+      evt.setRespawnLocation(loc);
+      player.sendMessage("Respawning in the hut");
+      plugin.getPlayers().setRespawn(player,null);
     }
   }
   
@@ -107,6 +116,22 @@ public class CatListener implements Listener {
   //    SERVER Events
   //
   /////////////////////////////////////////////////////////////////////////////
+  
+  /////////////////////////////////////////////////////////////////////////////
+  //
+  //    WORLD Events
+  //
+  /////////////////////////////////////////////////////////////////////////////
 
-     
+  @EventHandler(priority = EventPriority.LOW)
+  public void onWorldLoad(WorldLoadEvent evt) {
+    int cnt = plugin.loadWorld(evt.getWorld().getName());
+    System.out.println("[Catacombs] Dynamic world load "+evt.getWorld().getName()+" "+cnt+" dungeon(s)");
+  }
+  
+  @EventHandler(priority = EventPriority.LOW)
+  public void onWorldUnload(WorldUnloadEvent evt) {
+    System.out.println("[Catacombs] Dynamic world unload "+evt.getWorld().getName());
+    plugin.unloadWorld(evt.getWorld().getName());
+  }    
 }

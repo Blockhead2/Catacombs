@@ -40,6 +40,7 @@ public interface ICatConfig extends IConfig {
   public  Boolean ProtectSpawners();
   public  Boolean SecretDoorOnlyInDungeon();
   public  Boolean GoldOff();
+  public  Boolean RespawnInHut();
   public  Boolean NoPvPInDungeon();
   public  Boolean NoArmourInDungeon();
   public  Boolean MobsSpawnOnlyUnderground();
