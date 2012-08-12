@@ -20,6 +20,7 @@
 package net.steeleyes.maps;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -28,11 +29,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class Config implements IConfig {
   protected static FileConfiguration fcnf;
-  //protected static Configuration cnf;
   protected static final String def_style = "catacomb";
   protected String style                  = "catacomb";
   public final Random rnd = new Random();
-  //protected final String filename;
   protected File filename;
 
 
@@ -91,6 +90,7 @@ public class Config implements IConfig {
       fcnf.save(filename);
     } catch (Exception e) {
       System.err.println("[Catacombs] "+e.getMessage());
+      e.printStackTrace(System.out);
     }
   }   
   
@@ -257,30 +257,37 @@ public class Config implements IConfig {
     }       
   }  
   
-  @SuppressWarnings("unchecked")
   protected Boolean getSBoolean(String path) {
-    return (Boolean) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  protected Integer getSInt(String path) {
-    return (Integer) getSP(path);
-  }
-  @SuppressWarnings("unchecked")
-  protected Double getSDouble(String path) {
-    double a = 0.0;
-    try {
-      a = (Double) getSP(path);
-    } catch(Exception e) {
-      try {
-        int x = (Integer) getSP(path);
-        a = (double) x;
-      } catch(Exception e2) {
-        
-      }
+    Object o = getSP(path);
+    if(o instanceof Boolean) {
+      return (Boolean) o;
     }
-    return a;
+    System.err.println("[Catacombs] Expecting '"+path+"' to be a Boolean, found "+o);
+    return false;
   }
-  @SuppressWarnings("unchecked")
+  
+  protected Integer getSInt(String path) {
+    Object o = getSP(path);
+    if(o instanceof Integer) {
+      return (Integer) o;
+    } else if(o instanceof Double) {
+      return ((Double)o).intValue();
+    }
+    System.err.println("[Catacombs] Expecting '"+path+"' to be an Integer/Double, found "+o);
+    return 0;
+  }
+  
+  protected Double getSDouble(String path) {
+    Object o = getSP(path);
+    if(o instanceof Double) {
+      return (Double) o;
+    } else if(o instanceof Integer) {
+      return ((Integer)o).doubleValue();
+    }
+    System.err.println("[Catacombs] Expecting '"+path+"' to be a Double/Integer, found "+o);
+    return 0.0;
+  }
+  
   protected String getSString(String path) {
     Object o = getSP(path);
     if(o instanceof String) {
@@ -289,22 +296,78 @@ public class Config implements IConfig {
     return o.toString();
   }
   
-  @SuppressWarnings("unchecked")
   protected List<Boolean> getSBooleanList(String path) {
-    return (List<Boolean>) getSP(path);
+    Object o = getSP(path);
+    ArrayList<Boolean> res = new ArrayList<Boolean>();
+    if(o instanceof List) {
+      for(Object i:(List)o) { 
+        if(i instanceof Boolean) {
+          res.add((Boolean)i);
+        } else {
+          System.err.println("[Catacombs] Expecting '"+path+"' to be a Boolean List, found "+i+" "+i.getClass());
+        }
+      }
+      return res;
+    }
+    System.err.println("[Catacombs] Expecting '"+path+"' to be a Boolean List, found "+o.getClass());
+    return res;
   }
-  @SuppressWarnings("unchecked")
+  
   protected List<Integer> getSIntList(String path) {
-    return (List<Integer>) getSP(path);
+    Object o = getSP(path);
+    ArrayList<Integer> res = new ArrayList<Integer>();
+    if(o instanceof List) {
+      for(Object i:(List)o) { 
+        if(i instanceof Integer) {
+          res.add((Integer)i);
+        } else if(i instanceof Double) {
+          res.add(((Double)i).intValue());
+        } else {
+          System.err.println("[Catacombs] Expecting '"+path+"' to be an Integer/Double List, found "+i+" "+i.getClass());
+        }
+      }
+      return res;
+    }
+    System.err.println("[Catacombs] Expecting '"+path+"' to be an Integer/Double List, found "+o.getClass());
+    return res;
   }
-  @SuppressWarnings("unchecked")
+
   protected List<Double> getSDoubleList(String path) {
-    return (List<Double>) getSP(path);
+    Object o = getSP(path);
+    ArrayList<Double> res = new ArrayList<Double>();
+    if(o instanceof List) {
+      for(Object i:(List)o) { 
+        if(i instanceof Double) {
+          res.add((Double)i);
+        } else if(i instanceof Integer) {
+          res.add(((Integer)i).doubleValue());
+        } else {
+          System.err.println("[Catacombs] Expecting '"+path+"' to be a Double/Integer List, found "+i+" "+i.getClass());
+        }
+      }
+      return res;
+    }
+    System.err.println("[Catacombs] Expecting '"+path+"' to be a Double/Integer List, found "+o.getClass());
+    return res;
   }
-  @SuppressWarnings("unchecked")
+
   protected List<String> getSStringList(String path) {
-    return (List<String>) getSP(path);
+    Object o = getSP(path);
+    ArrayList<String> res = new ArrayList<String>();
+    if(o instanceof List) {
+      for(Object i:(List)o) { 
+        if(i instanceof String) {
+          res.add((String)i);
+        } else {
+          res.add(i.toString());
+        }
+      }
+      return res;
+    }
+    System.err.println("[Catacombs] Expecting '"+path+"' to be a String List, found "+o.getClass());
+    return res;
   }    
+  
   public void setSInt(String path, Integer val) {
     setSP(path,(Object) val);
   }

@@ -461,6 +461,8 @@ public class CatUtils {
   }
   
   public static String formatTime(Long num) {
+    if(num<=0)
+      return "never";
     String str = "";
     num = num / 1000;
     if(num>=60*60*24) {

@@ -43,6 +43,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * 
  *
+Release v2.6
+* Fixed force light level code for Bukkit 1.3.1-R1.0, to avoid a crash during
+  dungeon resets.
+* Added 'cat when' and '/cat when <dungeon>' to allow admins (and/or players) to
+  know when a given dungeon is going to execute a timed reset. If you don't give
+  the dungeon name, then it will give the reset time for the dungeon you are in
+  (or looking at).
+
 Release v2.5
 * Added a configuration to allow admins to reduce the amount of normal and special
   loot that monsters drop in dungeons (MobDropReductionPct: 0 is the default).
@@ -624,10 +632,10 @@ public class Catacombs extends JavaPlugin {
       return node;
     } else {
       //System.out.println("[Catacombs] DEBUG:   No permission system active"); 
+      Boolean op = player.isOp();
+      //System.out.println("[Catacombs] DEBUG:   is Op? "+op); 
+      return op;
     }
-    Boolean op = player.isOp();
-    //System.out.println("[Catacombs] DEBUG:   is Op? "+op); 
-    return op;
   }
 
   public CatSQL getSql() {
@@ -790,7 +798,18 @@ public class Catacombs extends JavaPlugin {
       } else if(cmd(p,args,"time","Dt")) {
         setResetMinMax(p,args[1],args[2]);
         inform(p,args[1]+" reset in "+args[2]); 
-              
+
+      // WHEN  ********************************************************
+      } else if(cmd(p,args,"when")) {
+        Dungeon dung = getDungeon(p);
+        if(dung!=null) {
+          inform(p,dung.getName()+" reset time="+dung.getResetTime()); 
+        }
+      } else if(cmd(p,args,"when","D")) {
+        Dungeon dung = dungeons.get(args[1]);
+        if(dung!=null) {
+          inform(p,args[1]+" reset time="+dung.getResetTime()); 
+        }              
       // STYLE  ********************************************************
       } else if(cmd(p,args,"style")) {
         inform(p,"Dungeon style="+cnf.getStyle()); 
@@ -910,8 +929,10 @@ public class Catacombs extends JavaPlugin {
       }
     } catch (IllegalAccessException e) {
       inform(p,e);
+      //e.printStackTrace(System.out);
     } catch (Exception e) {
       inform(p,e);
+      //e.printStackTrace(System.out);
     }
     return true;
   }

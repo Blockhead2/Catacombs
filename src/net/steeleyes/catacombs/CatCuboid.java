@@ -291,7 +291,7 @@ public class CatCuboid extends Cuboid {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         for(int y=yl;y<=yh;y++) {
-          w.a(EnumSkyBlock.BLOCK, x, y, z, level);
+          w.b(EnumSkyBlock.BLOCK, x, y, z, level);
         }
       }
     }

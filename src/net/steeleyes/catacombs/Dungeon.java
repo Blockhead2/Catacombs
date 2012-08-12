@@ -627,6 +627,11 @@ public class Dungeon extends Region implements Listener {
     }
   } 
   
+  public String getResetTime() {
+    long now = System.currentTimeMillis();
+    return CatUtils.formatTime(resetTime.getLong()-now);
+  }
+  
   public void setResetMinMax(String t) {
     Pattern p = Pattern.compile("((\\d+[smhd])+)-((\\d+[smhd])+)");
     Matcher m = p.matcher(t);
@@ -1208,9 +1213,15 @@ public class Dungeon extends Region implements Listener {
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onPlayerTeleport(PlayerTeleportEvent event) {
     Player player = event.getPlayer();
+    Block from = event.getFrom().getBlock();
+    Block to = event.getTo().getBlock();
+//    if(isInRaw(to)) {
+//      System.out.println("[Catacombs] Teleport to "+name+" "+event.getCause());
+//    }
+//    if(isInRaw(from)) {
+//      System.out.println("[Catacombs] Teleport from "+name+" "+event.getCause());
+//    }
     if(event.getCause() == TeleportCause.COMMAND) {
-      Block from = event.getFrom().getBlock();
-      Block to = event.getTo().getBlock();
       if(plugin.getCnf().NoTeleportIn() && isProtected(to) &&
               !plugin.hasPermission(player, "catacombs.admin")) {
         player.sendMessage("Teleporting to a place inside a dungeon is disabled");

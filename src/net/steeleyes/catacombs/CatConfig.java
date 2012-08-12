@@ -200,17 +200,23 @@ public class CatConfig extends Config implements ICatConfig {
   @Override
   public void setStyle(String style) {  // Recache material lists if style changes
     super.setStyle(style);
-    NaturalList = cacheBlockMaterialList(NaturalBlocks());    
-    BreakList = cacheBlockMaterialList(BreakBlocks());    
-    PlaceList = cacheBlockMaterialList(PlaceBlocks());    
+    checkConfig();
+    //NaturalList = cacheBlockMaterialList(NaturalBlocks());    
+    //BreakList = cacheBlockMaterialList(BreakBlocks());    
+    //PlaceList = cacheBlockMaterialList(PlaceBlocks());    
   }
   
   private List<CatMat> cacheBlockMaterialList(List<String> in) {
     List<CatMat> out = new ArrayList<CatMat>();
     for(String name:in) {
+      try {
       CatMat item = CatMat.parseMaterial(name);
       if(item != null)
-        out.add(item);        
+        out.add(item);
+      } catch (Exception e) {
+        System.err.println("[Catacombs] "+e);
+        e.printStackTrace(System.err);
+      }
     }
     return out;
   }
