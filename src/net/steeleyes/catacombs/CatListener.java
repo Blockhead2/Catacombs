@@ -21,6 +21,7 @@
 package net.steeleyes.catacombs;
 
 import org.bukkit.Location;
+import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -91,6 +92,10 @@ public class CatListener implements Listener {
   public void onCreatureSpawn(CreatureSpawnEvent evt) {
     if(evt.isCancelled())
       return;
+    
+    if(evt.getEntity().getWorld().getEnvironment() == Environment.THE_END) {
+      return;
+    }
     
     SpawnReason reason = evt.getSpawnReason();
     Block blk = evt.getLocation().getBlock();

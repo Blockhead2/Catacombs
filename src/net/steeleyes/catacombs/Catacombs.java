@@ -43,6 +43,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * 
  *
+Release v2.7
+* Changed spawn logic so that creatures in The_End spawn naturally
+  and are not effected by the world wide Catacomb settings.
+
 Release v2.6
 * Fixed force light level code for Bukkit 1.3.1-R1.0, to avoid a crash during
   dungeon resets.
