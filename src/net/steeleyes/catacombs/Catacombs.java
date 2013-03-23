@@ -43,6 +43,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * 
  *
+Release v3.1
+* Fixed force light level code for Bukkit 1.5.1-R0.1, to avoid a crash during dungeon resets and startup
+
+Release v3.0
+* Fixed force light level code for Bukkit 1.5-R0.1, to avoid a crash during dungeon resets and startup
+
 Release v2.9
 * Fixed force light level code for Bukkit 1.4.7-R1.0, to avoid a crash during dungeon resets and startup
  

@@ -33,8 +33,8 @@ import org.bukkit.Location;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import net.minecraft.server.v1_4_R1.EnumSkyBlock;
-import org.bukkit.craftbukkit.v1_4_R1.CraftWorld;
+import net.minecraft.server.v1_5_R2.EnumSkyBlock;
+import org.bukkit.craftbukkit.v1_5_R2.CraftWorld;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.Bed;
 import org.bukkit.material.MaterialData;
@@ -285,7 +285,7 @@ public class CatCuboid extends Cuboid {
   }
   
   public void forceLightLevel(int level) {
-    net.minecraft.server.v1_4_R1.World w = ((CraftWorld) world).getHandle();
+    net.minecraft.server.v1_5_R2.World w = ((CraftWorld) world).getHandle();
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
         for(int y=yl;y<=yh;y++) {
