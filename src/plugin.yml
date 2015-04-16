@@ -1,9 +1,0 @@
-name: Catacombs
-main: net.steeleyes.catacombs.Catacombs
-version: 3.3
-depend:
-softdepend: [Vault Multiverse]
-commands:
-    catacombs:
-        description: Build catacombs
-        aliases: ['cat']
