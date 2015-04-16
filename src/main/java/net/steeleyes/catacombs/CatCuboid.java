@@ -33,8 +33,6 @@ import org.bukkit.Location;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import net.minecraft.server.v1_5_R3.EnumSkyBlock;
-import org.bukkit.craftbukkit.v1_5_R3.CraftWorld;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.material.Bed;
 import org.bukkit.material.MaterialData;
@@ -281,20 +279,8 @@ public class CatCuboid extends Cuboid {
         }
       }
     }
-    forceLightLevel(0);
   }
-  
-  public void forceLightLevel(int level) {
-    net.minecraft.server.v1_5_R3.World w = ((CraftWorld) world).getHandle();
-    for(int x=xl;x<=xh;x++) {
-      for(int z=zl;z<=zh;z++) {
-        for(int y=yl;y<=yh;y++) {
-          w.b(EnumSkyBlock.BLOCK, x, y, z, level);
-        }
-      }
-    }
-  }
-  
+    
   public void restoreCake() {
     for(int x=xl;x<=xh;x++) {
       for(int z=zl;z<=zh;z++) {
