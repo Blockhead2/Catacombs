@@ -56,7 +56,7 @@ public class Mob {
   
   public void damage(EntityDamageEvent evt) {
     gotHit = Calendar.getInstance().getTimeInMillis();
-    hps = hps - evt.getDamage();
+    hps = (int) (hps - evt.getDamage()); // TODO: verify cast
     //System.out.println("[Catacombs] "+type.getName()+" dmg="+evt.getDamage()+" hps="+hps);
     evt.setDamage(1);
     if(hps<=0) {

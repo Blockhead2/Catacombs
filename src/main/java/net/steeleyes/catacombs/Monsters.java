@@ -113,7 +113,7 @@ public class Monsters {
     if(!healee.isDead()){
       WildResp resp = isWild(healer,HEAL_PLAYER,null);
       if(!resp.wild) {
-        int health = healee.getHealth();
+        int health = (int) healee.getHealth(); // TODO: verify cast
         if(health<20) {
           CatUtils.improveDurability(healer,2);
           healee.setHealth(Math.min(20, health+2));
@@ -163,10 +163,10 @@ public class Monsters {
       final int dmg = 10; //evt.getDamage();
       evt.setDamage(dmg);
       pp.setHealth(pp.getMaxHealth());
-      final int before = pp.getHealth();
+      final int before = (int) pp.getHealth(); // TODO: verify cast
       Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin,new Runnable() {
         public void run() {
-          int actual_dmg = before-pp.getHealth();
+          int actual_dmg = (int) (before-pp.getHealth()); // TODO: verify cast
           System.out.println("[Catacombs] delayed ac="+num+" dmg="+dmg+" actual="+actual_dmg);
         }
       }, 1);
@@ -177,7 +177,7 @@ public class Monsters {
     LivingEntity damagee = (LivingEntity) evt.getEntity();
     CatMob mob = monsters.get(damagee);
     LivingEntity damager = (LivingEntity) CatUtils.getDamager(evt);
-    int dmg = evt.getDamage();
+    int dmg = (int) evt.getDamage(); // TODO: verify cast
         
     evt.setDamage(1);
     if(damager instanceof Player) {

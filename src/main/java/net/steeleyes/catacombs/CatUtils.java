@@ -283,7 +283,7 @@ public class CatUtils {
       EntityDamageByEntityEvent e = (EntityDamageByEntityEvent) evt;
       damager = e.getDamager();
       if (damager instanceof Projectile) {
-        damager = ((Projectile) damager).getShooter();
+        damager = (Entity) ((Projectile) damager).getShooter();
       }
     }
     if(damager instanceof LivingEntity) {

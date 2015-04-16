@@ -22,6 +22,7 @@ package net.steeleyes.catacombs;
 import net.steeleyes.maps.Direction;
 
 import java.util.List;
+import java.util.Set;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -29,6 +30,7 @@ import java.io.BufferedWriter;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -966,7 +968,7 @@ public class Catacombs extends JavaPlugin {
       Dungeon dung = dungeons.which(p.getLocation().getBlock());
       if(dung!=null)
         return dung;
-      dung = dungeons.which(p.getTargetBlock(null, 1000));
+      dung = dungeons.which(p.getTargetBlock((Set<Material>)null, 1000));
       if(dung!=null)
         return dung;
       inform(p,"Not in a dungeon (or not looking at one)");    
