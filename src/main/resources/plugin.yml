@@ -1,0 +1,106 @@
+name: Catacombs
+main: net.steeleyes.catacombs.Catacombs
+version: "${project.version}"
+authors: [ Blockhead2, nezroy ]
+depend:
+softdepend: [ Vault ]
+commands:
+  catacombs:
+    description: Build catacombs
+    aliases: ['cat']
+    usage: |
+           /<command> plan <name> <depth> [radius] - test location for a dungeon using the provided settings
+           /<command> unplan <name> - remove the test plan for the named dungeon
+           /<command> build <name> - builds the planned dungeon
+           /<command> scatter <name> <depth> <radius> <distance> - plan then build dungeons in an area around your current location
+           /<command> time [name] <time> - change the reset timer for the named (or nearest) dungeon
+           /<command> when [name] - displays the reset time for the named (or nearest) dungeon
+           /<command> delete <name> - deletes the named dungeon; CANNOT BE UNDONE
+           /<command> reset [name] - resets the named (or nearest) dungeon
+           /<command> resetall - resets all dungeons
+           /<command> unprot <name> - unprotects and forgets the named dungeon, but leaves its contents in world; CANNOT BE UNDONE
+           /<command> suspend [name] - suspends the named (or nearest) dungeon
+           /<command> enable [name] - re-enables a suspended dungeon
+           /<command> goto [name] - teleports you to the start of the named (or nearest) dungeon
+           /<command> end [name] - teleports you to the final chest of the named (or nearest) dungeon
+           /<command> which - returns the name of the current (or nearest) dungeon
+           /<command> style [style] - returns (or sets) the style to be used by the dungeon planner
+           /<command> list - lists all built dungeons
+           /<command> gold - returns current gold amount
+           /<command> iron [name] - changes all wooden doors to iron in the named (or nearest) dungeon
+           /<command> ironall - changes all wooden doors to iron in all dungeons
+           /<command> recall - returns you to the dungeon entrace if you are within 4 blocks of the final chest
+           
+permissions:
+  catacombs.*:
+    description: Gives access to all Catacombs functions
+    children:
+      catacombs.admin: true
+  catacombs.admin:
+    description: Gives access to all Catacombs functions
+    children:
+      catacombs.plan: true
+      catacombs.build: true
+      catacombs.scatter: true
+      catacombs.delete: true
+      catacombs.reset: true
+      catacombs.unprot: true
+      catacombs.goto: true
+      catacombs.end: true
+      catacombs.which: true
+      catacombs.suspend: true
+      catacombs.enable: true
+      catacombs.style: true
+      catacombs.when: true
+      catacombs.list: true
+      catacombs.gold: true
+      catacombs.recall: true
+  catacombs.plan:
+    description: Allows /catacombs plan command
+    default: op
+  catacombs.build:
+    description: Allows /catacombs build command
+    default: op
+  catacombs.scatter:
+    description: Allows /catacombs scatter command
+    default: op
+  catacombs.delete:
+    description: Allows /catacombs delete command
+    default: op
+  catacombs.reset:
+    description: Allows /catacombs reset command
+    default: op
+  catacombs.unprot:
+    description: Allows /catacombs unprot command
+    default: op
+  catacombs.goto:
+    description: Allows /catacombs goto command
+    default: op
+  catacombs.end:
+    description: Allows /catacombs end command
+    default: op
+  catacombs.which:
+    description: Allows /catacombs which command
+    default: true
+  catacombs.suspend:
+    description: Allows /catacombs suspend command
+    default: op
+  catacombs.enable:
+    description: Allows /catacombs enable command
+    default: op
+  catacombs.style:
+    description: Allows /catacombs style command
+    default: op
+  catacombs.when:
+    description: Allows /catacombs when command
+    default: true
+  catacombs.list:
+    description: Allows /catacombs list command
+    default: true
+  catacombs.gold:
+    description: Allows /catacombs gold command
+    default: op
+  catacombs.recall:
+    description: Allows /catacombs recall command
+    default: true
+    
